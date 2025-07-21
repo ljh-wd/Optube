@@ -1,0 +1,20 @@
+{
+    "manifest_version": 3,
+    "name": "Optube",
+    "version": "1.0",
+    "description": "Customizes your YouTube experience. WIP.",
+    "content_scripts": [
+        {
+            "matches": [
+                "https://www.youtube.com/*"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
+    ],
+    "background": {
+        "type": "module"
+    },
+    "permissions": []
+}
