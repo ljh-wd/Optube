@@ -3,6 +3,12 @@
     "name": "Optube",
     "version": "1.0",
     "description": "Customizes your YouTube experience. WIP.",
+    "action": {
+        "default_popup": "index.html"
+    },
+    "icons": {
+        "128": "./icons/icon128.png"
+    },
     "content_scripts": [
         {
             "matches": [
@@ -16,5 +22,15 @@
     "background": {
         "type": "module"
     },
-    "permissions": []
+    "optional_permissions": [
+        "tabs"
+    ],
+    "optional_host_permissions": [
+        "https://www.google.com/"
+    ],
+    "permissions": [
+        "activeTab",
+        "scripting",
+        "storage"
+    ]
 }

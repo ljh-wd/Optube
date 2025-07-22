@@ -1,35 +1,91 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import './App.css';
+import { useEffect, useState } from 'react';
+
 
 function App() {
-  const [count, setCount] = useState(0)
+  // Persistent settings
+  const [hideShorts, setHideShorts] = useState(true);
+  const [minDuration, setMinDuration] = useState(10); // minutes
+  const [hideLiveNow, setHideLiveNow] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Load settings from chrome.storage.sync
+  useEffect(() => {
+    chrome.storage.sync.get(['hideShorts', 'minDuration', 'hideLiveNow'], (result) => {
+      setHideShorts(result.hideShorts ?? true);
+      setMinDuration(result.minDuration ?? 10);
+      setHideLiveNow(result.hideLiveNow ?? false);
+      setLoading(false);
+    });
+  }, []);
+
+  // Save settings to chrome.storage.sync
+  const saveSettings = (newSettings: Partial<{ hideShorts: boolean; minDuration: number; hideLiveNow: boolean; }>) => {
+    chrome.storage.sync.set(newSettings);
+  };
+
+  // Handlers
+  const handleShortsToggle = () => {
+    setHideShorts((prev) => {
+      saveSettings({ hideShorts: !prev });
+      return !prev;
+    });
+  };
+  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Number(e.target.value);
+    setMinDuration(value);
+    saveSettings({ minDuration: value });
+  };
+  const handleLiveNowToggle = () => {
+    setHideLiveNow((prev) => {
+      saveSettings({ hideLiveNow: !prev });
+      return !prev;
+    });
+  };
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
+      <h1>Optube</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+        <h2>YouTube Customizer</h2>
+        {loading ? (
+          <div>Loading settings...</div>
+        ) : (
+          <>
+            <div className="card-section">
+              <label>
+                <input type="checkbox" checked={hideShorts} onChange={handleShortsToggle} />
+                Hide Shorts
+              </label>
+            </div>
+            <div className="card-section">
+              <label>
+                Minimum video duration:
+                <input
+                  type="range"
+                  min={1}
+                  max={60}
+                  value={minDuration}
+                  onChange={handleDurationChange}
+                  className="slider"
+                />
+                <span>{minDuration} min</span>
+              </label>
+            </div>
+            <div className="card-section">
+              <label>
+                <input type="checkbox" checked={hideLiveNow} onChange={handleLiveNowToggle} />
+                Hide "Live Now" section
+              </label>
+            </div>
+            <div className="info-text">
+              Settings are saved and auto-applied across YouTube pages.
+            </div>
+          </>
+        )}
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
