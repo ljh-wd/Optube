@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 function App() {
   // Persistent settings
   const [hideShorts, setHideShorts] = useState(true);
-  const [minDuration, setMinDuration] = useState(10); // minutes
+  // Removed minDuration state
   const [hideLiveNow, setHideLiveNow] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -13,14 +13,14 @@ function App() {
   useEffect(() => {
     chrome.storage.sync.get(['hideShorts', 'minDuration', 'hideLiveNow'], (result) => {
       setHideShorts(result.hideShorts ?? true);
-      setMinDuration(result.minDuration ?? 10);
+      // Removed minDuration loading
       setHideLiveNow(result.hideLiveNow ?? false);
       setLoading(false);
     });
   }, []);
 
   // Save settings to chrome.storage.sync
-  const saveSettings = (newSettings: Partial<{ hideShorts: boolean; minDuration: number; hideLiveNow: boolean; }>) => {
+  const saveSettings = (newSettings: Partial<{ hideShorts: boolean; hideLiveNow: boolean; }>) => {
     chrome.storage.sync.set(newSettings);
   };
 
@@ -31,11 +31,7 @@ function App() {
       return !prev;
     });
   };
-  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number(e.target.value);
-    setMinDuration(value);
-    saveSettings({ minDuration: value });
-  };
+  // Removed handleDurationChange
   const handleLiveNowToggle = () => {
     setHideLiveNow((prev) => {
       saveSettings({ hideLiveNow: !prev });
@@ -58,20 +54,7 @@ function App() {
                 Hide Shorts
               </label>
             </div>
-            <div className="card-section">
-              <label>
-                Minimum video duration:
-                <input
-                  type="range"
-                  min={1}
-                  max={60}
-                  value={minDuration}
-                  onChange={handleDurationChange}
-                  className="slider"
-                />
-                <span>{minDuration} min</span>
-              </label>
-            </div>
+            {/* Removed minDuration slider UI */}
             <div className="card-section">
               <label>
                 <input type="checkbox" checked={hideLiveNow} onChange={handleLiveNowToggle} />
