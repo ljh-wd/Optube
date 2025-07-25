@@ -1,6 +1,8 @@
 
-// Utility function for robust element removal
-// Hide or show elements by selector, optionally filtered, optionally by parent
+// ...existing code...
+
+// Shorts removal logic from previous repo
+
 
 
 function setElementsVisibility(
@@ -8,7 +10,7 @@ function setElementsVisibility(
   hide: boolean,
   filterFn?: (el: Element) => boolean,
   parentSelector?: string
-): void {
+) {
   document.querySelectorAll(selector).forEach((el: Element) => {
     if (!filterFn || filterFn(el)) {
       let target: Element = el;
@@ -29,45 +31,34 @@ function setElementsVisibility(
   });
 }
 
-// Shorts removal logic from previous repo
-
-
-function setShortsVisibility(hide: boolean): void {
-  // Homepage Shorts
+function setShortsVisibility(hide: boolean) {
   setElementsVisibility(
     'ytd-rich-section-renderer',
     hide,
     (section: Element) => {
       const title = section.querySelector('h2');
       return !!(title && title.innerText.toLowerCase().includes('shorts'));
-    },
-    undefined
+    }
   );
-  // Sidebar Shorts
   setElementsVisibility(
     'ytd-guide-entry-renderer',
     hide,
     (entry: Element) => {
       const textContent = entry.textContent?.toLowerCase().trim();
       return !!(textContent && textContent.includes('shorts'));
-    },
-    undefined
+    }
   );
-  // Mobile Shorts
   setElementsVisibility(
     'a',
     hide,
-    (link: Element) => link.textContent?.toLowerCase().trim() === 'shorts',
-    undefined
+    (link: Element) => link.textContent?.toLowerCase().trim() === 'shorts'
   );
-  // Responsive Shorts
   setElementsVisibility(
     '*',
     hide,
     (el: Element) => el.textContent?.trim().toLowerCase() === 'shorts',
     'ytd-mini-guide-entry-renderer, ytd-guide-entry-renderer, tp-yt-paper-item, a'
   );
-  // Search Shorts
   setElementsVisibility(
     'yt-section-header-view-model, yt-shelf-header-layout',
     hide,
@@ -76,15 +67,11 @@ function setShortsVisibility(hide: boolean): void {
   );
   setElementsVisibility(
     '.ytGridShelfViewModelGridShelfRow',
-    hide,
-    undefined,
-    undefined
+    hide
   );
   setElementsVisibility(
     'ytm-shorts-lockup-view-model-v2, ytm-shorts-lockup-view-model',
-    hide,
-    undefined,
-    undefined
+    hide
   );
   setElementsVisibility(
     'a[href^="/shorts/"]',
@@ -100,33 +87,19 @@ function setShortsVisibility(hide: boolean): void {
   );
   setElementsVisibility(
     'ytd-reel-shelf-renderer, ytd-reel-item-renderer',
-    hide,
-    undefined,
-    undefined
+    hide
   );
 }
 
-function hideLiveNow() {
-  document.querySelectorAll('ytd-rich-section-renderer:has([aria-label*="Live Now"])').forEach(el => (el as HTMLElement).style.display = 'none');
-}
-
-
-// Removed filterByDuration function
-
-function cleanYouTube(settings: { hideShorts?: boolean; hideLiveNow?: boolean; minDuration?: number }) {
+function cleanYouTube(settings: { hideShorts?: boolean }) {
   setShortsVisibility(!!settings.hideShorts);
-  if (settings.hideLiveNow) hideLiveNow();
-  // Removed minDuration filter
 }
 
 function run() {
-  chrome.storage.sync.get(['hideShorts', 'hideLiveNow'], (settings) => {
+  chrome.storage.sync.get(['hideShorts'], (settings) => {
     cleanYouTube(settings);
   });
 }
-
-// MutationObserver for robust SPA support
-
 
 let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
 const observer = new MutationObserver(() => {
@@ -144,16 +117,15 @@ function startObserver() {
   });
 }
 
-// Initial run
 run();
 startObserver();
 
-// Listen for settings changes
 chrome.storage.onChanged.addListener((_, area) => {
   if (area === 'sync') {
     setTimeout(run, 100);
   }
 });
+
 function log() {
   console.log("Optube content script loaded.");
 }
