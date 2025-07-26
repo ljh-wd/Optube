@@ -1,44 +1,29 @@
+
 import './App.css';
 import { useEffect, useState } from 'react';
-
 
 function App() {
   // Persistent settings
   const [hideShorts, setHideShorts] = useState(true);
-  const [minDuration, setMinDuration] = useState(10); // minutes
-  const [hideLiveNow, setHideLiveNow] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Load settings from chrome.storage.sync
   useEffect(() => {
-    chrome.storage.sync.get(['hideShorts', 'minDuration', 'hideLiveNow'], (result) => {
+    chrome.storage.sync.get(['hideShorts'], (result) => {
       setHideShorts(result.hideShorts ?? true);
-      setMinDuration(result.minDuration ?? 10);
-      setHideLiveNow(result.hideLiveNow ?? false);
       setLoading(false);
     });
   }, []);
 
   // Save settings to chrome.storage.sync
-  const saveSettings = (newSettings: Partial<{ hideShorts: boolean; minDuration: number; hideLiveNow: boolean; }>) => {
+  const saveSettings = (newSettings: Partial<{ hideShorts: boolean; }>) => {
     chrome.storage.sync.set(newSettings);
   };
 
-  // Handlers
+  // Handler
   const handleShortsToggle = () => {
     setHideShorts((prev) => {
       saveSettings({ hideShorts: !prev });
-      return !prev;
-    });
-  };
-  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number(e.target.value);
-    setMinDuration(value);
-    saveSettings({ minDuration: value });
-  };
-  const handleLiveNowToggle = () => {
-    setHideLiveNow((prev) => {
-      saveSettings({ hideLiveNow: !prev });
       return !prev;
     });
   };
@@ -56,26 +41,6 @@ function App() {
               <label>
                 <input type="checkbox" checked={hideShorts} onChange={handleShortsToggle} />
                 Hide Shorts
-              </label>
-            </div>
-            <div className="card-section">
-              <label>
-                Minimum video duration:
-                <input
-                  type="range"
-                  min={1}
-                  max={60}
-                  value={minDuration}
-                  onChange={handleDurationChange}
-                  className="slider"
-                />
-                <span>{minDuration} min</span>
-              </label>
-            </div>
-            <div className="card-section">
-              <label>
-                <input type="checkbox" checked={hideLiveNow} onChange={handleLiveNowToggle} />
-                Hide "Live Now" section
               </label>
             </div>
             <div className="info-text">
