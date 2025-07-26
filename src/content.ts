@@ -1,85 +1,219 @@
-const styleTag = document.createElement("style");
-const styleContents = document.createTextNode(`
-ytd-mini-guide-entry-renderer[aria-label="Shorts"],
-ytd-rich-section-renderer,
-ytd-reel-shelf-renderer,
-ytd-item-section-renderer,
-[title="Shorts"]  {
-  display: none; 
+// ...existing code continues from here...
+// Converted from content.js to TypeScript
+const removedGridShelves: Array<{
+    parent: Node & ParentNode & { isConnected: boolean };
+    nextSibling: ChildNode | null;
+    element: Element;
+}> = [];
+
+function injectStyles(hide: boolean): void {
+    let styleElement = document.getElementById('optube-styles') as HTMLStyleElement | null;
+    if (!styleElement) {
+        styleElement = document.createElement('style');
+        styleElement.id = 'optube-styles';
+        document.head.appendChild(styleElement);
     }
-`);
 
-// FIX: ytd-item-section-renderer, doesn't work for some reason.
-styleTag.appendChild(styleContents);
-document.body.prepend(styleTag);
-
-function removeUIElements() {
-  // Remove the Shorts button from the sidebar
-  const shortsButton = document.querySelector(
-    'ytd-mini-guide-entry-renderer[aria-label="Shorts"]'
-  );
-
-
-  if (shortsButton) {
-    shortsButton.remove();
-  }
-
-
-  // Remove Shorts grid shelf sections (newer YouTube UI)
-  const shortsGridShelves = document.querySelectorAll('grid-shelf-view-model');
-
-  console.log(`[Optube] Found ${shortsGridShelves.length} Shorts grid shelf sections to check`);
-
-
-  shortsGridShelves.forEach((shelf, idx) => {
-    // Try to identify if this shelf is a Shorts section
-    // Look for a <span> with text "Shorts" inside a h2.shelf-header-layout-wiz__title
-    const headerSpan = shelf.querySelector('h2.shelf-header-layout-wiz__title span.yt-core-attributed-string');
-    if (headerSpan && headerSpan.textContent?.trim() === 'Shorts') {
-      console.log(`[Optube] Removing Shorts grid shelf #${idx + 1}`, shelf);
-      shelf.remove();
-      return;
+    if (hide) {
+        styleElement.textContent = `
+      .ytGridShelfViewModelHost,
+      [class*="shelf"][class*="shorts" i],
+      ytm-shorts-lockup-view-model-v2,
+      ytm-shorts-lockup-view-model,
+      a[href^="/shorts/"] {
+        display: none !important;
+      }
+    `;
+    } else {
+        styleElement.textContent = '';
     }
-    // Fallback: check for any <span.yt-core-attributed-string> with text "Shorts"
-    const fallbackSpan = shelf.querySelector('span.yt-core-attributed-string');
-    if (fallbackSpan && fallbackSpan.textContent?.trim() === 'Shorts') {
-      console.log(`[Optube] Removing Shorts grid shelf (fallback) #${idx + 1}`, shelf);
-      shelf.remove();
-    }
-  });
-
-  // Remove the Shorts carousel drawer
-  const carousels = document.querySelectorAll(
-    "ytd-rich-section-renderer, ytd-reel-shelf-renderer"
-  );
-  carousels.forEach((carousel) => {
-    // Add specific condition to target Shorts carousel if needed
-    carousel.remove();
-  });
-
-  const otherShortsButtons = document.querySelectorAll('[title="Shorts"]');
-  otherShortsButtons.forEach((node) => node.remove());
 }
 
-// Remove the UI elements on initial page load
-removeUIElements();
+function detachElements(selector: string): void {
+    const elements = document.querySelectorAll(selector);
+    console.log(`Detaching ${elements.length} elements matching "${selector}"`);
+    elements.forEach((el) => {
+        const parent = el.parentNode as (Node & ParentNode & { isConnected: boolean }) | null;
+        if (!parent) return;
+        removedGridShelves.push({
+            parent,
+            nextSibling: el.nextSibling,
+            element: el,
+        });
+        parent.removeChild(el);
+    });
+}
 
-// Use a MutationObserver to handle dynamic content/AJAX
-const observer = new MutationObserver((mutations) => {
-  let shouldRemoveElements = false;
-  for (const mutation of mutations) {
-    if (mutation.addedNodes.length > 0) {
-      shouldRemoveElements = true;
-      break;
+function reattachElements(): void {
+    while (removedGridShelves.length) {
+        const { parent, nextSibling, element } = removedGridShelves.shift()!;
+        try {
+            if (parent.isConnected) {
+                if (nextSibling && parent.contains(nextSibling)) {
+                    parent.insertBefore(element, nextSibling);
+                } else {
+                    parent.appendChild(element);
+                }
+            } else {
+                const fallbackContainer = document.querySelector('ytd-item-section-renderer') || document.body;
+                fallbackContainer.appendChild(element);
+            }
+        } catch (e) {
+            console.warn('Failed to reattach element:', e);
+        }
     }
-  }
+}
 
-  if (shouldRemoveElements) {
-    removeUIElements();
-  }
+function setElementsVisibility(
+    selector: string,
+    hide: boolean,
+    filterFn?: (el: Element) => boolean,
+    parentSelector?: string
+): void {
+    document.querySelectorAll(selector).forEach((el) => {
+        if (!filterFn || filterFn(el)) {
+            const target = parentSelector
+                ? (el.closest(parentSelector) as HTMLElement | null) || (el as HTMLElement)
+                : (el as HTMLElement);
+            const shadowRoot = (target as HTMLElement & { shadowRoot?: ShadowRoot }).shadowRoot;
+            if (shadowRoot) {
+                const shadowElements = shadowRoot.querySelectorAll(selector);
+                shadowElements.forEach((shadowEl) => {
+                    if (hide) {
+                        (shadowEl as HTMLElement).setAttribute('data-optube-hidden', 'true');
+                        (shadowEl as HTMLElement).style.display = 'none';
+                    } else if ((shadowEl as HTMLElement).getAttribute('data-optube-hidden') === 'true') {
+                        (shadowEl as HTMLElement).style.display = '';
+                        (shadowEl as HTMLElement).removeAttribute('data-optube-hidden');
+                    }
+                });
+            }
+            if (hide) {
+                target.setAttribute('data-optube-hidden', 'true');
+                target.style.display = 'none';
+            } else if (target.getAttribute('data-optube-hidden') === 'true') {
+                target.style.display = '';
+                target.removeAttribute('data-optube-hidden');
+            }
+        }
+    });
+}
+
+function setShortsVisibility(hide: boolean): void {
+    console.log(`Setting Shorts visibility: ${hide ? 'hide' : 'show'} `);
+    injectStyles(hide);
+
+    if (hide) {
+        detachElements('.ytGridShelfViewModelHost, [class*="shelf"][class*="shorts" i]');
+    } else {
+        reattachElements();
+    }
+
+    setElementsVisibility(
+        'ytd-rich-section-renderer',
+        hide,
+        (sec) => {
+            const h2 = sec.querySelector('h2');
+            const hasShorts = !!h2 && h2.innerText.toLowerCase().includes('shorts');
+            if (hasShorts) console.log('Hiding ytd-rich-section-renderer with Shorts');
+            return hasShorts;
+        }
+    );
+    setElementsVisibility(
+        'ytd-guide-entry-renderer',
+        hide,
+        (en) => (en.textContent || '').toLowerCase().includes('shorts')
+    );
+    setElementsVisibility(
+        'a',
+        hide,
+        (a) => a.textContent?.toLowerCase().trim() === 'shorts'
+    );
+    setElementsVisibility(
+        '*',
+        hide,
+        (el) => el.textContent?.toLowerCase().trim() === 'shorts',
+        'ytd-mini-guide-entry-renderer, ytd-guide-entry-renderer, tp-yt-paper-item, a'
+    );
+    setElementsVisibility(
+        'yt-section-header-view-model, yt-shelf-header-layout',
+        hide,
+        undefined,
+        'ytd-item-section-renderer, ytd-shelf-renderer, .ytSectionHeaderViewModelHost, .shelf-header-layout-wiz'
+    );
+    setElementsVisibility('.ytGridShelfViewModelGridShelfRow', hide);
+    setElementsVisibility(
+        'ytm-shorts-lockup-view-model-v2, ytm-shorts-lockup-view-model',
+        hide
+    );
+    setElementsVisibility(
+        'a[href^="/shorts/"]',
+        hide,
+        undefined,
+        'ytd-video-renderer, ytd-grid-video-renderer, ytd-rich-item-renderer, .ytGridShelfViewModelGridShelfItem, .shortsLockupViewModelHost'
+    );
+    setElementsVisibility(
+        'h2, h3, span',
+        hide,
+        (el) => el.textContent?.toLowerCase().trim() === 'shorts',
+        'ytd-item-section-renderer, ytd-shelf-renderer, .ytGridShelfViewModelGridShelfRow, .ytSectionHeaderViewModelHost'
+    );
+    setElementsVisibility(
+        'ytd-reel-shelf-renderer, ytd-reel-item-renderer',
+        hide
+    );
+    setElementsVisibility(
+        '.ytGridShelfViewModelGridShelfBottomButtonContainer button',
+        hide
+    );
+}
+
+function cleanYouTube(settings: { hideShorts?: boolean }): void {
+    setShortsVisibility(!!settings.hideShorts);
+}
+
+function run(): void {
+    chrome.storage.sync.get(['hideShorts'], cleanYouTube);
+}
+
+let debounceId: number | null = null;
+const observer = new MutationObserver((mutations) => {
+    const hasShortsRelatedMutation = mutations.some((mutation) =>
+        Array.from(mutation.addedNodes).some(
+            (node) =>
+                node.nodeType === Node.ELEMENT_NODE &&
+                ((node as Element).matches?.('.ytGridShelfViewModelHost, [class*="shelf"][class*="shorts" i]') ||
+                    (node as Element).querySelector?.('.ytGridShelfViewModelHost, [class*="shelf"][class*="shorts" i]'))
+        )
+    );
+
+    if (hasShortsRelatedMutation) {
+        chrome.storage.sync.get(['hideShorts'], cleanYouTube);
+    } else if (debounceId) {
+        clearTimeout(debounceId);
+        debounceId = window.setTimeout(run, 50);
+    }
 });
 
-// Start observing the target node for configured mutations
+function startObserver(): void {
+    if (!document.body) {
+        setTimeout(() => startObserver(), 10);
+        return;
+    }
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+    });
+}
 
+window.addEventListener('load', run);
+run();
+startObserver();
 
-observer.observe(document.body, { childList: true, subtree: true });
+chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'sync' && changes.hideShorts) {
+        setTimeout(run, 100);
+    }
+});
+
+console.log('Optube content script loaded.');
