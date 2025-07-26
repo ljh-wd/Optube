@@ -1,5 +1,3 @@
-// ...existing code continues from here...
-// Converted from content.js to TypeScript
 const removedGridShelves: Array<{
     parent: Node & ParentNode & { isConnected: boolean };
     nextSibling: ChildNode | null;
@@ -48,7 +46,7 @@ function reattachElements(): void {
     while (removedGridShelves.length) {
         const { parent, nextSibling, element } = removedGridShelves.shift()!;
         try {
-            if ((parent as any).isConnected) {
+            if (parent.isConnected) {
                 if (nextSibling && parent.contains(nextSibling)) {
                     parent.insertBefore(element, nextSibling);
                 } else {
