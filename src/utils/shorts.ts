@@ -1,5 +1,14 @@
+import type { DetachableElement } from "../types/dom";
 import { setElementsVisibility } from "./global";
 
+/**
+ * Injects or updates a <style> element to hide or show YouTube Shorts elements.
+ * @param hide - Whether to hide (true) or show (false) Shorts elements.
+ */
+/**
+ * Injects or updates a <style> element to hide or show YouTube Shorts elements.
+ * @param hide - Whether to hide (true) or show (false) Shorts elements.
+ */
 export function injectStyles(hide: boolean): void {
     let styleElement = document.getElementById('optube-styles') as HTMLStyleElement | null;
     if (!styleElement) {
@@ -23,12 +32,12 @@ export function injectStyles(hide: boolean): void {
     }
 }
 
-
-export function detachElements(selector: string, shelves: Array<{
-    parent: Node & ParentNode & { isConnected: boolean };
-    nextSibling: ChildNode | null;
-    element: Element;
-}>): void {
+/**
+ * Detaches elements matching a selector from the DOM and stores their info in shelves.
+ * @param selector - CSS selector for elements to detach.
+ * @param shelves - Array to store detached element info for later reattachment.
+ */
+export function detachElements(selector: string, shelves: DetachableElement[]): void {
     const elements = document.querySelectorAll(selector);
     console.log(`Detaching ${elements.length} elements matching "${selector}"`);
     elements.forEach((el) => {
@@ -42,13 +51,11 @@ export function detachElements(selector: string, shelves: Array<{
         parent.removeChild(el);
     });
 }
-
-
-export function reattachElements(shelves: Array<{
-    parent: Node & ParentNode & { isConnected: boolean };
-    nextSibling: ChildNode | null;
-    element: Element;
-}>): void {
+/**
+ * Reattaches previously detached elements to their original or fallback parent.
+ * @param shelves - Array of detached element info to reattach.
+ */
+export function reattachElements(shelves: DetachableElement[]): void {
     while (shelves.length) {
         const { parent, nextSibling, element } = shelves.shift()!;
         try {
@@ -67,16 +74,15 @@ export function reattachElements(shelves: Array<{
         }
     }
 }
-
-
-export function setShortsVisibility(hide: boolean, shelves: Array<{
-    parent: Node & ParentNode & { isConnected: boolean };
-    nextSibling: ChildNode | null;
-    element: Element;
-}>): void {
+/**
+ * Sets the visibility of all YouTube Shorts-related UI elements.
+ * Detaches or reattaches grid shelves and toggles visibility of other selectors.
+ * @param hide - Whether to hide (true) or show (false) Shorts elements.
+ * @param shelves - Array to store or restore detached grid shelf elements.
+ */
+export function setShortsVisibility(hide: boolean, shelves: DetachableElement[]): void {
     console.log(`Setting Shorts visibility: ${hide ? 'hide' : 'show'} `);
     injectStyles(hide);
-
 
     if (hide) {
         detachElements('.ytGridShelfViewModelHost, [class*="shelf"][class*="shorts" i]', shelves);

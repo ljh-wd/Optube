@@ -1,20 +1,20 @@
-import { setShortsVisibility } from "./utils/shorts";
 
-const removedGridShelves: Array<{
-    parent: Node & ParentNode & { isConnected: boolean };
-    nextSibling: ChildNode | null;
-    element: Element;
-}> = [];
+import { config } from "./utils/global";
+import { setShortsVisibility } from "./utils/shorts";
+import type { DetachableElement } from "./types/dom";
+
+const removedGridShelves: DetachableElement[] = [];
 
 function cleanYouTube(settings: { hideShorts?: boolean }): void {
     setShortsVisibility(!!settings.hideShorts, removedGridShelves);
 }
 
 function run(): void {
-    chrome.storage.sync.get(['hideShorts'], cleanYouTube);
+    chrome.storage.sync.get(config, cleanYouTube);
 }
 
 let debounceId: number | null = null;
+
 const observer = new MutationObserver((mutations) => {
     const hasShortsRelatedMutation = mutations.some((mutation) =>
         Array.from(mutation.addedNodes).some(
