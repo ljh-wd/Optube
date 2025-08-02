@@ -255,6 +255,9 @@ function cleanYouTube(settings: { hideShorts?: boolean; hideHomeGrid?: boolean; 
     injectHomeNavHideStyles(!!settings.hideHomeGrid || !!settings.hideHomeNav);
     injectShortsNavHideStyles(!!settings.hideShorts);
     if (settings.hideShorts) hideEmptyShortsShelves();
+
+    // Always apply grid hiding logic on settings load
+    hideHomeGridIfNeeded(!!settings.hideHomeGrid);
 }
 
 function run(): void {
@@ -282,7 +285,7 @@ const observer = new MutationObserver((mutations) => {
         debounceId = window.setTimeout(() => {
             run();
             // Also ensure empty shelves are hidden after debounce
-            chrome.storage.sync.get(['hideShorts'], (settings) => {
+            chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideHomeNav'], (settings) => {
                 if (settings.hideShorts) hideEmptyShortsShelves();
             });
         }, 50);
