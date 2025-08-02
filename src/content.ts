@@ -1,4 +1,3 @@
-// ...existing code continues from here...
 // Converted from content.js to TypeScript
 const removedGridShelves: Array<{
     parent: Node & ParentNode & { isConnected: boolean };
@@ -168,12 +167,25 @@ function setShortsVisibility(hide: boolean): void {
     );
 }
 
-function cleanYouTube(settings: { hideShorts?: boolean }): void {
+function hideHomeGridIfNeeded(hide: boolean) {
+    const isHome = location.pathname === '/' && !location.search.includes('feed');
+    const grid = document.querySelector('ytd-rich-grid-renderer') as HTMLElement | null;
+    if (grid && isHome) {
+        if (hide) {
+            grid.style.display = 'none';
+        } else {
+            grid.style.display = '';
+        }
+    }
+}
+
+function cleanYouTube(settings: { hideShorts?: boolean; hideHomeGrid?: boolean }) {
+    hideHomeGridIfNeeded(!!settings.hideHomeGrid);
     setShortsVisibility(!!settings.hideShorts);
 }
 
 function run(): void {
-    chrome.storage.sync.get(['hideShorts'], cleanYouTube);
+    chrome.storage.sync.get(['hideShorts', 'hideHomeGrid'], cleanYouTube);
 }
 
 let debounceId: number | null = null;
@@ -211,7 +223,7 @@ run();
 startObserver();
 
 chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === 'sync' && changes.hideShorts) {
+    if (area === 'sync' && (changes.hideShorts || changes.hideHomeGrid)) {
         setTimeout(run, 100);
     }
 });
