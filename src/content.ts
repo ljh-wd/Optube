@@ -309,7 +309,13 @@ chrome.storage.onChanged.addListener((changes, area) => {
         area === 'sync' &&
         (changes.hideShorts || changes.hideHomeGrid || changes.hideHomeNav)
     ) {
-        setTimeout(run, 100);
+        setTimeout(() => {
+            run();
+            // Immediately apply grid hiding if on home and hideHomeGrid changed
+            if (changes.hideHomeGrid && location.pathname === '/' && !location.search.includes('feed')) {
+                hideHomeGridIfNeeded(changes.hideHomeGrid.newValue);
+            }
+        }, 100);
     }
 });
 
