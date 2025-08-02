@@ -39,7 +39,6 @@ function injectStyles(hideShorts: boolean, hideHomeGrid: boolean): void {
 }
 function detachElements(selector: string): void {
     const elements = document.querySelectorAll(selector);
-    console.log(`Detaching ${elements.length} elements matching "${selector}"`);
     elements.forEach((el) => {
         const parent = el.parentNode as (Node & ParentNode & { isConnected: boolean }) | null;
         if (!parent) return;
@@ -108,7 +107,6 @@ function setElementsVisibility(
 }
 
 function setShortsVisibility(hide: boolean): void {
-    console.log(`Setting Shorts visibility: ${hide ? 'hide' : 'show'} `);
     injectStyles(hide, false);
 
     if (hide) {
@@ -123,7 +121,6 @@ function setShortsVisibility(hide: boolean): void {
         (sec) => {
             const h2 = sec.querySelector('h2');
             const hasShorts = !!h2 && h2.innerText.toLowerCase().includes('shorts');
-            if (hasShorts) console.log('Hiding ytd-rich-section-renderer with Shorts');
             return hasShorts;
         }
     );
@@ -421,7 +418,6 @@ function maybeRedirectFromHome() {
         chrome.storage.sync.get(['hideHomeGrid'], (settings) => {
             if (!settings.hideHomeGrid) return;
             chrome.storage.local.get(['optubeLastNonHomeUrl'], (result) => {
-                console.log("Maybe redirecting from home, last non-home URL:", result.optubeLastNonHomeUrl);
                 const prevUrl = result.optubeLastNonHomeUrl;
                 if (prevUrl && prevUrl !== location.href) {
                     window.location.replace(prevUrl);
