@@ -1,30 +1,39 @@
-
 import './App.css';
 import { useEffect, useState } from 'react';
 
 function App() {
-  // Persistent settings
   const [hideShorts, setHideShorts] = useState(true);
+  const [hideHomeGrid, setHideHomeGrid] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Load settings from chrome.storage.sync
+  // Load all settings on mount
   useEffect(() => {
-    chrome.storage.sync.get(['hideShorts'], (result) => {
+    chrome.storage.sync.get(['hideShorts', 'hideHomeGrid'], (result) => {
       setHideShorts(result.hideShorts ?? true);
+      setHideHomeGrid(result.hideHomeGrid ?? false);
       setLoading(false);
     });
   }, []);
 
-  // Save settings to chrome.storage.sync
-  const saveSettings = (newSettings: Partial<{ hideShorts: boolean; }>) => {
-    chrome.storage.sync.set(newSettings);
+  // Save all settings together
+  const saveSettings = (settings: { hideShorts: boolean; hideHomeGrid: boolean }) => {
+    chrome.storage.sync.set(settings);
   };
 
-  // Handler
+  // Handlers
   const handleShortsToggle = () => {
     setHideShorts((prev) => {
-      saveSettings({ hideShorts: !prev });
-      return !prev;
+      const newVal = !prev;
+      saveSettings({ hideShorts: newVal, hideHomeGrid });
+      return newVal;
+    });
+  };
+
+  const handleHomeGridToggle = () => {
+    setHideHomeGrid((prev) => {
+      const newVal = !prev;
+      saveSettings({ hideShorts, hideHomeGrid: newVal });
+      return newVal;
     });
   };
 
@@ -41,6 +50,12 @@ function App() {
               <label>
                 <input type="checkbox" checked={hideShorts} onChange={handleShortsToggle} />
                 Hide Shorts
+              </label>
+            </div>
+            <div className="card-section">
+              <label>
+                <input type="checkbox" checked={hideHomeGrid} onChange={handleHomeGridToggle} />
+                Hide Home Page Grid
               </label>
             </div>
             <div className="info-text">
