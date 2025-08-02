@@ -179,13 +179,15 @@ function hideHomeGridIfNeeded(hide: boolean) {
     }
 }
 
-function cleanYouTube(settings: { hideShorts?: boolean; hideHomeGrid?: boolean }) {
+function cleanYouTube(settings: { hideShorts?: boolean; hideHomeGrid?: boolean; hideHomeNav?: boolean }) {
     hideHomeGridIfNeeded(!!settings.hideHomeGrid);
     setShortsVisibility(!!settings.hideShorts);
+    // Hide Home nav if either hideHomeGrid or hideHomeNav is true
+    injectHomeNavHideStyles(!!settings.hideHomeGrid || !!settings.hideHomeNav);
 }
 
 function run(): void {
-    chrome.storage.sync.get(['hideShorts', 'hideHomeGrid'], cleanYouTube);
+    chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideHomeNav'], cleanYouTube);
 }
 
 let debounceId: number | null = null;
@@ -203,7 +205,9 @@ const observer = new MutationObserver((mutations) => {
         chrome.storage.sync.get(['hideShorts'], cleanYouTube);
     } else if (debounceId) {
         clearTimeout(debounceId);
-        debounceId = window.setTimeout(run, 50);
+        debounceId = window.setTimeout(() => {
+            run();
+        }, 50);
     }
 });
 
@@ -228,4 +232,58 @@ chrome.storage.onChanged.addListener((changes, area) => {
     }
 });
 
+// function removeHomeNavEntry() {
+//     // Remove "Home" from the top-level navigation/sidebar
+//     const topNav = document.querySelector('ytd-app > #container #primary-navigation');
+//     if (topNav) {
+//         topNav.querySelectorAll('a').forEach((a) => {
+//             if (a.textContent?.trim().toLowerCase() === 'home') {
+//                 a.remove();
+//             }
+//         });
+//     }
+
+// Remove from any anchor links with text "Home"
+document.querySelectorAll('a').forEach((a) => {
+    if (a.textContent?.trim().toLowerCase() === 'home') {
+        a.remove();
+    }
+});
+
+// Remove from mini guide and sidebar
+document.querySelectorAll('ytd-guide-entry-renderer, ytd-mini-guide-entry-renderer').forEach((el) => {
+    if (el.textContent?.trim().toLowerCase() === 'home') {
+        el.remove();
+    }
+});
+
 console.log('Optube content script loaded.');
+
+
+function injectHomeNavHideStyles(hide: boolean) {
+    let styleElement = document.getElementById('optube-home-nav-hide') as HTMLStyleElement | null;
+    if (!styleElement) {
+        styleElement = document.createElement('style');
+        styleElement.id = 'optube-home-nav-hide';
+        document.head.appendChild(styleElement);
+    }
+    if (hide) {
+        styleElement.textContent = `
+            ytd-guide-entry-renderer:has(a[title="Home"]),
+            ytd-mini-guide-entry-renderer:has(a[title="Home"]),
+            a[title="Home"],
+            ytd-guide-entry-renderer:has([aria-label="Home"]),
+            ytd-mini-guide-entry-renderer:has([aria-label="Home"]),
+            a[aria-label="Home"] {
+                display: none !important;
+            }
+            /* Fallback for text-based matching */
+            ytd-guide-entry-renderer, ytd-mini-guide-entry-renderer, a {
+                /* Hide if text is exactly "Home" */
+                /* This is less efficient, but covers more cases */
+            }
+        `;
+    } else {
+        styleElement.textContent = '';
+    }
+}
