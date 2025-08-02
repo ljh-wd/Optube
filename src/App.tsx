@@ -4,19 +4,34 @@ import { useEffect, useState } from 'react';
 function App() {
   const [hideShorts, setHideShorts] = useState(true);
   const [hideHomeGrid, setHideHomeGrid] = useState(false);
+  const [hideMasthead, setHideMasthead] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Load all settings on mount
+  // Load all settings on mount and listen for changes from other tabs/extensions
   useEffect(() => {
-    chrome.storage.sync.get(['hideShorts', 'hideHomeGrid'], (result) => {
+    function updateFromStorage(result: { hideShorts?: boolean; hideHomeGrid?: boolean; hideMasthead?: boolean }) {
       setHideShorts(result.hideShorts ?? true);
       setHideHomeGrid(result.hideHomeGrid ?? false);
+      setHideMasthead(result.hideMasthead ?? false);
       setLoading(false);
-    });
+    }
+    chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideMasthead'], updateFromStorage);
+    function handleStorageChange(
+      _: { [key: string]: chrome.storage.StorageChange },
+      areaName: 'sync' | 'local' | 'managed' | 'session'
+    ) {
+      if (areaName === 'sync') {
+        chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideMasthead'], updateFromStorage);
+      }
+    }
+    chrome.storage.onChanged.addListener(handleStorageChange);
+    return () => {
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+    };
   }, []);
 
-  // Save all settings together
-  const saveSettings = (settings: { hideShorts: boolean; hideHomeGrid: boolean }) => {
+  // Save all settings together, always including all current values
+  const saveSettings = (settings: { hideShorts: boolean; hideHomeGrid: boolean; hideMasthead: boolean }) => {
     chrome.storage.sync.set(settings);
   };
 
@@ -24,7 +39,7 @@ function App() {
   const handleShortsToggle = () => {
     setHideShorts((prev) => {
       const newVal = !prev;
-      saveSettings({ hideShorts: newVal, hideHomeGrid });
+      saveSettings({ hideShorts: newVal, hideHomeGrid, hideMasthead });
       return newVal;
     });
   };
@@ -32,7 +47,15 @@ function App() {
   const handleHomeGridToggle = () => {
     setHideHomeGrid((prev) => {
       const newVal = !prev;
-      saveSettings({ hideShorts, hideHomeGrid: newVal });
+      saveSettings({ hideShorts, hideHomeGrid: newVal, hideMasthead });
+      return newVal;
+    });
+  };
+
+  const handleMastheadToggle = () => {
+    setHideMasthead((prev) => {
+      const newVal = !prev;
+      saveSettings({ hideShorts, hideHomeGrid, hideMasthead: newVal });
       return newVal;
     });
   };
@@ -56,6 +79,12 @@ function App() {
               <label>
                 <input type="checkbox" checked={hideHomeGrid} onChange={handleHomeGridToggle} />
                 Hide Home Page Grid
+              </label>
+            </div>
+            <div className="card-section">
+              <label>
+                <input type="checkbox" checked={hideMasthead} onChange={handleMastheadToggle} />
+                Hide Top Bar
               </label>
             </div>
             <div className="info-text">

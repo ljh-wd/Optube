@@ -1,6 +1,7 @@
 
 
 
+
 /**
  * Sets up global navigation event listeners and calls the provided callbacks on navigation events.
  * Triggers on navigation, popstate, and load events.
