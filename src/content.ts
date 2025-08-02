@@ -165,6 +165,22 @@ function setShortsVisibility(hide: boolean): void {
         '.ytGridShelfViewModelGridShelfBottomButtonContainer button',
         hide
     );
+
+    // Hide empty ytd-rich-shelf-renderer containers if hiding Shorts
+    if (hide) {
+        document.querySelectorAll('ytd-rich-shelf-renderer').forEach((shelf) => {
+            // If shelf contains no visible Shorts (or is now empty), hide it
+            const hasShorts = shelf.textContent?.toLowerCase().includes('shorts');
+            if (!hasShorts || shelf.querySelectorAll('ytd-reel-shelf-renderer, ytd-reel-item-renderer, [class*="shorts" i]').length === 0) {
+                (shelf as HTMLElement).style.display = 'none';
+            }
+        });
+    } else {
+        // Restore all shelves
+        document.querySelectorAll('ytd-rich-shelf-renderer').forEach((shelf) => {
+            (shelf as HTMLElement).style.display = '';
+        });
+    }
 }
 
 function hideHomeGridIfNeeded(hide: boolean) {
@@ -182,8 +198,10 @@ function hideHomeGridIfNeeded(hide: boolean) {
 function cleanYouTube(settings: { hideShorts?: boolean; hideHomeGrid?: boolean; hideHomeNav?: boolean }) {
     hideHomeGridIfNeeded(!!settings.hideHomeGrid);
     setShortsVisibility(!!settings.hideShorts);
-    // Hide Home nav if either hideHomeGrid or hideHomeNav is true
     injectHomeNavHideStyles(!!settings.hideHomeGrid || !!settings.hideHomeNav);
+    injectShortsNavHideStyles(!!settings.hideShorts);
+    // Ensure empty shelves are hidden on every run
+    if (settings.hideShorts) hideEmptyShortsShelves();
 }
 
 function run(): void {
@@ -196,17 +214,24 @@ const observer = new MutationObserver((mutations) => {
         Array.from(mutation.addedNodes).some(
             (node) =>
                 node.nodeType === Node.ELEMENT_NODE &&
-                ((node as Element).matches?.('.ytGridShelfViewModelHost, [class*="shelf"][class*="shorts" i]') ||
-                    (node as Element).querySelector?.('.ytGridShelfViewModelHost, [class*="shelf"][class*="shorts" i]'))
+                ((node as Element).matches?.('.ytGridShelfViewModelHost, [class*="shelf"][class*="shorts" i],ytd-rich-shelf-renderer') ||
+                    (node as Element).querySelector?.('.ytGridShelfViewModelHost, [class*="shelf"][class*="shorts" i],ytd-rich-shelf-renderer'))
         )
     );
 
     if (hasShortsRelatedMutation) {
-        chrome.storage.sync.get(['hideShorts'], cleanYouTube);
+        chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideHomeNav'], (settings) => {
+            cleanYouTube(settings);
+            if (settings.hideShorts) hideEmptyShortsShelves();
+        });
     } else if (debounceId) {
         clearTimeout(debounceId);
         debounceId = window.setTimeout(() => {
             run();
+            // Also ensure empty shelves are hidden after debounce
+            chrome.storage.sync.get(['hideShorts'], (settings) => {
+                if (settings.hideShorts) hideEmptyShortsShelves();
+            });
         }, 50);
     }
 });
@@ -227,7 +252,10 @@ run();
 startObserver();
 
 chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === 'sync' && (changes.hideShorts || changes.hideHomeGrid)) {
+    if (
+        area === 'sync' &&
+        (changes.hideShorts || changes.hideHomeGrid || changes.hideHomeNav)
+    ) {
         setTimeout(run, 100);
     }
 });
@@ -287,3 +315,63 @@ function injectHomeNavHideStyles(hide: boolean) {
         styleElement.textContent = '';
     }
 }
+
+function injectShortsNavHideStyles(hide: boolean) {
+    let styleElement = document.getElementById('optube-shorts-nav-hide') as HTMLStyleElement | null;
+    if (!styleElement) {
+        styleElement = document.createElement('style');
+        styleElement.id = 'optube-shorts-nav-hide';
+        document.head.appendChild(styleElement);
+    }
+    if (hide) {
+        styleElement.textContent = `
+            ytd-guide-entry-renderer:has(a[title="Shorts"]),
+            ytd-mini-guide-entry-renderer:has(a[title="Shorts"]),
+            a[title="Shorts"],
+            ytd-guide-entry-renderer:has([aria-label="Shorts"]),
+            ytd-mini-guide-entry-renderer:has([aria-label="Shorts"]),
+            a[aria-label="Shorts"] {
+                display: none !important;
+            }
+        `;
+    } else {
+        styleElement.textContent = '';
+    }
+}
+
+function onNavigation() {
+    run();
+}
+
+// Patch pushState and replaceState
+(function (history) {
+    const pushState = history.pushState;
+    const replaceState = history.replaceState;
+    history.pushState = function (...args) {
+        const ret = pushState.apply(this, args);
+        window.dispatchEvent(new Event('optube:navigation'));
+        return ret;
+    };
+    history.replaceState = function (...args) {
+        const ret = replaceState.apply(this, args);
+        window.dispatchEvent(new Event('optube:navigation'));
+        return ret;
+    };
+})(window.history);
+
+// Listen for navigation events
+window.addEventListener('popstate', onNavigation);
+window.addEventListener('optube:navigation', onNavigation);
+
+// Hide empty Shorts shelves
+function hideEmptyShortsShelves() {
+    document.querySelectorAll('ytd-rich-shelf-renderer').forEach((shelf) => {
+        const hasShorts = shelf.textContent?.toLowerCase().includes('shorts');
+        if (!hasShorts || shelf.querySelectorAll('ytd-reel-shelf-renderer, ytd-reel-item-renderer, [class*="shorts" i]').length === 0) {
+            (shelf as HTMLElement).style.display = 'none';
+        }
+    });
+}
+
+// Initial call to hide empty Shorts shelves
+hideEmptyShortsShelves();

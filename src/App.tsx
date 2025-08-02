@@ -2,12 +2,11 @@ import './App.css';
 import { useEffect, useState } from 'react';
 
 function App() {
-  // Persistent settings
   const [hideShorts, setHideShorts] = useState(true);
   const [hideHomeGrid, setHideHomeGrid] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Load settings from chrome.storage.sync
+  // Load all settings on mount
   useEffect(() => {
     chrome.storage.sync.get(['hideShorts', 'hideHomeGrid'], (result) => {
       setHideShorts(result.hideShorts ?? true);
@@ -16,23 +15,25 @@ function App() {
     });
   }, []);
 
-  // Save settings to chrome.storage.sync
-  const saveSettings = (newSettings: Partial<{ hideShorts: boolean; hideHomeGrid: boolean }>) => {
-    chrome.storage.sync.set(newSettings);
+  // Save all settings together
+  const saveSettings = (settings: { hideShorts: boolean; hideHomeGrid: boolean }) => {
+    chrome.storage.sync.set(settings);
   };
 
   // Handlers
   const handleShortsToggle = () => {
     setHideShorts((prev) => {
-      saveSettings({ hideShorts: !prev });
-      return !prev;
+      const newVal = !prev;
+      saveSettings({ hideShorts: newVal, hideHomeGrid });
+      return newVal;
     });
   };
 
   const handleHomeGridToggle = () => {
     setHideHomeGrid((prev) => {
-      saveSettings({ hideHomeGrid: !prev });
-      return !prev;
+      const newVal = !prev;
+      saveSettings({ hideShorts, hideHomeGrid: newVal });
+      return newVal;
     });
   };
 
