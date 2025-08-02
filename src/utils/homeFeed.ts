@@ -1,4 +1,7 @@
-// Inject styles to hide Home navigation
+/**
+ * Injects or removes styles to hide Home navigation elements in the YouTube sidebar and guide.
+ * @param hide - Whether to hide (true) or show (false) Home navigation.
+ */
 export function injectHomeNavHideStyles(hide: boolean) {
     let styleElement = document.getElementById('optube-home-nav-hide') as HTMLStyleElement | null;
     if (!styleElement) {
@@ -26,9 +29,15 @@ export function injectHomeNavHideStyles(hide: boolean) {
         styleElement.textContent = '';
     }
 }
-// --- Home navigation and redirect logic ---
+
 let lastNonHomeYouTubeUrl: string | null = null;
 
+
+/**
+ * Determines if a URL is a non-home YouTube page.
+ * @param url - The URL to check.
+ * @returns True if the URL is a non-home YouTube page, false otherwise.
+ */
 function isNonHomeYouTubeUrl(url: string): boolean {
     try {
         const u = new URL(url, location.origin);
@@ -41,6 +50,9 @@ function isNonHomeYouTubeUrl(url: string): boolean {
     }
 }
 
+/**
+ * Saves the last non-home YouTube URL to local storage for redirect purposes.
+ */
 export function saveLastNonHomeUrl() {
     if (isNonHomeYouTubeUrl(location.href)) {
         lastNonHomeYouTubeUrl = location.href;
@@ -48,6 +60,9 @@ export function saveLastNonHomeUrl() {
     }
 }
 
+/**
+ * Redirects the user from the YouTube home page to the last non-home page if the home grid is hidden.
+ */
 export function maybeRedirectFromHome() {
     if (
         location.hostname.endsWith('youtube.com') &&
@@ -65,7 +80,10 @@ export function maybeRedirectFromHome() {
         });
     }
 }
-// Home feed hiding utility functions for Optube
+/**
+ * Shows or hides the YouTube home grid based on the current page and hide flag.
+ * @param hide - Whether to hide (true) or show (false) the home grid.
+ */
 export function hideHomeGridIfNeeded(hide: boolean) {
     const isHome = location.pathname === '/' && !location.search.includes('feed');
     const grid = document.querySelector('ytd-rich-grid-renderer') as HTMLElement | null;
@@ -78,6 +96,10 @@ export function hideHomeGridIfNeeded(hide: boolean) {
     }
 }
 
+/**
+ * Observes the YouTube home grid and applies hiding logic on navigation and DOM changes.
+ * Automatically restores the grid when navigating away from home.
+ */
 export function observeHomeGrid() {
     function applyHideIfNeeded() {
         chrome.storage.sync.get(['hideHomeGrid'], (settings) => {

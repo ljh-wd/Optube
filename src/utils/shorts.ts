@@ -1,4 +1,7 @@
-// Inject styles to hide Shorts navigation
+/**
+ * Injects or removes styles to hide Shorts navigation elements in the YouTube sidebar and guide.
+ * @param hide - Whether to hide (true) or show (false) Shorts navigation.
+ */
 export function injectShortsNavHideStyles(hide: boolean) {
     let styleElement = document.getElementById('optube-shorts-nav-hide') as HTMLStyleElement | null;
     if (!styleElement) {
@@ -21,16 +24,22 @@ export function injectShortsNavHideStyles(hide: boolean) {
         styleElement.textContent = '';
     }
 }
-// Shorts management utility functions for Optube
-// Functions for hiding/showing Shorts and related UI
 import { setElementsVisibility } from './global';
-
+/**
+ * Stores removed grid shelf elements for Shorts so they can be reattached later.
+ * Used by detachElements/reattachElements.
+ */
 const removedGridShelves: Array<{
     parent: Node & ParentNode & { isConnected: boolean };
     nextSibling: ChildNode | null;
     element: Element;
 }> = [];
 
+/**
+ * Detaches elements matching the selector and stores them for later reattachment.
+ * Used for hiding Shorts grid shelves.
+ * @param selector - CSS selector for elements to detach.
+ */
 export function detachElements(selector: string): void {
     const elements = document.querySelectorAll(selector);
     elements.forEach((el) => {
@@ -45,6 +54,9 @@ export function detachElements(selector: string): void {
     });
 }
 
+/**
+ * Reattaches previously detached grid shelf elements for Shorts.
+ */
 export function reattachElements(): void {
     while (removedGridShelves.length) {
         const { parent, nextSibling, element } = removedGridShelves.shift()!;
@@ -65,6 +77,10 @@ export function reattachElements(): void {
     }
 }
 
+/**
+ * Shows or hides all Shorts-related UI elements on the page.
+ * @param hide - Whether to hide (true) or show (false) Shorts UI.
+ */
 export function setShortsVisibility(hide: boolean): void {
     if (hide) {
         detachElements('.ytGridShelfViewModelHost, [class*="shelf"][class*="shorts" i]');
@@ -132,20 +148,21 @@ export function setShortsVisibility(hide: boolean): void {
     // Hide empty ytd-rich-shelf-renderer containers if hiding Shorts
     if (hide) {
         document.querySelectorAll('ytd-rich-shelf-renderer').forEach((shelf) => {
-            // If shelf contains no visible Shorts (or is now empty), hide it
             const hasShorts = shelf.textContent?.toLowerCase().includes('shorts');
             if (!hasShorts || shelf.querySelectorAll('ytd-reel-shelf-renderer, ytd-reel-item-renderer, [class*="shorts" i]').length === 0) {
                 (shelf as HTMLElement).style.display = 'none';
             }
         });
     } else {
-        // Restore all shelves
         document.querySelectorAll('ytd-rich-shelf-renderer').forEach((shelf) => {
             (shelf as HTMLElement).style.display = '';
         });
     }
 }
 
+/**
+ * Hides all empty Shorts shelves on the page.
+ */
 export function hideEmptyShortsShelves() {
     document.querySelectorAll('ytd-rich-shelf-renderer').forEach((shelf) => {
         const hasShorts = shelf.textContent?.toLowerCase().includes('shorts');
