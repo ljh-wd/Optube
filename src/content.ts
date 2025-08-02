@@ -3,6 +3,7 @@ import { setShortsVisibility, hideEmptyShortsShelves } from './utils/shorts';
 import { hideHomeGridIfNeeded, observeHomeGrid, saveLastNonHomeUrl, maybeRedirectFromHome, injectHomeNavHideStyles } from './utils/homeFeed';
 import { removeElementsByText, setupGlobalListeners } from './utils/global';
 import { injectShortsNavHideStyles } from './utils/shorts';
+import { observeMasthead, setMastheadVisibility } from './utils/topBar';
 
 function injectStyles(hideShorts: boolean, hideHomeGrid: boolean): void {
     let styleElement = document.getElementById('optube-styles') as HTMLStyleElement | null;
@@ -38,17 +39,18 @@ function injectStyles(hideShorts: boolean, hideHomeGrid: boolean): void {
 }
 observeHomeGrid();
 
-function cleanYouTube(settings: { hideShorts?: boolean; hideHomeGrid?: boolean; hideHomeNav?: boolean }) {
+function cleanYouTube(settings: { hideShorts?: boolean; hideHomeGrid?: boolean; hideHomeNav?: boolean; hideMasthead?: boolean }) {
     injectStyles(!!settings.hideShorts, !!settings.hideHomeGrid);
     setShortsVisibility(!!settings.hideShorts);
     injectHomeNavHideStyles(!!settings.hideHomeGrid || !!settings.hideHomeNav);
     injectShortsNavHideStyles(!!settings.hideShorts);
+    setMastheadVisibility(!!settings.hideMasthead);
     if (settings.hideShorts) hideEmptyShortsShelves();
     hideHomeGridIfNeeded(!!settings.hideHomeGrid);
 }
 
 function run(): void {
-    chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideHomeNav'], cleanYouTube);
+    chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideHomeNav', 'hideMasthead'], cleanYouTube);
 }
 
 let debounceId: number | null = null;
@@ -97,7 +99,7 @@ startObserver();
 chrome.storage.onChanged.addListener((changes, area) => {
     if (
         area === 'sync' &&
-        (changes.hideShorts || changes.hideHomeGrid || changes.hideHomeNav)
+        (changes.hideShorts || changes.hideHomeGrid || changes.hideHomeNav || changes.hideMasthead)
     ) {
         setTimeout(() => {
             run();
@@ -122,3 +124,7 @@ setupGlobalListeners(saveLastNonHomeUrl, maybeRedirectFromHome);
 
 // Initial call to hide empty Shorts shelves
 hideEmptyShortsShelves();
+
+
+
+observeMasthead();
