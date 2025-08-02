@@ -387,29 +387,65 @@ function injectShortsNavHideStyles(hide: boolean) {
     }
 }
 
-function onNavigation() {
-    run();
+// Track previous YouTube URL (per tab, not persistent)
+let lastNonHomeYouTubeUrl: string | null = null;
+
+// Helper: is this a YouTube page (not home)?
+function isNonHomeYouTubeUrl(url: string): boolean {
+    try {
+        const u = new URL(url, location.origin);
+        return (
+            u.hostname.endsWith('youtube.com') &&
+            (u.pathname !== '/' || u.search.includes('feed'))
+        );
+    } catch {
+        return false;
+    }
 }
 
-// Patch pushState and replaceState
-(function (history) {
-    const pushState = history.pushState;
-    const replaceState = history.replaceState;
-    history.pushState = function (...args) {
-        const ret = pushState.apply(this, args);
-        window.dispatchEvent(new Event('optube:navigation'));
-        return ret;
-    };
-    history.replaceState = function (...args) {
-        const ret = replaceState.apply(this, args);
-        window.dispatchEvent(new Event('optube:navigation'));
-        return ret;
-    };
-})(window.history);
+// Save the last non-home YouTube URL before navigation
+function saveLastNonHomeUrl() {
+    if (isNonHomeYouTubeUrl(location.href)) {
+        lastNonHomeYouTubeUrl = location.href;
+        chrome.storage.local.set({ optubeLastNonHomeUrl: lastNonHomeYouTubeUrl });
+    }
+}
 
-// Listen for navigation events
-window.addEventListener('popstate', onNavigation);
-window.addEventListener('optube:navigation', onNavigation);
+// On navigation, check if we should redirect from home
+function maybeRedirectFromHome() {
+    if (
+        location.hostname.endsWith('youtube.com') &&
+        location.pathname === '/' &&
+        !location.search.includes('feed')
+    ) {
+        chrome.storage.sync.get(['hideHomeGrid'], (settings) => {
+            if (!settings.hideHomeGrid) return;
+            chrome.storage.local.get(['optubeLastNonHomeUrl'], (result) => {
+                console.log("Maybe redirecting from home, last non-home URL:", result.optubeLastNonHomeUrl);
+                const prevUrl = result.optubeLastNonHomeUrl;
+                if (prevUrl && prevUrl !== location.href) {
+                    window.location.replace(prevUrl);
+                }
+            });
+        });
+    }
+}
+
+// Listen for YouTube navigation events
+window.addEventListener('yt-navigate-finish', () => {
+    saveLastNonHomeUrl();
+    maybeRedirectFromHome();
+});
+
+// Keep your other listeners for fallback...
+window.addEventListener('popstate', () => {
+    saveLastNonHomeUrl();
+    maybeRedirectFromHome();
+});
+window.addEventListener('load', () => {
+    saveLastNonHomeUrl();
+    maybeRedirectFromHome();
+});
 
 // Hide empty Shorts shelves
 function hideEmptyShortsShelves() {
