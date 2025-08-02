@@ -5,7 +5,7 @@ const removedGridShelves: Array<{
     element: Element;
 }> = [];
 
-function injectStyles(hide: boolean): void {
+function injectStyles(hideShorts: boolean, hideHomeGrid: boolean): void {
     let styleElement = document.getElementById('optube-styles') as HTMLStyleElement | null;
     if (!styleElement) {
         styleElement = document.createElement('style');
@@ -13,21 +13,30 @@ function injectStyles(hide: boolean): void {
         document.head.appendChild(styleElement);
     }
 
-    if (hide) {
-        styleElement.textContent = `
-      .ytGridShelfViewModelHost,
-      [class*="shelf"][class*="shorts" i],
-      ytm-shorts-lockup-view-model-v2,
-      ytm-shorts-lockup-view-model,
-      a[href^="/shorts/"] {
-        display: none !important;
-      }
-    `;
-    } else {
-        styleElement.textContent = '';
-    }
-}
+    let css = '';
 
+    if (hideShorts) {
+        css += `
+            .ytGridShelfViewModelHost,
+            [class*="shelf"][class*="shorts" i],
+            ytm-shorts-lockup-view-model-v2,
+            ytm-shorts-lockup-view-model,
+            a[href^="/shorts/"] {
+                display: none !important;
+            }
+        `;
+    }
+
+    if (hideHomeGrid && location.pathname === '/' && !location.search.includes('feed')) {
+        css += `
+            ytd-rich-grid-renderer {
+                display: none !important;
+            }
+        `;
+    }
+
+    styleElement.textContent = css;
+}
 function detachElements(selector: string): void {
     const elements = document.querySelectorAll(selector);
     console.log(`Detaching ${elements.length} elements matching "${selector}"`);
@@ -100,7 +109,7 @@ function setElementsVisibility(
 
 function setShortsVisibility(hide: boolean): void {
     console.log(`Setting Shorts visibility: ${hide ? 'hide' : 'show'} `);
-    injectStyles(hide);
+    injectStyles(hide, false);
 
     if (hide) {
         detachElements('.ytGridShelfViewModelHost, [class*="shelf"][class*="shorts" i]');
@@ -186,8 +195,8 @@ function setShortsVisibility(hide: boolean): void {
 function hideHomeGridIfNeeded(hide: boolean) {
     const isHome = location.pathname === '/' && !location.search.includes('feed');
     const grid = document.querySelector('ytd-rich-grid-renderer') as HTMLElement | null;
-    if (grid && isHome) {
-        if (hide) {
+    if (grid) {
+        if (isHome && hide) {
             grid.style.display = 'none';
         } else {
             grid.style.display = '';
@@ -195,12 +204,56 @@ function hideHomeGridIfNeeded(hide: boolean) {
     }
 }
 
+// --- Home grid observer ---
+function observeHomeGrid() {
+    function applyHideIfNeeded() {
+        chrome.storage.sync.get(['hideHomeGrid'], (settings) => {
+            const hide = !!settings.hideHomeGrid;
+            hideHomeGridIfNeeded(hide);
+        });
+    }
+
+    function setupGridObserver() {
+        const container = document.querySelector('ytd-browse');
+        if (!container) return;
+        const grid = container.querySelector('ytd-rich-grid-renderer');
+        if (grid) {
+            applyHideIfNeeded();
+        }
+        // Always observe for grid being added
+        const gridObserver = new MutationObserver(() => {
+            const gridNow = container.querySelector('ytd-rich-grid-renderer');
+            if (gridNow) {
+                applyHideIfNeeded();
+            }
+        });
+        gridObserver.observe(container, { childList: true, subtree: true });
+    }
+
+    function onRouteChange() {
+        const isHome = location.pathname === '/' && !location.search.includes('feed');
+        if (isHome) {
+            setupGridObserver();
+        } else {
+            // Always restore grid if present
+            const grid = document.querySelector('ytd-rich-grid-renderer') as HTMLElement | null;
+            if (grid) grid.style.display = '';
+        }
+    }
+
+    window.addEventListener('optube:navigation', onRouteChange);
+    window.addEventListener('popstate', onRouteChange);
+    window.addEventListener('load', onRouteChange);
+    onRouteChange();
+}
+
+observeHomeGrid();
+
 function cleanYouTube(settings: { hideShorts?: boolean; hideHomeGrid?: boolean; hideHomeNav?: boolean }) {
-    hideHomeGridIfNeeded(!!settings.hideHomeGrid);
+    injectStyles(!!settings.hideShorts, !!settings.hideHomeGrid);
     setShortsVisibility(!!settings.hideShorts);
     injectHomeNavHideStyles(!!settings.hideHomeGrid || !!settings.hideHomeNav);
     injectShortsNavHideStyles(!!settings.hideShorts);
-    // Ensure empty shelves are hidden on every run
     if (settings.hideShorts) hideEmptyShortsShelves();
 }
 
@@ -260,17 +313,6 @@ chrome.storage.onChanged.addListener((changes, area) => {
     }
 });
 
-// function removeHomeNavEntry() {
-//     // Remove "Home" from the top-level navigation/sidebar
-//     const topNav = document.querySelector('ytd-app > #container #primary-navigation');
-//     if (topNav) {
-//         topNav.querySelectorAll('a').forEach((a) => {
-//             if (a.textContent?.trim().toLowerCase() === 'home') {
-//                 a.remove();
-//             }
-//         });
-//     }
-
 // Remove from any anchor links with text "Home"
 document.querySelectorAll('a').forEach((a) => {
     if (a.textContent?.trim().toLowerCase() === 'home') {
@@ -284,9 +326,6 @@ document.querySelectorAll('ytd-guide-entry-renderer, ytd-mini-guide-entry-render
         el.remove();
     }
 });
-
-console.log('Optube content script loaded.');
-
 
 function injectHomeNavHideStyles(hide: boolean) {
     let styleElement = document.getElementById('optube-home-nav-hide') as HTMLStyleElement | null;
