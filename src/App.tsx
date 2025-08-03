@@ -7,25 +7,27 @@ function App() {
   const [hideMasthead, setHideMasthead] = useState(false);
   const [hideFold, setHideFold] = useState(false);
   const [hideComments, setHideComments] = useState(false);
+  const [hideCategoryAndTopic, setHideCategoryAndTopic] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Load all settings on mount and listen for changes from other tabs/extensions
   useEffect(() => {
-    function updateFromStorage(result: { hideShorts?: boolean; hideHomeGrid?: boolean; hideMasthead?: boolean; hideFold?: boolean, hideComments?: boolean }) {
+    function updateFromStorage(result: { hideShorts?: boolean; hideHomeGrid?: boolean; hideMasthead?: boolean; hideFold?: boolean, hideComments?: boolean, hideCategoryAndTopic?: boolean }) {
       setHideShorts(result.hideShorts ?? false);
       setHideHomeGrid(result.hideHomeGrid ?? false);
       setHideMasthead(result.hideMasthead ?? false);
       setHideFold(result.hideFold ?? false);
       setHideComments(result.hideComments ?? false);
+      setHideCategoryAndTopic(result.hideCategoryAndTopic ?? false);
       setLoading(false);
     }
-    chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideMasthead', 'hideFold', 'hideComments'], updateFromStorage);
+    chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideMasthead', 'hideFold', 'hideComments', 'hideCategoryAndTopic'], updateFromStorage);
     function handleStorageChange(
       _: { [key: string]: chrome.storage.StorageChange },
       areaName: 'sync' | 'local' | 'managed' | 'session'
     ) {
       if (areaName === 'sync') {
-        chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideMasthead', 'hideFold', 'hideComments'], updateFromStorage);
+        chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideMasthead', 'hideFold', 'hideComments', 'hideCategoryAndTopic'], updateFromStorage);
       }
     }
     chrome.storage.onChanged.addListener(handleStorageChange);
@@ -35,11 +37,10 @@ function App() {
     // TODO: need some dependencies, or better yet, avoid useEffect entirely.
   }, []);
 
-
-  const settings = { hideShorts, hideHomeGrid, hideMasthead, hideFold, hideComments };
+  const settings = { hideShorts, hideHomeGrid, hideMasthead, hideFold, hideComments, hideCategoryAndTopic };
 
   // Save all settings together, always including all current values
-  const saveSettings = (settings: { hideShorts: boolean; hideHomeGrid: boolean; hideMasthead: boolean; hideFold: boolean; hideComments: boolean }) => {
+  const saveSettings = (settings: { hideShorts: boolean; hideHomeGrid: boolean; hideMasthead: boolean; hideFold: boolean; hideComments: boolean, hideCategoryAndTopic: boolean }) => {
     chrome.storage.sync.set(settings);
   };
 
@@ -84,6 +85,14 @@ function App() {
     });
   };
 
+  const handleCategoryAndTopicToggle = () => {
+    setHideCategoryAndTopic((prev) => {
+      const newVal = !prev;
+      saveSettings({ ...settings, hideCategoryAndTopic: newVal });
+      return newVal;
+    });
+  };
+
   return (
     <div>
       <h1>Optube</h1>
@@ -120,6 +129,12 @@ function App() {
             label="Toggle video comments"
             checked={hideComments}
             onChange={handleVideoCommentsToggle}
+          />
+
+          <CardWithInput
+            label="Toggle video category/topic"
+            checked={hideCategoryAndTopic}
+            onChange={handleCategoryAndTopicToggle}
           />
 
           <div className="info-text">
