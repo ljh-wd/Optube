@@ -6,24 +6,26 @@ function App() {
   const [hideHomeGrid, setHideHomeGrid] = useState(false);
   const [hideMasthead, setHideMasthead] = useState(false);
   const [hideFold, setHideFold] = useState(false);
+  const [hideComments, setHideComments] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Load all settings on mount and listen for changes from other tabs/extensions
   useEffect(() => {
-    function updateFromStorage(result: { hideShorts?: boolean; hideHomeGrid?: boolean; hideMasthead?: boolean; hideFold?: boolean }) {
+    function updateFromStorage(result: { hideShorts?: boolean; hideHomeGrid?: boolean; hideMasthead?: boolean; hideFold?: boolean, hideComments?: boolean }) {
       setHideShorts(result.hideShorts ?? false);
       setHideHomeGrid(result.hideHomeGrid ?? false);
       setHideMasthead(result.hideMasthead ?? false);
       setHideFold(result.hideFold ?? false);
+      setHideComments(result.hideComments ?? false);
       setLoading(false);
     }
-    chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideMasthead', 'hideFold'], updateFromStorage);
+    chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideMasthead', 'hideFold', 'hideComments'], updateFromStorage);
     function handleStorageChange(
       _: { [key: string]: chrome.storage.StorageChange },
       areaName: 'sync' | 'local' | 'managed' | 'session'
     ) {
       if (areaName === 'sync') {
-        chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideMasthead', 'hideFold'], updateFromStorage);
+        chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideMasthead', 'hideFold', 'hideComments'], updateFromStorage);
       }
     }
     chrome.storage.onChanged.addListener(handleStorageChange);
@@ -34,10 +36,10 @@ function App() {
   }, []);
 
 
-  const settings = { hideShorts, hideHomeGrid, hideMasthead, hideFold };
+  const settings = { hideShorts, hideHomeGrid, hideMasthead, hideFold, hideComments };
 
   // Save all settings together, always including all current values
-  const saveSettings = (settings: { hideShorts: boolean; hideHomeGrid: boolean; hideMasthead: boolean, hideFold: boolean }) => {
+  const saveSettings = (settings: { hideShorts: boolean; hideHomeGrid: boolean; hideMasthead: boolean; hideFold: boolean; hideComments: boolean }) => {
     chrome.storage.sync.set(settings);
   };
 
@@ -74,6 +76,14 @@ function App() {
     });
   };
 
+  const handleVideoCommentsToggle = () => {
+    setHideComments((prev) => {
+      const newVal = !prev;
+      saveSettings({ ...settings, hideComments: newVal });
+      return newVal;
+    });
+  };
+
   return (
     <div>
       <h1>Optube</h1>
@@ -104,6 +114,12 @@ function App() {
             label="Toggle video details"
             checked={hideFold}
             onChange={handleVideoDetailsToggle}
+          />
+
+          <CardWithInput
+            label="Toggle video comments"
+            checked={hideComments}
+            onChange={handleVideoCommentsToggle}
           />
 
           <div className="info-text">
