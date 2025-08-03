@@ -8,17 +8,17 @@
  * @param saveLastNonHomeUrl - Callback to save the last non-home YouTube URL.
  * @param maybeRedirectFromHome - Callback to handle redirecting from the home page if needed.
  */
-export function setupGlobalListeners(saveLastNonHomeUrl: () => void, maybeRedirectFromHome: () => void) {
+export function setupGlobalListeners(maybeRedirectFromHome: () => void) {
     window.addEventListener('yt-navigate-finish', () => {
-        saveLastNonHomeUrl();
+
         maybeRedirectFromHome();
     });
     window.addEventListener('popstate', () => {
-        saveLastNonHomeUrl();
+
         maybeRedirectFromHome();
     });
     window.addEventListener('load', () => {
-        saveLastNonHomeUrl();
+
         maybeRedirectFromHome();
     });
 }

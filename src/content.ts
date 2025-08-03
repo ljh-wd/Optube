@@ -1,6 +1,6 @@
 // Converted from content.js to TypeScript
 import { setShortsVisibility, hideEmptyShortsShelves } from './utils/shorts';
-import { hideHomeGridIfNeeded, observeHomeGrid, saveLastNonHomeUrl, maybeRedirectFromHome, injectHomeNavHideStyles } from './utils/homeFeed';
+import { hideHomeGridIfNeeded, observeHomeGrid, maybeRedirectFromHome, injectHomeNavHideStyles } from './utils/homeFeed';
 import { removeElementsByText, setupGlobalListeners } from './utils/global';
 import { injectShortsNavHideStyles } from './utils/shorts';
 import { observeMasthead, setMastheadVisibility } from './utils/topBar';
@@ -124,7 +124,7 @@ removeElementsByText('ytd-mini-guide-entry-renderer', 'home');
 
 
 // Setup global navigation listeners
-setupGlobalListeners(saveLastNonHomeUrl, maybeRedirectFromHome);
+setupGlobalListeners(maybeRedirectFromHome);
 
 // Initial call to hide empty Shorts shelves
 hideEmptyShortsShelves();
