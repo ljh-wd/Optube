@@ -4,6 +4,7 @@ import { hideHomeGridIfNeeded, observeHomeGrid, saveLastNonHomeUrl, maybeRedirec
 import { removeElementsByText, setupGlobalListeners } from './utils/global';
 import { injectShortsNavHideStyles } from './utils/shorts';
 import { observeMasthead, setMastheadVisibility } from './utils/topBar';
+import { observeFold, setFoldVisibility } from './utils/video';
 
 function injectStyles(hideShorts: boolean, hideHomeGrid: boolean): void {
     let styleElement = document.getElementById('optube-styles') as HTMLStyleElement | null;
@@ -39,18 +40,19 @@ function injectStyles(hideShorts: boolean, hideHomeGrid: boolean): void {
 }
 observeHomeGrid();
 
-function cleanYouTube(settings: { hideShorts?: boolean; hideHomeGrid?: boolean; hideHomeNav?: boolean; hideMasthead?: boolean }) {
+function cleanYouTube(settings: { hideShorts?: boolean; hideHomeGrid?: boolean; hideHomeNav?: boolean; hideMasthead?: boolean, hideFold?: boolean }): void {
     injectStyles(!!settings.hideShorts, !!settings.hideHomeGrid);
     setShortsVisibility(!!settings.hideShorts);
     injectHomeNavHideStyles(!!settings.hideHomeGrid || !!settings.hideHomeNav);
     injectShortsNavHideStyles(!!settings.hideShorts);
     setMastheadVisibility(!!settings.hideMasthead);
+    setFoldVisibility(!!settings.hideFold);
     if (settings.hideShorts) hideEmptyShortsShelves();
     hideHomeGridIfNeeded(!!settings.hideHomeGrid);
 }
 
 function run(): void {
-    chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideHomeNav', 'hideMasthead'], cleanYouTube);
+    chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideHomeNav', 'hideMasthead', 'hideFold'], cleanYouTube);
 }
 
 let debounceId: number | null = null;
@@ -99,11 +101,11 @@ startObserver();
 chrome.storage.onChanged.addListener((changes, area) => {
     if (
         area === 'sync' &&
-        (changes.hideShorts || changes.hideHomeGrid || changes.hideHomeNav || changes.hideMasthead)
+        (changes.hideShorts || changes.hideHomeGrid || changes.hideHomeNav || changes.hideMasthead || changes.hideFold)
     ) {
         setTimeout(() => {
             run();
-            // Immediately apply grid hiding if on home and hideHomeGrid changed
+            // ? Immediately apply grid hiding if on home and hideHomeGrid changed
             if (changes.hideHomeGrid && location.pathname === '/' && !location.search.includes('feed')) {
                 hideHomeGridIfNeeded(changes.hideHomeGrid.newValue);
             }
@@ -128,3 +130,4 @@ hideEmptyShortsShelves();
 
 
 observeMasthead();
+observeFold();

@@ -3,9 +3,10 @@
  * @param hide - Whether to hide (true) or show (false) the masthead.
 */
 export function setMastheadVisibility(hide: boolean) {
-    document.querySelectorAll('ytd-masthead').forEach((el) => {
-        (el as HTMLElement).style.display = hide ? 'none' : '';
-    });
+    const masthead = document.getElementById('container');
+    if (!masthead) return;
+
+    masthead.style.display = hide ? 'none' : '';
 }
 
 export function observeMasthead() {
