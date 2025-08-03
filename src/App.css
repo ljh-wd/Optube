@@ -4,10 +4,25 @@
   padding: 0;
 }
 
+.container {
+text-align: center;
+padding: 0.5rem 0;
+}
+
+.container h1 {
+font-size: 1.5rem;
+}
+
+.container h2 {
+font-size: 1rem;
+}
+
 .card {
   background-color: #1e1e1e;
   border-radius: 8px;
-  padding: 1rem 2rem;   
+  padding: 1rem;   
+  overflow-y: scroll;
+  max-height: 400px;
   margin: 16px;
   color: white;
   box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 4px, rgba(0, 0, 0, 0.14) 0px 1px 3px;
@@ -61,4 +76,12 @@
   &[data-state="checked"] {
     left: 15px;
   }
+}
+
+
+.filter-button-container {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem;
 }

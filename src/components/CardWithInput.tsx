@@ -1,5 +1,6 @@
 import * as Switch from "@radix-ui/react-switch";
 import '../App.css'
+import { useId } from "react";
 
 
 type Props = {
@@ -11,10 +12,14 @@ type Props = {
 
 
 const CardWithInput = ({ label, checked, onChange }: Props) => {
+
+    const id = useId()
+
     return (
         <div className="card-section">
-            <span className="Label">{label}</span>
+            <label htmlFor={id} className="Label">{label}</label>
             <Switch.Root
+                id={id}
                 className="SwitchRoot"
                 checked={checked}
                 onCheckedChange={onChange}

@@ -63,50 +63,75 @@ function App() {
   };
 
   return (
-    <div className='card'>
+    <div className='container'>
       <h1>Optube</h1>
       <h2>YouTube utility</h2>
 
-      <CardWithInput
-        label="Hide Shorts"
-        checked={settings.hideShorts}
-        onChange={handleToggle('hideShorts')}
-      />
+      <div className='card'>
 
-      <CardWithInput
-        label="Hide home page"
-        checked={settings.hideHomeGrid}
-        onChange={handleToggle('hideHomeGrid')}
-      />
+        <CardWithInput
+          label="Hide Shorts"
+          checked={settings.hideShorts}
+          onChange={handleToggle('hideShorts')}
+        />
 
-      <CardWithInput
-        label="Hide Top Bar"
-        checked={settings.hideMasthead}
-        onChange={handleToggle('hideMasthead')}
-      />
+        <CardWithInput
+          label="Hide home page"
+          checked={settings.hideHomeGrid}
+          onChange={handleToggle('hideHomeGrid')}
+        />
 
-      <CardWithInput
-        label="Toggle video details"
-        checked={settings.hideFold}
-        onChange={handleToggle('hideFold')}
-      />
+        <CardWithInput
+          label="Hide Top Bar"
+          checked={settings.hideMasthead}
+          onChange={handleToggle('hideMasthead')}
+        />
 
-      <CardWithInput
-        label="Toggle video comments"
-        checked={settings.hideComments}
-        onChange={handleToggle('hideComments')}
-      />
+        <CardWithInput
+          label="Toggle video details"
+          checked={settings.hideFold}
+          onChange={handleToggle('hideFold')}
+        />
 
-      <CardWithInput
-        label="Toggle video category/topic"
-        checked={settings.hideCategoryAndTopic}
-        onChange={handleToggle('hideCategoryAndTopic')}
-      />
+        <CardWithInput
+          label="Toggle video comments"
+          checked={settings.hideComments}
+          onChange={handleToggle('hideComments')}
+        />
+
+        <CardWithInput
+          label="Toggle video category/topic"
+          checked={settings.hideCategoryAndTopic}
+          onChange={handleToggle('hideCategoryAndTopic')}
+        />
+      </div>
+
+      <div className='filter-button-container'>
+        <button
+          onClick={() => {
+            Object.keys(defaultSettings).forEach(key => {
+              handleToggle(key as keyof Settings)(defaultSettings[key as keyof Settings]);
+            });
+          }}
+          type='button'
+        >
+          Clear filters
+        </button>
+        <button
+          onClick={() => {
+            Object.keys(defaultSettings).forEach(key => {
+              handleToggle(key as keyof Settings)(true);
+            });
+          }}
+          type='button'
+        >
+          All filters
+        </button>
+      </div>
 
       <div className="info-text">
         Settings are saved and auto-applied across YouTube pages.
       </div>
-
     </div>
   );
 }
