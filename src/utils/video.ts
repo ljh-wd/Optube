@@ -46,3 +46,27 @@ export function observeComments() {
     });
     observer.observe(document.body, { childList: true, subtree: true });
 }
+
+export function setCategoryAndTopicVisibility(hide: boolean) {
+    const categories = document.querySelectorAll('ytd-metadata-row-container-renderer');
+
+    if (!categories) return;
+    categories.forEach(category => {
+        (category as HTMLElement).style.display = hide ? 'none' : '';
+    });
+}
+
+export function observeCategoryAndTopic() {
+    chrome.storage.sync.get(['hideCategoryAndTopic'], (settings) => {
+        const hide = !!settings.hideCategoryAndTopic;
+        setCategoryAndTopicVisibility(hide);
+    });
+    const observer = new MutationObserver(() => {
+        chrome.storage.sync.get(['hideCategoryAndTopic'], (settings) => {
+            const hide = !!settings.hideCategoryAndTopic;
+            setCategoryAndTopicVisibility(hide);
+        });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+}
