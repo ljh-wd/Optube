@@ -1,163 +1,141 @@
 import './App.css';
-import { forwardRef, useEffect, useState, type ComponentPropsWithRef, type ForwardedRef } from 'react';
+import { useEffect, useState, } from 'react';
+import CardWithInput from './components/CardWithInput';
+
+
+
+type Settings = {
+  hideShorts: boolean;
+  hideHomeGrid: boolean;
+  hideMasthead: boolean;
+  hideFold: boolean;
+  hideComments: boolean;
+  hideCategoryAndTopic: boolean;
+};
+
+const defaultSettings: Settings = {
+  hideShorts: false,
+  hideHomeGrid: false,
+  hideMasthead: false,
+  hideFold: false,
+  hideComments: false,
+  hideCategoryAndTopic: false,
+};
 
 function App() {
-  const [hideShorts, setHideShorts] = useState(false);
-  const [hideHomeGrid, setHideHomeGrid] = useState(false);
-  const [hideMasthead, setHideMasthead] = useState(false);
-  const [hideFold, setHideFold] = useState(false);
-  const [hideComments, setHideComments] = useState(false);
-  const [hideCategoryAndTopic, setHideCategoryAndTopic] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState<Settings>(defaultSettings);
 
-  // Load all settings on mount and listen for changes from other tabs/extensions
   useEffect(() => {
-    function updateFromStorage(result: { hideShorts?: boolean; hideHomeGrid?: boolean; hideMasthead?: boolean; hideFold?: boolean, hideComments?: boolean, hideCategoryAndTopic?: boolean }) {
-      setHideShorts(result.hideShorts ?? false);
-      setHideHomeGrid(result.hideHomeGrid ?? false);
-      setHideMasthead(result.hideMasthead ?? false);
-      setHideFold(result.hideFold ?? false);
-      setHideComments(result.hideComments ?? false);
-      setHideCategoryAndTopic(result.hideCategoryAndTopic ?? false);
-      setLoading(false);
+    function updateFromStorage(result: Partial<Settings>) {
+      setSettings({ ...defaultSettings, ...result });
     }
-    chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideMasthead', 'hideFold', 'hideComments', 'hideCategoryAndTopic'], updateFromStorage);
+    chrome.storage.sync.get(
+      Object.entries(defaultSettings).reduce(
+        (acc, [key, value]) => ({ ...acc, [key]: value }),
+        {} as Record<string, boolean>
+      ),
+      updateFromStorage
+    );
     function handleStorageChange(
       _: { [key: string]: chrome.storage.StorageChange },
       areaName: 'sync' | 'local' | 'managed' | 'session'
     ) {
       if (areaName === 'sync') {
-        chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideMasthead', 'hideFold', 'hideComments', 'hideCategoryAndTopic'], updateFromStorage);
+        chrome.storage.sync.get(Object.keys(defaultSettings) as (keyof Settings)[], updateFromStorage);
       }
     }
     chrome.storage.onChanged.addListener(handleStorageChange);
     return () => {
       chrome.storage.onChanged.removeListener(handleStorageChange);
     };
-    // TODO: need some dependencies, or better yet, avoid useEffect entirely.
   }, []);
 
-  const settings = { hideShorts, hideHomeGrid, hideMasthead, hideFold, hideComments, hideCategoryAndTopic };
-
-  // Save all settings together, always including all current values
-  const saveSettings = (settings: { hideShorts: boolean; hideHomeGrid: boolean; hideMasthead: boolean; hideFold: boolean; hideComments: boolean, hideCategoryAndTopic: boolean }) => {
-    chrome.storage.sync.set(settings);
+  const saveSettings = (newSettings: Settings) => {
+    chrome.storage.sync.set(newSettings);
   };
 
-  // Handlers
-  const handleShortsToggle = () => {
-    setHideShorts((prev) => {
-      const newVal = !prev;
-      saveSettings({ ...settings, hideShorts: newVal });
-      return newVal;
-    });
-  };
-
-  const handleHomeGridToggle = () => {
-    setHideHomeGrid((prev) => {
-      const newVal = !prev;
-      saveSettings({ ...settings, hideHomeGrid: newVal });
-      return newVal;
-    });
-  };
-
-  const handleMastheadToggle = () => {
-    setHideMasthead((prev) => {
-      const newVal = !prev;
-      saveSettings({ ...settings, hideMasthead: newVal });
-      return newVal;
-    });
-  };
-
-  const handleVideoDetailsToggle = () => {
-    setHideFold((prev) => {
-      const newVal = !prev;
-      saveSettings({ ...settings, hideFold: newVal });
-      return newVal;
-    });
-  };
-
-  const handleVideoCommentsToggle = () => {
-    setHideComments((prev) => {
-      const newVal = !prev;
-      saveSettings({ ...settings, hideComments: newVal });
-      return newVal;
-    });
-  };
-
-  const handleCategoryAndTopicToggle = () => {
-    setHideCategoryAndTopic((prev) => {
-      const newVal = !prev;
-      saveSettings({ ...settings, hideCategoryAndTopic: newVal });
-      return newVal;
+  const handleToggle = (key: keyof Settings) => (checked: boolean) => {
+    setSettings(prev => {
+      const updated = { ...prev, [key]: checked };
+      saveSettings(updated);
+      return updated;
     });
   };
 
   return (
-    <div>
+    <div className='container'>
       <h1>Optube</h1>
       <h2>YouTube utility</h2>
-      {loading ? (
-        <p>Loading settings...</p>
-      ) : (
-        <>
-          <CardWithInput
-            label="Hide Shorts"
-            checked={hideShorts}
-            onChange={handleShortsToggle}
-          />
 
-          <CardWithInput
-            label="Hide home page"
-            checked={hideHomeGrid}
-            onChange={handleHomeGridToggle}
-          />
+      <div className='card'>
 
-          <CardWithInput
-            label="Hide Top Bar"
-            checked={hideMasthead}
-            onChange={handleMastheadToggle}
-          />
+        <CardWithInput
+          label="Hide Shorts"
+          checked={settings.hideShorts}
+          onChange={handleToggle('hideShorts')}
+        />
 
-          <CardWithInput
-            label="Toggle video details"
-            checked={hideFold}
-            onChange={handleVideoDetailsToggle}
-          />
+        <CardWithInput
+          label="Hide home page"
+          checked={settings.hideHomeGrid}
+          onChange={handleToggle('hideHomeGrid')}
+        />
 
-          <CardWithInput
-            label="Toggle video comments"
-            checked={hideComments}
-            onChange={handleVideoCommentsToggle}
-          />
+        <CardWithInput
+          label="Hide Top Bar"
+          checked={settings.hideMasthead}
+          onChange={handleToggle('hideMasthead')}
+        />
 
-          <CardWithInput
-            label="Toggle video category/topic"
-            checked={hideCategoryAndTopic}
-            onChange={handleCategoryAndTopicToggle}
-          />
+        <CardWithInput
+          label="Toggle video details"
+          checked={settings.hideFold}
+          onChange={handleToggle('hideFold')}
+        />
 
-          <div className="info-text">
-            Settings are saved and auto-applied across YouTube pages.
-          </div>
-        </>
-      )}
+        <CardWithInput
+          label="Toggle video comments"
+          checked={settings.hideComments}
+          onChange={handleToggle('hideComments')}
+        />
+
+        <CardWithInput
+          label="Toggle video category/topic"
+          checked={settings.hideCategoryAndTopic}
+          onChange={handleToggle('hideCategoryAndTopic')}
+        />
+      </div>
+
+      <div className='filter-button-container'>
+        <button
+          onClick={() => {
+            Object.keys(defaultSettings).forEach(key => {
+              handleToggle(key as keyof Settings)(defaultSettings[key as keyof Settings]);
+            });
+          }}
+          type='button'
+        >
+          Clear filters
+        </button>
+        <button
+          onClick={() => {
+            Object.keys(defaultSettings).forEach(key => {
+              handleToggle(key as keyof Settings)(true);
+            });
+          }}
+          type='button'
+        >
+          All filters
+        </button>
+      </div>
+
+      <div className="info-text">
+        Settings are saved and auto-applied across YouTube pages.
+      </div>
     </div>
   );
 }
 
-type Props = ComponentPropsWithRef<'input'> & { label: string, ref: ForwardedRef<HTMLInputElement> }
 
-const CardWithInput = forwardRef<HTMLInputElement, Props>(
-  function CardWithInput({ label, checked, onChange }, ref) {
-    return (
-      <div className="card-section">
-        <label>
-          <input ref={ref} type="checkbox" checked={checked} onChange={onChange} />
-          {label}
-        </label>
-      </div>
-    );
-  })
 
 export default App;

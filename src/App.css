@@ -1,54 +1,87 @@
-/* Card section spacing */
-.card-section {
-  margin-bottom: 1em;
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-/* Removed slider styling */
-
-/* Info text styling */
-.info-text {
-  font-size: 0.9em;
-  color: #888;
-}
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+.container {
+text-align: center;
+padding: 0.5rem 0;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.container h1 {
+font-size: 1.5rem;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.container h2 {
+font-size: 1rem;
 }
 
 .card {
-  padding: 2em;
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  padding: 1rem;   
+  overflow-y: scroll;
+  max-height: 400px;
+  margin: 16px;
+  color: white;
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 4px, rgba(0, 0, 0, 0.14) 0px 1px 3px;
 }
 
-.read-the-docs {
-  color: #888;
+.card-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;          
+  padding: 1rem 0;    
+}
+
+
+.Label {
+  color: white;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.SwitchRoot {
+  width: 32px;
+  height: 18px;
+  background-color: #aaa;
+  border-radius: 9999px;
+  position: relative;
+  transition: background-color 200ms ease;
+  outline: none;
+  flex-shrink: 0;
+
+  &[data-state="checked"] {
+    background-color: #00c853;
+  }
+
+  &:hover {
+    box-shadow: 0 0 0 2px black;
+  }
+}
+
+.SwitchThumb {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 16px;
+  height: 16px;
+  background-color: white;
+  border-radius: 9999px;
+  box-shadow: 0 2px 2px var(--black-a7);
+  transition: left 100ms ease;
+
+  &[data-state="checked"] {
+    left: 15px;
+  }
+}
+
+
+.filter-button-container {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem;
 }
