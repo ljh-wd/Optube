@@ -64,8 +64,8 @@ font-size: 1rem;
 
 .SwitchThumb {
   position: absolute;
-  top: 1px;
-  left: 1px;
+  top: 0px;
+  left: 0px;
   width: 16px;
   height: 16px;
   background-color: white;
