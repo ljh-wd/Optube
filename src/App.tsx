@@ -88,19 +88,19 @@ function App() {
         />
 
         <CardWithInput
-          label="Toggle video details"
+          label="Hide video details"
           checked={settings.hideFold}
           onChange={handleToggle('hideFold')}
         />
 
         <CardWithInput
-          label="Toggle video comments"
+          label="Hide video comments"
           checked={settings.hideComments}
           onChange={handleToggle('hideComments')}
         />
 
         <CardWithInput
-          label="Toggle video category/topic"
+          label="Hide video category/topic"
           checked={settings.hideCategoryAndTopic}
           onChange={handleToggle('hideCategoryAndTopic')}
         />
