@@ -1,6 +1,7 @@
 import './App.css';
-import { useEffect, useState, } from 'react';
+import { useEffect, useState } from 'react';
 import CardWithInput from './components/CardWithInput';
+import SettingsGroup from './components/SettingsGroup';
 
 
 
@@ -71,47 +72,51 @@ function App() {
 
       <div className='card'>
 
-        <CardWithInput
-          label="Hide Shorts"
-          checked={settings.hideShorts}
-          onChange={handleToggle('hideShorts')}
-        />
+        <SettingsGroup title="Navigation" defaultOpen={true}>
+          <CardWithInput
+            label="Hide Shorts"
+            checked={settings.hideShorts}
+            onChange={handleToggle('hideShorts')}
+          />
 
-        <CardWithInput
-          label="Hide home page"
-          checked={settings.hideHomeGrid}
-          onChange={handleToggle('hideHomeGrid')}
-        />
+          <CardWithInput
+            label="Hide home page"
+            checked={settings.hideHomeGrid}
+            onChange={handleToggle('hideHomeGrid')}
+          />
 
-        <CardWithInput
-          label="Hide Top Bar"
-          checked={settings.hideMasthead}
-          onChange={handleToggle('hideMasthead')}
-        />
+          <CardWithInput
+            label="Hide Top Bar"
+            checked={settings.hideMasthead}
+            onChange={handleToggle('hideMasthead')}
+          />
+        </SettingsGroup>
 
-        <CardWithInput
-          label="Hide video details"
-          checked={settings.hideFold}
-          onChange={handleToggle('hideFold')}
-        />
+        <SettingsGroup title="Video Settings" defaultOpen={true}>
+          <CardWithInput
+            label="Hide video details"
+            checked={settings.hideFold}
+            onChange={handleToggle('hideFold')}
+          />
 
-        <CardWithInput
-          label="Hide video comments"
-          checked={settings.hideComments}
-          onChange={handleToggle('hideComments')}
-        />
+          <CardWithInput
+            label="Hide video comments"
+            checked={settings.hideComments}
+            onChange={handleToggle('hideComments')}
+          />
 
-        <CardWithInput
-          label="Hide recommended sidebar"
-          checked={settings.hideRecommended}
-          onChange={handleToggle('hideRecommended')}
-        />
+          <CardWithInput
+            label="Hide recommended sidebar"
+            checked={settings.hideRecommended}
+            onChange={handleToggle('hideRecommended')}
+          />
 
-        <CardWithInput
-          label="Hide video category/topic"
-          checked={settings.hideCategoryAndTopic}
-          onChange={handleToggle('hideCategoryAndTopic')}
-        />
+          <CardWithInput
+            label="Hide video category/topic"
+            checked={settings.hideCategoryAndTopic}
+            onChange={handleToggle('hideCategoryAndTopic')}
+          />
+        </SettingsGroup>
       </div>
 
       <div className='filter-button-container'>
