@@ -11,6 +11,7 @@ type Settings = {
   hideFold: boolean;
   hideComments: boolean;
   hideCategoryAndTopic: boolean;
+  hideRecommended: boolean;
 };
 
 const defaultSettings: Settings = {
@@ -20,6 +21,7 @@ const defaultSettings: Settings = {
   hideFold: false,
   hideComments: false,
   hideCategoryAndTopic: false,
+  hideRecommended: false,
 };
 
 function App() {
@@ -97,6 +99,12 @@ function App() {
           label="Hide video comments"
           checked={settings.hideComments}
           onChange={handleToggle('hideComments')}
+        />
+
+        <CardWithInput
+          label="Hide recommended sidebar"
+          checked={settings.hideRecommended}
+          onChange={handleToggle('hideRecommended')}
         />
 
         <CardWithInput
