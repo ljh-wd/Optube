@@ -54,7 +54,7 @@ font-size: 1rem;
   flex-shrink: 0;
 
   &[data-state="checked"] {
-    background-color: #00c853;
+    background-color: #dc3e4b;
   }
 
   &:hover {
