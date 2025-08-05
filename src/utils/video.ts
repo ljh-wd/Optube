@@ -70,3 +70,25 @@ export function observeCategoryAndTopic() {
 
     observer.observe(document.body, { childList: true, subtree: true });
 }
+
+
+
+export function setRecommendedVisibility(hide: boolean) {
+    const recommended = document.getElementById('secondary-inner');
+    if (!recommended) return
+    (recommended as HTMLElement).style.display = hide ? 'none' : '';
+}
+
+export function observeRecommended() {
+    chrome.storage.sync.get(['hideRecommended'], (settings) => {
+        const hide = !!settings.hideRecommended;
+        setRecommendedVisibility(hide);
+    });
+    const observer = new MutationObserver(() => {
+        chrome.storage.sync.get(['hideRecommended'], (settings) => {
+            const hide = !!settings.hideRecommended;
+            setRecommendedVisibility(hide);
+        });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+}

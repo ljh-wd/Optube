@@ -4,7 +4,7 @@ import { hideHomeGridIfNeeded, observeHomeGrid, maybeRedirectFromHome, injectHom
 import { removeElementsByText, setupGlobalListeners } from './utils/global';
 import { injectShortsNavHideStyles } from './utils/shorts';
 import { observeMasthead, setMastheadVisibility } from './utils/topBar';
-import { observeCategoryAndTopic, observeComments, observeFold, setCategoryAndTopicVisibility, setCommentsVisibility, setFoldVisibility } from './utils/video';
+import { observeCategoryAndTopic, observeComments, observeFold, observeRecommended, setCategoryAndTopicVisibility, setCommentsVisibility, setFoldVisibility, setRecommendedVisibility } from './utils/video';
 
 function injectStyles(hideShorts: boolean, hideHomeGrid: boolean): void {
     let styleElement = document.getElementById('optube-styles') as HTMLStyleElement | null;
@@ -40,7 +40,7 @@ function injectStyles(hideShorts: boolean, hideHomeGrid: boolean): void {
 }
 observeHomeGrid();
 
-function cleanYouTube(settings: { hideShorts?: boolean; hideHomeGrid?: boolean; hideHomeNav?: boolean; hideMasthead?: boolean, hideFold?: boolean, hideComments?: boolean, hideCategoryAndTopic?: boolean }): void {
+function cleanYouTube(settings: { hideShorts?: boolean; hideHomeGrid?: boolean; hideHomeNav?: boolean; hideMasthead?: boolean, hideFold?: boolean, hideComments?: boolean, hideCategoryAndTopic?: boolean, hideRecommended?: boolean }): void {
     injectStyles(!!settings.hideShorts, !!settings.hideHomeGrid);
     setShortsVisibility(!!settings.hideShorts);
     injectHomeNavHideStyles(!!settings.hideHomeGrid || !!settings.hideHomeNav);
@@ -49,12 +49,13 @@ function cleanYouTube(settings: { hideShorts?: boolean; hideHomeGrid?: boolean; 
     setCommentsVisibility(!!settings.hideComments);
     setFoldVisibility(!!settings.hideFold);
     setCategoryAndTopicVisibility(!!settings.hideCategoryAndTopic);
+    setRecommendedVisibility(!!settings.hideRecommended);
     if (settings.hideShorts) hideEmptyShortsShelves();
     hideHomeGridIfNeeded(!!settings.hideHomeGrid);
 }
 
 function run(): void {
-    chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideHomeNav', 'hideMasthead', 'hideFold', 'hideComments', 'hideCategoryAndTopic'], cleanYouTube);
+    chrome.storage.sync.get(['hideShorts', 'hideHomeGrid', 'hideHomeNav', 'hideMasthead', 'hideFold', 'hideComments', 'hideCategoryAndTopic', 'hideRecommended'], cleanYouTube);
 }
 
 let debounceId: number | null = null;
@@ -103,7 +104,7 @@ startObserver();
 chrome.storage.onChanged.addListener((changes, area) => {
     if (
         area === 'sync' &&
-        (changes.hideShorts || changes.hideHomeGrid || changes.hideHomeNav || changes.hideMasthead || changes.hideFold || changes.hideComments || changes.hideCategoryAndTopic)
+        (changes.hideShorts || changes.hideHomeGrid || changes.hideHomeNav || changes.hideMasthead || changes.hideFold || changes.hideComments || changes.hideCategoryAndTopic || changes.hideRecommended)
     ) {
         setTimeout(() => {
             run();
@@ -135,3 +136,4 @@ observeMasthead();
 observeFold();
 observeComments();
 observeCategoryAndTopic();
+observeRecommended();
