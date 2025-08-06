@@ -72,7 +72,7 @@ function App() {
 
       <div className='card'>
 
-        <SettingsGroup title="Navigation" defaultOpen={true}>
+        <SettingsGroup title="Navigation" >
           <CardWithInput
             label="Hide Shorts"
             checked={settings.hideShorts}
@@ -92,7 +92,7 @@ function App() {
           />
         </SettingsGroup>
 
-        <SettingsGroup title="Video Settings" defaultOpen={true}>
+        <SettingsGroup title="Video Settings">
           <CardWithInput
             label="Hide video details"
             checked={settings.hideFold}

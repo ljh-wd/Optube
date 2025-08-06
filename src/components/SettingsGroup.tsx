@@ -15,7 +15,7 @@ const SettingsGroup = ({ title, children, defaultOpen = false }: SettingsGroupPr
         <div className="settings-group">
             <div
                 className="settings-group-header"
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={() => setIsOpen(prev => !prev)}
             >
                 <h3>{title}</h3>
                 <div className={`chevron ${isOpen ? 'open' : ''}`}>
