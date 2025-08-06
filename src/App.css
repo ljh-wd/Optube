@@ -22,7 +22,7 @@ font-size: 1rem;
   border-radius: 8px;
   padding: 1rem;   
   overflow-y: scroll;
-  max-height: 400px;
+  height: 400px;
   margin: 16px;
   color: white;
   box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 4px, rgba(0, 0, 0, 0.14) 0px 1px 3px;
@@ -86,7 +86,7 @@ font-size: 1rem;
   margin: 1rem;
 }
 
-/* Settings Group Styling */
+
 .settings-group {
   margin-bottom: 0.5rem;
   border-radius: 4px;
