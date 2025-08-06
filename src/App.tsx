@@ -13,6 +13,7 @@ type Settings = {
   hideComments: boolean;
   hideCategoryAndTopic: boolean;
   hideRecommended: boolean;
+  hideSidebar: boolean;
 };
 
 const defaultSettings: Settings = {
@@ -23,6 +24,7 @@ const defaultSettings: Settings = {
   hideComments: false,
   hideCategoryAndTopic: false,
   hideRecommended: false,
+  hideSidebar: false,
 };
 
 function App() {
@@ -74,7 +76,13 @@ function App() {
 
         <SettingsGroup title="Navigation" >
           <CardWithInput
-            label="Hide Shorts"
+            label="Hide sidebar"
+            checked={settings.hideSidebar}
+            onChange={handleToggle('hideSidebar')}
+          />
+
+          <CardWithInput
+            label="Hide shorts"
             checked={settings.hideShorts}
             onChange={handleToggle('hideShorts')}
           />
@@ -86,7 +94,7 @@ function App() {
           />
 
           <CardWithInput
-            label="Hide Top Bar"
+            label="Hide top bar"
             checked={settings.hideMasthead}
             onChange={handleToggle('hideMasthead')}
           />
