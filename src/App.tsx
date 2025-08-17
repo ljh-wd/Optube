@@ -6,8 +6,6 @@ import SettingsGroup from './components/SettingsGroup';
 
 
 type Settings = {
-  hideShorts: boolean;
-  hideHomeGrid: boolean;
   hideMasthead: boolean;
   hideFold: boolean;
   hideComments: boolean;
@@ -17,9 +15,7 @@ type Settings = {
 };
 
 const defaultSettings: Settings = {
-  hideShorts: false,
-  hideHomeGrid: false,
-  hideMasthead: false,
+  hideMasthead: true,
   hideFold: false,
   hideComments: false,
   hideCategoryAndTopic: false,
@@ -81,17 +77,6 @@ function App() {
             onChange={handleToggle('hideSidebar')}
           />
 
-          <CardWithInput
-            label="Hide shorts"
-            checked={settings.hideShorts}
-            onChange={handleToggle('hideShorts')}
-          />
-
-          <CardWithInput
-            label="Hide home page"
-            checked={settings.hideHomeGrid}
-            onChange={handleToggle('hideHomeGrid')}
-          />
 
           <CardWithInput
             label="Hide top bar"
