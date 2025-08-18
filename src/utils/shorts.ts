@@ -1,173 +1,167 @@
 /**
- * Injects or removes styles to hide Shorts navigation elements in the YouTube sidebar and guide.
- * @param hide - Whether to hide (true) or show (false) Shorts navigation.
+ * Toggle Shorts visibility (attribute + conservative cleanup).
+ * We avoid hiding core feed containers (ytd-rich-grid-renderer / section root)
+ * to prevent breaking lazy loading.
  */
-export function injectShortsNavHideStyles(hide: boolean) {
-    let styleElement = document.getElementById('optube-shorts-nav-hide') as HTMLStyleElement | null;
-    if (!styleElement) {
-        styleElement = document.createElement('style');
-        styleElement.id = 'optube-shorts-nav-hide';
-        document.head.appendChild(styleElement);
-    }
+export function setShortsVisibility(hide: boolean) {
     if (hide) {
-        styleElement.textContent = `
-            ytd-guide-entry-renderer:has(a[title="Shorts"]),
-            ytd-mini-guide-entry-renderer:has(a[title="Shorts"]),
-            a[title="Shorts"],
-            ytd-guide-entry-renderer:has([aria-label="Shorts"]),
-            ytd-mini-guide-entry-renderer:has([aria-label="Shorts"]),
-            a[aria-label="Shorts"] {
-                display: none !important;
-            }
-        `;
+        document.documentElement.setAttribute('hide_shorts', 'true');
+        cleanupShortsShelves();
     } else {
-        styleElement.textContent = '';
+        document.documentElement.removeAttribute('hide_shorts');
     }
 }
-import { setElementsVisibility } from './global';
-/**
- * Stores removed grid shelf elements for Shorts so they can be reattached later.
- * Used by detachElements/reattachElements.
- */
-const removedGridShelves: Array<{
-    parent: Node & ParentNode & { isConnected: boolean };
-    nextSibling: ChildNode | null;
-    element: Element;
-}> = [];
 
-/**
- * Detaches elements matching the selector and stores them for later reattachment.
- * Used for hiding Shorts grid shelves.
- * @param selector - CSS selector for elements to detach.
- */
-export function detachElements(selector: string): void {
-    const elements = document.querySelectorAll(selector);
-    elements.forEach((el) => {
-        const parent = el.parentNode as (Node & ParentNode & { isConnected: boolean }) | null;
-        if (!parent) return;
-        removedGridShelves.push({
-            parent,
-            nextSibling: el.nextSibling,
-            element: el,
-        });
-        parent.removeChild(el);
+function cleanupShortsShelves() {
+    // Dedicated shelf components – safe to hide directly
+    document.querySelectorAll('ytd-reel-shelf-renderer, ytd-shorts-shelf-renderer').forEach(el => (el as HTMLElement).style.display = 'none');
+
+    // Grid shelf view model (experimental / new layout)
+    document.querySelectorAll('grid-shelf-view-model').forEach(el => {
+        if (el.querySelector('ytm-shorts-lockup-view-model, ytm-shorts-lockup-view-model-v2')) {
+            (el as HTMLElement).style.display = 'none';
+        }
+    });
+
+    // Rich shelf renderer (subscriptions/home variant) containing shorts lockups or links
+    document.querySelectorAll('ytd-rich-shelf-renderer').forEach(el => {
+        const hasShorts = el.querySelector('ytm-shorts-lockup-view-model, ytm-shorts-lockup-view-model-v2, a[href*="/shorts/"]');
+        const headerText = (el.querySelector('#title')?.textContent || '').trim().toLowerCase();
+        if (hasShorts && (headerText === 'shorts' || el.querySelector('ytm-shorts-lockup-view-model, ytm-shorts-lockup-view-model-v2'))) {
+            (el as HTMLElement).style.display = 'none';
+        }
+    });
+
+    // Rich item wrappers containing a shorts shelf inside the main grid
+    document.querySelectorAll('ytd-rich-item-renderer').forEach(item => {
+        if (item.querySelector('ytd-reel-shelf-renderer, ytd-shorts-shelf-renderer')) {
+            (item as HTMLElement).style.display = 'none';
+        }
+    });
+
+    // Individual lockups (mobile / experimental) not already hidden
+    document.querySelectorAll('ytm-shorts-lockup-view-model, ytm-shorts-lockup-view-model-v2').forEach(el => (el as HTMLElement).style.display = 'none');
+
+    hideShortsFilterChip();
+}
+
+// Hide the "Shorts" filter chip in search (and any chip cloud areas)
+function hideShortsFilterChip() {
+    const chips = document.querySelectorAll('yt-chip-cloud-chip-renderer');
+    chips.forEach(chip => {
+        const text = chip.textContent?.trim().toLowerCase();
+        if (text === 'shorts') {
+            (chip as HTMLElement).style.display = 'none';
+        }
     });
 }
 
-/**
- * Reattaches previously detached grid shelf elements for Shorts.
- */
-export function reattachElements(): void {
-    while (removedGridShelves.length) {
-        const { parent, nextSibling, element } = removedGridShelves.shift()!;
-        try {
-            if (parent.isConnected) {
-                if (nextSibling && parent.contains(nextSibling)) {
-                    parent.insertBefore(element, nextSibling);
-                } else {
-                    parent.appendChild(element);
+export function observeShorts() {
+    // Initial setup
+    chrome.storage.sync.get(['hideShorts'], (settings) => {
+        setShortsVisibility(!!settings.hideShorts);
+    });
+
+    // Listen for storage changes
+    chrome.storage.onChanged.addListener((changes) => {
+        if (changes.hideShorts) {
+            setShortsVisibility(!!changes.hideShorts.newValue);
+        }
+    });
+
+    // Add a lightweight observer for dynamically loaded content
+    let timeoutId: number | null = null;
+    const observer = new MutationObserver(() => {
+        // Debounce the cleanup to avoid excessive calls
+        if (timeoutId) clearTimeout(timeoutId);
+        timeoutId = window.setTimeout(() => {
+            chrome.storage.sync.get(['hideShorts'], (settings) => {
+                if (settings.hideShorts) {
+                    cleanupShortsShelves();
                 }
-            } else {
-                const fallbackContainer = document.querySelector('ytd-item-section-renderer') || document.body;
-                fallbackContainer.appendChild(element);
-            }
-        } catch (e) {
-            console.warn('Failed to reattach element:', e);
-        }
-    }
-}
+            });
+        }, 500);
+    });
 
-/**
- * Shows or hides all Shorts-related UI elements on the page.
- * @param hide - Whether to hide (true) or show (false) Shorts UI.
- */
-export function setShortsVisibility(hide: boolean): void {
-    if (hide) {
-        detachElements('.ytGridShelfViewModelHost, [class*="shelf"][class*="shorts" i]');
-    } else {
-        reattachElements();
-    }
-
-    setElementsVisibility(
-        'ytd-rich-section-renderer',
-        hide,
-        (sec) => {
-            const h2 = sec.querySelector('h2');
-            const hasShorts = !!h2 && h2.innerText.toLowerCase().includes('shorts');
-            return hasShorts;
-        }
-    );
-    setElementsVisibility(
-        'ytd-guide-entry-renderer',
-        hide,
-        (en) => (en.textContent || '').toLowerCase().includes('shorts')
-    );
-    setElementsVisibility(
-        'a',
-        hide,
-        (a) => a.textContent?.toLowerCase().trim() === 'shorts'
-    );
-    setElementsVisibility(
-        '*',
-        hide,
-        (el) => el.textContent?.toLowerCase().trim() === 'shorts',
-        'ytd-mini-guide-entry-renderer, ytd-guide-entry-renderer, tp-yt-paper-item, a'
-    );
-    setElementsVisibility(
-        'yt-section-header-view-model, yt-shelf-header-layout',
-        hide,
-        undefined,
-        'ytd-item-section-renderer, ytd-shelf-renderer, .ytSectionHeaderViewModelHost, .shelf-header-layout-wiz'
-    );
-    setElementsVisibility('.ytGridShelfViewModelGridShelfRow', hide);
-    setElementsVisibility(
-        'ytm-shorts-lockup-view-model-v2, ytm-shorts-lockup-view-model',
-        hide
-    );
-    setElementsVisibility(
-        'a[href^="/shorts/"]',
-        hide,
-        undefined,
-        'ytd-video-renderer, ytd-grid-video-renderer, ytd-rich-item-renderer, .ytGridShelfViewModelGridShelfItem, .shortsLockupViewModelHost'
-    );
-    setElementsVisibility(
-        'h2, h3, span',
-        hide,
-        (el) => el.textContent?.toLowerCase().trim() === 'shorts',
-        'ytd-item-section-renderer, ytd-shelf-renderer, .ytGridShelfViewModelGridShelfRow, .ytSectionHeaderViewModelHost'
-    );
-    setElementsVisibility(
-        'ytd-reel-shelf-renderer, ytd-reel-item-renderer',
-        hide
-    );
-    setElementsVisibility(
-        '.ytGridShelfViewModelGridShelfBottomButtonContainer button',
-        hide
-    );
-
-    // Hide empty ytd-rich-shelf-renderer containers if hiding Shorts
-    if (hide) {
-        document.querySelectorAll('ytd-rich-shelf-renderer').forEach((shelf) => {
-            const hasShorts = shelf.textContent?.toLowerCase().includes('shorts');
-            if (!hasShorts || shelf.querySelectorAll('ytd-reel-shelf-renderer, ytd-reel-item-renderer, [class*="shorts" i]').length === 0) {
-                (shelf as HTMLElement).style.display = 'none';
-            }
-        });
-    } else {
-        document.querySelectorAll('ytd-rich-shelf-renderer').forEach((shelf) => {
-            (shelf as HTMLElement).style.display = '';
-        });
-    }
-}
-
-/**
- * Hides all empty Shorts shelves on the page.
- */
-export function hideEmptyShortsShelves() {
-    document.querySelectorAll('ytd-rich-shelf-renderer').forEach((shelf) => {
-        const hasShorts = shelf.textContent?.toLowerCase().includes('shorts');
-        if (!hasShorts || shelf.querySelectorAll('ytd-reel-shelf-renderer, ytd-reel-item-renderer, [class*="shorts" i]').length === 0) {
-            (shelf as HTMLElement).style.display = 'none';
+    // Only observe if shorts hiding is enabled
+    chrome.storage.sync.get(['hideShorts'], (settings) => {
+        if (settings.hideShorts) {
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
         }
     });
+}
+
+// Add this CSS to your content stylesheet or inject it
+export function injectShortsCSS() {
+    const style = document.createElement('style');
+    style.textContent = `
+        /* Hide Shorts in sidebar navigation */
+        html[hide_shorts="true"] ytd-guide-entry-renderer:has([title="Shorts"]) {
+            display: none !important;
+        }
+        
+        /* Dedicated shorts shelf components */
+        html[hide_shorts="true"] ytd-reel-shelf-renderer,
+        html[hide_shorts="true"] ytd-shorts-shelf-renderer,
+        html[hide_shorts="true"] ytd-rich-item-renderer:has(> ytd-reel-shelf-renderer),
+        html[hide_shorts="true"] ytd-rich-item-renderer:has(> ytd-shorts-shelf-renderer),
+        html[hide_shorts="true"] grid-shelf-view-model:has(ytm-shorts-lockup-view-model),
+        html[hide_shorts="true"] grid-shelf-view-model:has(ytm-shorts-lockup-view-model-v2),
+    html[hide_shorts="true"] ytd-rich-shelf-renderer:has(ytm-shorts-lockup-view-model),
+    html[hide_shorts="true"] ytd-rich-shelf-renderer:has(ytm-shorts-lockup-view-model-v2),
+    html[hide_shorts="true"] ytd-rich-shelf-renderer:has(a[href*="/shorts/"]),
+        html[hide_shorts="true"] ytm-shorts-lockup-view-model,
+        html[hide_shorts="true"] ytm-shorts-lockup-view-model-v2 {
+            display: none !important;
+        }
+
+        /* Hide "Shorts" filter chips in search chip clouds */
+        html[hide_shorts="true"] yt-chip-cloud-chip-renderer:has(#chip-shape-container button div:only-child),
+        html[hide_shorts="true"] yt-chip-cloud-chip-renderer:has(button .ytChipShapeChip):has(:scope span),
+        html[hide_shorts="true"] yt-chip-cloud-chip-renderer:has(button):has(> *:not(:has(*))){
+            /* fallback generic hide when text evaluated by JS */
+        }
+        
+        /* Remove individual shorts tiles (search / mixed lists) */
+        html[hide_shorts="true"] ytd-video-renderer:has(a[href*="/shorts/"]),
+        html[hide_shorts="true"] ytd-grid-video-renderer:has(a[href*="/shorts/"]),
+        html[hide_shorts="true"] ytd-compact-video-renderer:has(a[href*="/shorts/"]) {
+            display: none !important;
+        }
+        
+        /* Hide Shorts in home feed */
+        html[hide_shorts="true"] ytd-rich-section-renderer:has([aria-label*="Short" i]),
+        html[hide_shorts="true"] ytd-rich-section-renderer:has([title*="Short" i]) {
+            display: none !important;
+        }
+        
+        /* Hide Shorts in search results */
+        html[hide_shorts="true"] ytd-video-renderer:has(.badge-shape-wiz[aria-label*="Short" i]),
+        html[hide_shorts="true"] ytd-search-refinement-card-renderer:has([aria-label*="Short" i]) {
+            display: none !important;
+        }
+        
+        /* Hide Shorts tab in channel pages */
+        html[hide_shorts="true"] tp-yt-paper-tab:has([tab-title="Shorts"]),
+        html[hide_shorts="true"] yt-tab-shape:has([tab-title="Shorts"]) {
+            display: none !important;
+        }
+        
+        /* Hide any element with shorts in the URL */
+        html[hide_shorts="true"] [href*="/shorts/"] {
+            display: none !important;
+        }
+        
+        /* Hide Shorts with specific badges */
+        html[hide_shorts="true"] ytd-rich-item-renderer:has(.badge-shape-wiz[aria-label*="Short" i]),
+        html[hide_shorts="true"] ytd-video-renderer:has(.badge-shape-wiz[aria-label*="Short" i]) {
+            display: none !important;
+        }
+        
+    /* Intentionally NOT hiding: ytd-rich-grid-renderer, ytd-item-section-renderer */
+    `;
+    document.head.appendChild(style);
 }

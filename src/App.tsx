@@ -2,24 +2,11 @@ import './App.css';
 import { useEffect, useState } from 'react';
 import CardWithInput from './components/CardWithInput';
 import SettingsGroup from './components/SettingsGroup';
-
-
-
-type Settings = {
-  hideShorts: boolean;
-  hideHomeGrid: boolean;
-  hideMasthead: boolean;
-  hideFold: boolean;
-  hideComments: boolean;
-  hideCategoryAndTopic: boolean;
-  hideRecommended: boolean;
-  hideSidebar: boolean;
-};
+import type { Settings } from './types/global';
 
 const defaultSettings: Settings = {
   hideShorts: false,
-  hideHomeGrid: false,
-  hideMasthead: false,
+  hideMasthead: true,
   hideFold: false,
   hideComments: false,
   hideCategoryAndTopic: false,
@@ -76,25 +63,20 @@ function App() {
 
         <SettingsGroup title="Navigation" >
           <CardWithInput
-            label="Hide sidebar"
-            checked={settings.hideSidebar}
-            onChange={handleToggle('hideSidebar')}
-          />
-
-          <CardWithInput
-            label="Hide shorts"
+            label="Toggle shorts"
             checked={settings.hideShorts}
             onChange={handleToggle('hideShorts')}
           />
 
           <CardWithInput
-            label="Hide home page"
-            checked={settings.hideHomeGrid}
-            onChange={handleToggle('hideHomeGrid')}
+            label="Toggle sidebar"
+            checked={settings.hideSidebar}
+            onChange={handleToggle('hideSidebar')}
           />
 
+
           <CardWithInput
-            label="Hide top bar"
+            label="toggle top bar"
             checked={settings.hideMasthead}
             onChange={handleToggle('hideMasthead')}
           />
@@ -102,53 +84,42 @@ function App() {
 
         <SettingsGroup title="Video Settings">
           <CardWithInput
-            label="Hide video details"
+            label="toggle video details"
             checked={settings.hideFold}
             onChange={handleToggle('hideFold')}
           />
 
           <CardWithInput
-            label="Hide video comments"
+            label="toggle video comments"
             checked={settings.hideComments}
             onChange={handleToggle('hideComments')}
           />
 
           <CardWithInput
-            label="Hide recommended sidebar"
+            label="toggle recommended sidebar"
             checked={settings.hideRecommended}
             onChange={handleToggle('hideRecommended')}
           />
 
           <CardWithInput
-            label="Hide video category/topic"
+            label="toggle video category/topic"
             checked={settings.hideCategoryAndTopic}
             onChange={handleToggle('hideCategoryAndTopic')}
           />
         </SettingsGroup>
       </div>
 
-      <div className='filter-button-container'>
-        <button
-          onClick={() => {
-            Object.keys(defaultSettings).forEach(key => {
-              handleToggle(key as keyof Settings)(defaultSettings[key as keyof Settings]);
-            });
-          }}
-          type='button'
-        >
-          Clear filters
-        </button>
-        <button
-          onClick={() => {
-            Object.keys(defaultSettings).forEach(key => {
-              handleToggle(key as keyof Settings)(true);
-            });
-          }}
-          type='button'
-        >
-          All filters
-        </button>
-      </div>
+      <button
+        onClick={() => {
+          Object.keys(defaultSettings).forEach(key => {
+            handleToggle(key as keyof Settings)(defaultSettings[key as keyof Settings]);
+          });
+        }}
+        type='button'
+      >
+        Clear filters
+      </button>
+
 
       <div className="info-text">
         Settings are saved and auto-applied across YouTube pages.
