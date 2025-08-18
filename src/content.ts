@@ -1,9 +1,11 @@
-import { removeElementsByText } from './utils/global';
 import { observeMasthead, setMastheadVisibility } from './utils/topBar';
 import { observeCategoryAndTopic, observeComments, observeFold, observeRecommended, setCategoryAndTopicVisibility, setCommentsVisibility, setFoldVisibility, setRecommendedVisibility } from './utils/video';
 import { observeSidebar, setSidebarVisibility } from './utils/sidebar';
+import type { Settings } from './types/global';
+import { observeShorts, setShortsVisibility, injectShortsCSS } from './utils/shorts';
 
-function cleanYouTube(settings: { hideHomeNav?: boolean; hideMasthead?: boolean, hideFold?: boolean, hideComments?: boolean, hideCategoryAndTopic?: boolean, hideRecommended?: boolean, hideSidebar?: boolean }): void {
+function cleanYouTube(settings: Settings): void {
+  setShortsVisibility(!!settings.hideShorts);
   setMastheadVisibility(!!settings.hideMasthead);
   setCommentsVisibility(!!settings.hideComments);
   setFoldVisibility(!!settings.hideFold);
@@ -13,7 +15,7 @@ function cleanYouTube(settings: { hideHomeNav?: boolean; hideMasthead?: boolean,
 }
 
 function run(): void {
-  chrome.storage.sync.get(['hideHomeNav', 'hideMasthead', 'hideFold', 'hideComments', 'hideCategoryAndTopic', 'hideRecommended', 'hideSidebar'], cleanYouTube);
+  chrome.storage.sync.get(['hideShorts', 'hideMasthead', 'hideFold', 'hideComments', 'hideCategoryAndTopic', 'hideRecommended', 'hideSidebar'], cleanYouTube);
 }
 
 let debounceId: number | null = null;
@@ -42,10 +44,13 @@ window.addEventListener('load', run);
 run();
 startObserver();
 
+// Inject CSS for shorts hiding
+injectShortsCSS();
+
 chrome.storage.onChanged.addListener((changes, area) => {
   if (
     area === 'sync' &&
-    (changes.hideHomeNav || changes.hideMasthead || changes.hideFold || changes.hideComments || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hideSidebar)
+    (changes.hideShorts || changes.hideHomeNav || changes.hideMasthead || changes.hideFold || changes.hideComments || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hideSidebar)
   ) {
     setTimeout(() => {
       run();
@@ -53,15 +58,11 @@ chrome.storage.onChanged.addListener((changes, area) => {
   }
 });
 
-// Remove from any anchor links with text "Home"
-removeElementsByText('a', 'home');
-// Remove from mini guide and sidebar
-removeElementsByText('ytd-guide-entry-renderer', 'home');
-removeElementsByText('ytd-mini-guide-entry-renderer', 'home');
-
+observeShorts();
 observeMasthead();
 observeFold();
 observeComments();
 observeCategoryAndTopic();
 observeRecommended();
 observeSidebar();
+
