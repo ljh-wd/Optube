@@ -11,6 +11,7 @@ const defaultSettings: Settings = {
   hideHome: false,
   hideMasthead: false,
   hideSearchbar: false,
+  hideNotifications: false,
   hideFold: false,
   hideComments: false,
   hideCategoryAndTopic: false,
@@ -54,14 +55,16 @@ function App() {
     setSettings(prev => {
       const updated = { ...prev, [key]: checked };
 
-      // If topbar is being enabled, also enable searchbar
+      // If topbar is being enabled, also enable searchbar and notifications
       if (key === 'hideMasthead' && checked) {
         updated.hideSearchbar = true;
+        updated.hideNotifications = true;
       }
 
-      // If topbar is being disabled, also disable searchbar
+      // If topbar is being disabled, also disable searchbar and notifications
       if (key === 'hideMasthead' && !checked) {
         updated.hideSearchbar = false;
+        updated.hideNotifications = false;
       }
 
       saveSettings(updated);
@@ -110,6 +113,12 @@ function App() {
               label="Toggle searchbar"
               checked={settings.hideSearchbar}
               onChange={handleToggle('hideSearchbar')}
+              disabled={settings.hideMasthead}
+            />
+            <CardWithInput
+              label="Toggle notifications"
+              checked={settings.hideNotifications}
+              onChange={handleToggle('hideNotifications')}
               disabled={settings.hideMasthead}
             />
           </NestedToggle>

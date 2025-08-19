@@ -4,6 +4,7 @@ export type Settings = {
     hideHome: boolean;
     hideMasthead: boolean;
     hideSearchbar: boolean;
+    hideNotifications: boolean;
     hideFold: boolean;
     hideComments: boolean;
     hideCategoryAndTopic: boolean;
