@@ -6,6 +6,7 @@ import type { Settings } from './types/global';
 
 const defaultSettings: Settings = {
   hideShorts: false,
+  hideHome: false,
   hideMasthead: false,
   hideFold: false,
   hideComments: false,
@@ -66,6 +67,12 @@ function App() {
             label="Toggle shorts"
             checked={settings.hideShorts}
             onChange={handleToggle('hideShorts')}
+          />
+
+          <CardWithInput
+            label="Toggle home"
+            checked={settings.hideHome}
+            onChange={handleToggle('hideHome')}
           />
 
           <CardWithInput

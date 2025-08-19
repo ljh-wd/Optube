@@ -3,9 +3,11 @@ import { observeCategoryAndTopic, observeComments, observeFold, observeRecommend
 import { observeSidebar, setSidebarVisibility } from './utils/sidebar';
 import type { Settings } from './types/global';
 import { observeShorts, setShortsVisibility, injectShortsCSS } from './utils/shorts';
+import { observeHome, setHomeVisibility, injectHomeCSS } from './utils/home';
 
 function cleanYouTube(settings: Settings): void {
   setShortsVisibility(!!settings.hideShorts);
+  setHomeVisibility(!!settings.hideHome);
   setMastheadVisibility(!!settings.hideMasthead);
   setCommentsVisibility(!!settings.hideComments);
   setFoldVisibility(!!settings.hideFold);
@@ -15,7 +17,7 @@ function cleanYouTube(settings: Settings): void {
 }
 
 function run(): void {
-  chrome.storage.sync.get(['hideShorts', 'hideMasthead', 'hideFold', 'hideComments', 'hideCategoryAndTopic', 'hideRecommended', 'hideSidebar'], cleanYouTube);
+  chrome.storage.sync.get(['hideShorts', 'hideHome', 'hideMasthead', 'hideFold', 'hideComments', 'hideCategoryAndTopic', 'hideRecommended', 'hideSidebar'], cleanYouTube);
 }
 
 let debounceId: number | null = null;
@@ -44,13 +46,14 @@ window.addEventListener('load', run);
 run();
 startObserver();
 
-// Inject CSS for shorts hiding
+// Inject CSS for shorts and home hiding
 injectShortsCSS();
+injectHomeCSS();
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (
     area === 'sync' &&
-    (changes.hideShorts || changes.hideHomeNav || changes.hideMasthead || changes.hideFold || changes.hideComments || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hideSidebar)
+    (changes.hideShorts || changes.hideHome || changes.hideMasthead || changes.hideFold || changes.hideComments || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hideSidebar)
   ) {
     setTimeout(() => {
       run();
@@ -59,6 +62,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
 });
 
 observeShorts();
+observeHome();
 observeMasthead();
 observeFold();
 observeComments();
