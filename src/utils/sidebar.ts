@@ -1,8 +1,84 @@
-export function setSidebarVisibility(hide: boolean) {
-    const sidebar = document.querySelector('ytd-guide-renderer');
-    if (!sidebar) return;
+let injected = false;
 
-    (sidebar as HTMLElement).style.display = hide ? 'none' : '';
+function ensureSidebarCSS() {
+    if (injected) return;
+    const styleId = 'optube-sidebar-style';
+    if (document.getElementById(styleId)) {
+        injected = true;
+        return;
+    }
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `html[optube_hide_sidebar] tp-yt-app-drawer#guide,\nhtml[optube_hide_sidebar] ytd-mini-guide-renderer,\nhtml[optube_hide_sidebar] ytd-guide-renderer,\nhtml[optube_hide_sidebar] #guide-content,\nhtml[optube_hide_sidebar] #guide-wrapper {\n  display: none !important;\n  visibility: hidden !important;\n}\nhtml[optube_hide_sidebar] #content,\nhtml[optube_hide_sidebar] ytd-app #content,\nhtml[optube_hide_sidebar] ytd-app #page-manager {\n  margin-left: 0 !important;\n  padding-left: 0 !important;\n  --ytd-guide-width: 0px !important;\n  --ytd-mini-guide-width: 0px !important;\n}\nhtml[optube_hide_sidebar] ytd-app {\n  --ytd-guide-width: 0px !important;\n  --ytd-mini-guide-width: 0px !important;\n}`;
+    document.documentElement.appendChild(style);
+    injected = true;
+}
+
+function hideFullSidebar() {
+    ensureSidebarCSS();
+    // IMPORTANT: Do NOT remove YouTube's guide persistence attributes; doing so can
+    // trigger internal re-initialisation that spawns a duplicate drawer/miniguide
+    // when the user re-enables the sidebar. We'll rely purely on CSS + inline
+    // overrides so that restoring simply unhides existing nodes.
+
+    const app = document.querySelector<HTMLElement>('ytd-app');
+
+    // Fallback inline styles (in case CSS injection races)
+    const guideDrawer = document.querySelector<HTMLElement>('tp-yt-app-drawer#guide');
+    if (guideDrawer) {
+        guideDrawer.style.display = 'none';
+        guideDrawer.style.visibility = 'hidden';
+        guideDrawer.style.width = '0px';
+        guideDrawer.style.minWidth = '0';
+    }
+    document.querySelectorAll<HTMLElement>('ytd-guide-renderer, #guide-content, #guide-wrapper, ytd-mini-guide-renderer').forEach(el => {
+        el.style.display = 'none';
+        el.style.visibility = 'hidden';
+    });
+    const content = document.querySelector<HTMLElement>('#content');
+    if (content) {
+        content.style.marginLeft = '0';
+        content.style.paddingLeft = '0';
+    }
+    if (app) {
+        app.style.setProperty('--ytd-guide-width', '0px');
+        app.style.setProperty('--ytd-mini-guide-width', '0px');
+    }
+}
+
+function restoreFullSidebar() {
+    const app = document.querySelector<HTMLElement>('ytd-app');
+    // We do NOT re-add removed attributes; YouTube will reapply them if needed on next navigation.
+    const guideDrawer = document.querySelector<HTMLElement>('tp-yt-app-drawer#guide');
+    if (guideDrawer) {
+        guideDrawer.style.display = '';
+        guideDrawer.style.visibility = '';
+        guideDrawer.style.width = '';
+        guideDrawer.style.minWidth = '';
+    }
+    document.querySelectorAll<HTMLElement>('ytd-guide-renderer, #guide-content, #guide-wrapper, ytd-mini-guide-renderer').forEach(el => {
+        el.style.display = '';
+        el.style.visibility = '';
+    });
+    const content = document.querySelector<HTMLElement>('#content');
+    if (content) {
+        content.style.marginLeft = '';
+        content.style.paddingLeft = '';
+    }
+    if (app) {
+        app.style.removeProperty('--ytd-guide-width');
+        app.style.removeProperty('--ytd-mini-guide-width');
+    }
+}
+
+export function setSidebarVisibility(hide: boolean) {
+    if (hide) {
+        document.documentElement.setAttribute('optube_hide_sidebar', 'true');
+        hideFullSidebar();
+    } else {
+        document.documentElement.removeAttribute('optube_hide_sidebar');
+        restoreFullSidebar();
+    }
 }
 
 export function observeSidebar() {
