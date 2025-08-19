@@ -73,48 +73,14 @@ export function observeCategoryAndTopic() {
 
 
 
-export function setRecommendedVisibility(hide: boolean) {
-    // Only apply on watch pages. Guard to avoid affecting layout on home/search/etc.
-    const isWatchPage = location.pathname === '/watch' || !!document.querySelector('ytd-watch-flexy');
-    if (!isWatchPage) {
-        // Safety: ensure attribute isn't lingering when navigating away.
-        if (document.documentElement.hasAttribute('optube_hide_recommended')) {
-            document.documentElement.removeAttribute('optube_hide_recommended');
-        }
-        return;
-    }
+let recommendedApplied = false;
+
+function cleanupRecommendedStyles() {
     const recommendedInner = document.getElementById('secondary-inner');
     const columns = document.getElementById('columns');
     const primary = document.getElementById('primary');
-    // Secondary container (parent of #secondary-inner) is typically #secondary
-    const secondary = recommendedInner ? (recommendedInner.closest('#secondary') as HTMLElement | null) : null;
-    if (!recommendedInner || !columns || !primary || !secondary) return;
-
-    if (hide) {
-        // Mark attribute for potential future CSS hooking
-        document.documentElement.setAttribute('optube_hide_recommended', 'true');
-        // Collapse secondary completely using percentage (per requirement)
-        secondary.style.width = '0%';
-        secondary.style.minWidth = '0';
-        secondary.style.maxWidth = '0';
-        secondary.style.flex = '0 0 0%';
-        secondary.style.padding = '0';
-        secondary.style.margin = '0';
-        secondary.style.overflow = 'hidden';
-        secondary.style.visibility = 'hidden';
-        // Also hide inner content to avoid focusable residues
-        recommendedInner.style.display = 'none';
-        const related = secondary.querySelector('#related') as HTMLElement | null;
-        if (related) related.style.display = 'none';
-        // Center and expand primary
-        columns.style.display = 'flex';
-        columns.style.justifyContent = 'center';
-        columns.style.alignItems = 'flex-start';
-        primary.style.maxWidth = '1280px';
-        primary.style.flex = '1 1 auto';
-        primary.style.margin = '0 auto';
-    } else {
-        document.documentElement.removeAttribute('optube_hide_recommended');
+    const secondary = recommendedInner ? (recommendedInner.closest('#secondary') as HTMLElement | null) : document.getElementById('secondary') as HTMLElement | null;
+    if (secondary) {
         secondary.style.width = '';
         secondary.style.minWidth = '';
         secondary.style.maxWidth = '';
@@ -123,15 +89,64 @@ export function setRecommendedVisibility(hide: boolean) {
         secondary.style.margin = '';
         secondary.style.overflow = '';
         secondary.style.visibility = '';
-        recommendedInner.style.display = '';
         const related = secondary.querySelector('#related') as HTMLElement | null;
         if (related) related.style.display = '';
+    }
+    if (recommendedInner) recommendedInner.style.display = '';
+    if (columns) {
         columns.style.display = '';
         columns.style.justifyContent = '';
         columns.style.alignItems = '';
+    }
+    if (primary) {
         primary.style.maxWidth = '';
         primary.style.flex = '';
         primary.style.margin = '';
+    }
+    document.documentElement.removeAttribute('optube_hide_recommended');
+}
+
+export function setRecommendedVisibility(hide: boolean) {
+    // Only apply on canonical watch pages ( /watch + v param ) OR if ytd-watch-flexy is present.
+    const params = new URLSearchParams(location.search);
+    const isWatchPage = (location.pathname === '/watch' && params.has('v')) || !!document.querySelector('ytd-watch-flexy');
+    if (!isWatchPage) {
+        if (recommendedApplied) {
+            cleanupRecommendedStyles();
+            recommendedApplied = false;
+        }
+        return;
+    }
+
+    const recommendedInner = document.getElementById('secondary-inner');
+    const columns = document.getElementById('columns');
+    const primary = document.getElementById('primary');
+    const secondary = recommendedInner ? (recommendedInner.closest('#secondary') as HTMLElement | null) : null;
+    if (!recommendedInner || !columns || !primary || !secondary) return;
+
+    if (hide) {
+        document.documentElement.setAttribute('optube_hide_recommended', 'true');
+        secondary.style.width = '0%';
+        secondary.style.minWidth = '0';
+        secondary.style.maxWidth = '0';
+        secondary.style.flex = '0 0 0%';
+        secondary.style.padding = '0';
+        secondary.style.margin = '0';
+        secondary.style.overflow = 'hidden';
+        secondary.style.visibility = 'hidden';
+        recommendedInner.style.display = 'none';
+        const related = secondary.querySelector('#related') as HTMLElement | null;
+        if (related) related.style.display = 'none';
+        columns.style.display = 'flex';
+        columns.style.justifyContent = 'center';
+        columns.style.alignItems = 'flex-start';
+        primary.style.maxWidth = '1280px';
+        primary.style.flex = '1 1 auto';
+        primary.style.margin = '0 auto';
+        recommendedApplied = true;
+    } else {
+        cleanupRecommendedStyles();
+        recommendedApplied = false;
     }
 }
 
