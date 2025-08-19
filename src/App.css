@@ -441,8 +441,11 @@ html,
 
 .nested-content.expanded {
   opacity: 1;
-  max-height: 350px;
+  max-height: 600px;
+  /* allow taller groups */
   margin-top: .35rem;
+  overflow-y: auto;
+  /* scroll if exceeds */
 }
 
 .nested-content.collapsed {

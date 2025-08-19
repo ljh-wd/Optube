@@ -71,8 +71,30 @@ function App() {
   };
 
   const handleToggle = (key: keyof Settings) => (checked: boolean) => {
+    // Restoration path: user is turning OFF the hideSidebar flag (showing sidebar again)
+    if (key === 'hideSidebar' && !checked) {
+      // Showing sidebar again: force ALL nested hides to false (unhide everything)
+      setSettings(prev => {
+        const updated: Settings = { ...prev, hideSidebar: false };
+        updated.hideExplore = false;
+        updated.hideMoreFromYouTube = false;
+        updated.hideYouSection = false;
+        updated.hideHistory = false;
+        updated.hidePlaylists = false;
+        updated.hideYourVideos = false;
+        updated.hideYourCourses = false;
+        updated.hideWatchLater = false;
+        updated.hideLikedVideos = false;
+        saveSettings(updated);
+        // Clean any legacy backup key if exists
+        chrome.storage.sync.remove('_sidebarNestedBackup');
+        return updated;
+      });
+      return;
+    }
+
     setSettings(prev => {
-      const updated = { ...prev, [key]: checked };
+      const updated: Settings = { ...prev, [key]: checked } as Settings;
 
       // If topbar is being enabled, also enable searchbar and notifications
       if (key === 'hideMasthead' && checked) {
@@ -138,6 +160,21 @@ function App() {
         updated.hideLikedVideos = false;
       }
 
+      // When hiding entire sidebar (checked true), backup current nav states then force-hide all for consistency
+      if (key === 'hideSidebar' && checked) {
+        // Hiding sidebar: force all nested hides true; we no longer preserve prior states
+        updated.hideExplore = true;
+        updated.hideMoreFromYouTube = true;
+        updated.hideYouSection = true;
+        updated.hideHistory = true;
+        updated.hidePlaylists = true;
+        updated.hideYourVideos = true;
+        updated.hideYourCourses = true;
+        updated.hideWatchLater = true;
+        updated.hideLikedVideos = true;
+      }
+
+
       saveSettings(updated);
       return updated;
     });
@@ -166,21 +203,23 @@ function App() {
             <NestedToggle label="Subscriptions" checked={settings.hideSubscriptions} onChange={handleToggle('hideSubscriptions')}>
               <CardWithInput label="Subscription sidebar" checked={settings.hideSubscriptionsSidebar} onChange={handleToggle('hideSubscriptionsSidebar')} disabled={settings.hideSubscriptions} />
             </NestedToggle>
-            <CardWithInput label="Sidebar" checked={settings.hideSidebar} onChange={handleToggle('hideSidebar')} />
+            <NestedToggle label="Sidebar" checked={settings.hideSidebar} onChange={handleToggle('hideSidebar')}>
+              <CardWithInput label="Explore" checked={settings.hideExplore} onChange={handleToggle('hideExplore')} disabled={settings.hideSidebar} />
+              <CardWithInput label="More from YouTube" checked={settings.hideMoreFromYouTube} onChange={handleToggle('hideMoreFromYouTube')} disabled={settings.hideSidebar} />
+              <NestedToggle label="You" checked={settings.hideYouSection} onChange={handleToggle('hideYouSection')} disabled={settings.hideSidebar}>
+                <CardWithInput label="History" checked={settings.hideHistory} onChange={handleToggle('hideHistory')} disabled={settings.hideYouSection || settings.hideSidebar} />
+                <CardWithInput label="Playlists" checked={settings.hidePlaylists} onChange={handleToggle('hidePlaylists')} disabled={settings.hideYouSection || settings.hideSidebar} />
+                <CardWithInput label="Your videos" checked={settings.hideYourVideos} onChange={handleToggle('hideYourVideos')} disabled={settings.hideYouSection || settings.hideSidebar} />
+                <CardWithInput label="Your courses" checked={settings.hideYourCourses} onChange={handleToggle('hideYourCourses')} disabled={settings.hideYouSection || settings.hideSidebar} />
+                <CardWithInput label="Watch later" checked={settings.hideWatchLater} onChange={handleToggle('hideWatchLater')} disabled={settings.hideYouSection || settings.hideSidebar} />
+                <CardWithInput label="Liked videos" checked={settings.hideLikedVideos} onChange={handleToggle('hideLikedVideos')} disabled={settings.hideYouSection || settings.hideSidebar} />
+              </NestedToggle>
+            </NestedToggle>
             <NestedToggle label="Top bar" checked={settings.hideMasthead} onChange={handleToggle('hideMasthead')}>
               <CardWithInput label="Search" checked={settings.hideSearchbar} onChange={handleToggle('hideSearchbar')} disabled={settings.hideMasthead} />
               <CardWithInput label="Notifications" checked={settings.hideNotifications} onChange={handleToggle('hideNotifications')} disabled={settings.hideMasthead} />
             </NestedToggle>
-            <CardWithInput label="Explore" checked={settings.hideExplore} onChange={handleToggle('hideExplore')} />
-            <CardWithInput label="More from YouTube" checked={settings.hideMoreFromYouTube} onChange={handleToggle('hideMoreFromYouTube')} />
-            <NestedToggle label="You" checked={settings.hideYouSection} onChange={handleToggle('hideYouSection')}>
-              <CardWithInput label="History" checked={settings.hideHistory} onChange={handleToggle('hideHistory')} disabled={settings.hideYouSection} />
-              <CardWithInput label="Playlists" checked={settings.hidePlaylists} onChange={handleToggle('hidePlaylists')} disabled={settings.hideYouSection} />
-              <CardWithInput label="Your videos" checked={settings.hideYourVideos} onChange={handleToggle('hideYourVideos')} disabled={settings.hideYouSection} />
-              <CardWithInput label="Your courses" checked={settings.hideYourCourses} onChange={handleToggle('hideYourCourses')} disabled={settings.hideYouSection} />
-              <CardWithInput label="Watch later" checked={settings.hideWatchLater} onChange={handleToggle('hideWatchLater')} disabled={settings.hideYouSection} />
-              <CardWithInput label="Liked videos" checked={settings.hideLikedVideos} onChange={handleToggle('hideLikedVideos')} disabled={settings.hideYouSection} />
-            </NestedToggle>
+            {/* Explore / More / You moved under Sidebar group */}
           </div>
         </SettingsGroup>
 
@@ -215,6 +254,7 @@ function App() {
               Object.keys(defaultSettings).forEach(key => {
                 handleToggle(key as keyof Settings)(defaultSettings[key as keyof Settings]);
               });
+              chrome.storage.sync.remove('_sidebarNestedBackup');
             }}
             type='button'
           >
