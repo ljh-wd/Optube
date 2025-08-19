@@ -1,5 +1,5 @@
 import './App.css';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import CardWithInput from './components/CardWithInput';
 import NestedToggle from './components/NestedToggle';
 import SettingsGroup from './components/SettingsGroup';
@@ -89,119 +89,64 @@ function App() {
     });
   };
 
+  const activeCount = useMemo(() => Object.values(settings).filter(Boolean).length, [settings]);
+  const total = Object.keys(settings).length;
+
   return (
-    <div className='container'>
-      <h1>Optube</h1>
-      <h2>YouTube utility</h2>
+    <div className='app-shell'>
+      <header className="app-header">
+        <div className="brand-block">
+          <h1 className="app-title">Optube</h1>
+          <p className="tagline">Focus your YouTube experience</p>
+        </div>
+        <div className="status-pill" aria-label={`Active filters ${activeCount} of ${total}`}>
+          <span>{activeCount}</span><span className="divider" />{total}
+        </div>
+      </header>
 
-      <div className='card'>
-
-        <SettingsGroup title="Navigation" >
-          <CardWithInput
-            label="Toggle home"
-            checked={settings.hideHome}
-            onChange={handleToggle('hideHome')}
-          />
-
-          <CardWithInput
-            label="Toggle shorts"
-            checked={settings.hideShorts}
-            onChange={handleToggle('hideShorts')}
-          />
-
-          <CardWithInput
-            label="Toggle subscriptions"
-            checked={settings.hideSubscriptions}
-            onChange={handleToggle('hideSubscriptions')}
-          />
-
-          <CardWithInput
-            label="Toggle sidebar"
-            checked={settings.hideSidebar}
-            onChange={handleToggle('hideSidebar')}
-          />
-
-          <NestedToggle
-            label="Toggle top bar"
-            checked={settings.hideMasthead}
-            onChange={handleToggle('hideMasthead')}
-          >
-            <CardWithInput
-              label="Toggle searchbar"
-              checked={settings.hideSearchbar}
-              onChange={handleToggle('hideSearchbar')}
-              disabled={settings.hideMasthead}
-            />
-            <CardWithInput
-              label="Toggle notifications"
-              checked={settings.hideNotifications}
-              onChange={handleToggle('hideNotifications')}
-              disabled={settings.hideMasthead}
-            />
-          </NestedToggle>
+      <main className="panels" role="region" aria-label="Settings">
+        <SettingsGroup title="Navigation">
+          <div className="settings-grid">
+            <CardWithInput label="Home" checked={settings.hideHome} onChange={handleToggle('hideHome')} />
+            <CardWithInput label="Shorts" checked={settings.hideShorts} onChange={handleToggle('hideShorts')} />
+            <CardWithInput label="Subscriptions" checked={settings.hideSubscriptions} onChange={handleToggle('hideSubscriptions')} />
+            <CardWithInput label="Sidebar" checked={settings.hideSidebar} onChange={handleToggle('hideSidebar')} />
+            <NestedToggle label="Top bar" checked={settings.hideMasthead} onChange={handleToggle('hideMasthead')}>
+              <CardWithInput label="Search" checked={settings.hideSearchbar} onChange={handleToggle('hideSearchbar')} disabled={settings.hideMasthead} />
+              <CardWithInput label="Notifications" checked={settings.hideNotifications} onChange={handleToggle('hideNotifications')} disabled={settings.hideMasthead} />
+            </NestedToggle>
+          </div>
         </SettingsGroup>
 
-        <SettingsGroup title="Video Settings">
-          <NestedToggle
-            label="Toggle video details"
-            checked={settings.hideFold}
-            onChange={handleToggle('hideFold')}
-          >
-            <CardWithInput
-              label="Toggle title"
-              checked={settings.hideTitle}
-              onChange={handleToggle('hideTitle')}
-              disabled={settings.hideFold}
-            />
-            <CardWithInput
-              label="Toggle creator"
-              checked={settings.hideCreator}
-              onChange={handleToggle('hideCreator')}
-              disabled={settings.hideFold}
-            />
-            <CardWithInput
-              label="Toggle description"
-              checked={settings.hideDescription}
-              onChange={handleToggle('hideDescription')}
-              disabled={settings.hideFold}
-            />
-          </NestedToggle>
-
-          <CardWithInput
-            label="Toggle video comments"
-            checked={settings.hideComments}
-            onChange={handleToggle('hideComments')}
-          />
-
-          <CardWithInput
-            label="Toggle recommended"
-            checked={settings.hideRecommended}
-            onChange={handleToggle('hideRecommended')}
-          />
-
-          <CardWithInput
-            label="Toggle category/topic"
-            checked={settings.hideCategoryAndTopic}
-            onChange={handleToggle('hideCategoryAndTopic')}
-          />
+        <SettingsGroup title="Video">
+          <div className="settings-grid">
+            <NestedToggle label="Details" checked={settings.hideFold} onChange={handleToggle('hideFold')}>
+              <CardWithInput label="Title" checked={settings.hideTitle} onChange={handleToggle('hideTitle')} disabled={settings.hideFold} />
+              <CardWithInput label="Creator" checked={settings.hideCreator} onChange={handleToggle('hideCreator')} disabled={settings.hideFold} />
+              <CardWithInput label="Description" checked={settings.hideDescription} onChange={handleToggle('hideDescription')} disabled={settings.hideFold} />
+            </NestedToggle>
+            <CardWithInput label="Comments" checked={settings.hideComments} onChange={handleToggle('hideComments')} />
+            <CardWithInput label="Recommended" checked={settings.hideRecommended} onChange={handleToggle('hideRecommended')} />
+            <CardWithInput label="Category / Topic" checked={settings.hideCategoryAndTopic} onChange={handleToggle('hideCategoryAndTopic')} />
+          </div>
         </SettingsGroup>
-      </div>
-
-      <button
-        onClick={() => {
-          Object.keys(defaultSettings).forEach(key => {
-            handleToggle(key as keyof Settings)(defaultSettings[key as keyof Settings]);
-          });
-        }}
-        type='button'
-      >
-        Clear filters
-      </button>
-
-
-      <div className="info-text">
-        Settings are saved and auto-applied across YouTube pages.
-      </div>
+      </main>
+      <footer className="app-footer">
+        <div className="footer-card" role="contentinfo">
+          <button
+            className="reset-btn"
+            onClick={() => {
+              Object.keys(defaultSettings).forEach(key => {
+                handleToggle(key as keyof Settings)(defaultSettings[key as keyof Settings]);
+              });
+            }}
+            type='button'
+          >
+            Reset to defaults
+          </button>
+          <div className="info-text">Settings persist across YouTube pages.</div>
+        </div>
+      </footer>
     </div>
   );
 }

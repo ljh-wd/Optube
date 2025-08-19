@@ -18,11 +18,11 @@ const CardWithInput = ({ label, checked, onChange, disabled = false }: Props) =>
   const id = useId()
 
   return (
-    <div className="card-section">
-      <label htmlFor={id} className={`Label ${disabled ? 'disabled' : ''}`}>{label}</label>
+    <div className="card-section item-row">
+      <label htmlFor={id} className={`Label toggle-label ${disabled ? 'disabled' : ''}`}>{label}</label>
       <Switch.Root
         id={id}
-        className="SwitchRoot"
+        className="SwitchRoot modern-switch"
         checked={checked}
         onCheckedChange={onChange}
         disabled={disabled}
