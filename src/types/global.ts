@@ -16,7 +16,6 @@ export interface Settings {
     hideCreator: boolean;
     // Layout category
     hideDurationBadges: boolean;
-    hideLiveChannels: boolean;
     hidePreviewDetails: boolean; // video preview metadata (feed cards)
     hidePreviewAvatars: boolean;
     hideBadgesChips: boolean; // filter chips row

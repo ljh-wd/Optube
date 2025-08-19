@@ -23,7 +23,6 @@ const defaultSettings: Settings = {
   hideCreator: false,
   // Layout
   hideDurationBadges: false,
-  hideLiveChannels: false,
   hidePreviewDetails: false,
   hidePreviewAvatars: false,
   hideBadgesChips: false,
@@ -188,7 +187,6 @@ function App() {
         <SettingsGroup title="Layout">
           <div className="settings-grid">
             <CardWithInput label="Duration badges" checked={settings.hideDurationBadges} onChange={handleToggle('hideDurationBadges')} />
-            <CardWithInput label="Live channels" checked={settings.hideLiveChannels} onChange={handleToggle('hideLiveChannels')} />
             <NestedToggle label="Video preview details" checked={settings.hidePreviewDetails} onChange={handleToggle('hidePreviewDetails')}>
               <CardWithInput label="Avatars" checked={settings.hidePreviewAvatars} onChange={handleToggle('hidePreviewAvatars')} disabled={settings.hidePreviewDetails} />
             </NestedToggle>

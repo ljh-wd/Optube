@@ -3,7 +3,6 @@
 
 interface LayoutToggles {
     hideDurationBadges: boolean;
-    hideLiveChannels: boolean;
     hidePreviewDetails: boolean;
     hidePreviewAvatars: boolean;
     hideBadgesChips: boolean;
@@ -15,13 +14,11 @@ export function applyLayout(settings: Partial<LayoutToggles>) {
     // We set attributes for easier pure-CSS hiding where feasible
     const root = document.documentElement;
     toggleAttr(root, 'hide_duration_badges', settings.hideDurationBadges);
-    toggleAttr(root, 'hide_live_channels', settings.hideLiveChannels);
     toggleAttr(root, 'hide_preview_details', settings.hidePreviewDetails);
     toggleAttr(root, 'hide_preview_avatars', settings.hidePreviewAvatars);
     toggleAttr(root, 'hide_badges_chips', settings.hideBadgesChips);
 
     if (settings.hideDurationBadges) hideDurationBadges(); else showDurationBadges();
-    if (settings.hideLiveChannels) hideLiveVideos(); else showLiveVideos();
 }
 
 function toggleAttr(el: HTMLElement, name: string, enabled?: boolean) {
@@ -34,8 +31,7 @@ export function injectLayoutCSS() {
     style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
-        /* Live videos: JS handles full card removal (see hideLiveVideos). We only hide avatar rings here for redundancy. */
-        html[hide_live_channels] .yt-spec-avatar-shape__live-badge { display: none !important; }
+            /* live channel removal option removed */
 
   /* Video preview metadata blocks (feed card metadata container) */
   html[hide_preview_details] .yt-lockup-metadata-view-model-wiz__metadata, 
@@ -56,10 +52,10 @@ export function injectLayoutCSS() {
 }
 
 export function observeLayout() {
-    chrome.storage.sync.get(['hideDurationBadges', 'hideLiveChannels', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips'], applyLayout);
+    chrome.storage.sync.get(['hideDurationBadges', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips'], applyLayout);
     chrome.storage.onChanged.addListener(ch => {
-        if (ch.hideDurationBadges || ch.hideLiveChannels || ch.hidePreviewDetails || ch.hidePreviewAvatars || ch.hideBadgesChips) {
-            chrome.storage.sync.get(['hideDurationBadges', 'hideLiveChannels', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips'], applyLayout);
+        if (ch.hideDurationBadges || ch.hidePreviewDetails || ch.hidePreviewAvatars || ch.hideBadgesChips) {
+            chrome.storage.sync.get(['hideDurationBadges', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips'], applyLayout);
         }
     });
 }
@@ -78,18 +74,5 @@ function showDurationBadges() {
     document.querySelectorAll('yt-thumbnail-overlay-badge-view-model, .ytThumbnailBottomOverlayViewModelBadgeContainer').forEach(el => {
         const text = el.textContent?.trim() || '';
         if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(text)) (el as HTMLElement).style.display = '';
-    });
-}
-// Hide/show entire live video cards
-function hideLiveVideos() {
-    document.querySelectorAll('ytd-rich-item-renderer').forEach(card => {
-        const hasLiveBadge = !!card.querySelector('.badge-shape-wiz__text')?.textContent?.toUpperCase().includes('LIVE');
-        if (hasLiveBadge) (card as HTMLElement).style.display = 'none';
-    });
-}
-function showLiveVideos() {
-    document.querySelectorAll('ytd-rich-item-renderer').forEach(card => {
-        const hasLiveBadge = !!card.querySelector('.badge-shape-wiz__text')?.textContent?.toUpperCase().includes('LIVE');
-        if (hasLiveBadge) (card as HTMLElement).style.display = '';
     });
 }
