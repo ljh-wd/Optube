@@ -75,6 +75,7 @@ function App() {
         updated.hideDescription = true;
         updated.hideTitle = true;
         updated.hideCreator = true;
+        updated.hideCategoryAndTopic = true;
       }
 
       // If video details is being disabled, also disable description, title, and creator
@@ -82,6 +83,7 @@ function App() {
         updated.hideDescription = false;
         updated.hideTitle = false;
         updated.hideCreator = false;
+        updated.hideCategoryAndTopic = false;
       }
 
       saveSettings(updated);
@@ -124,10 +126,10 @@ function App() {
               <CardWithInput label="Title" checked={settings.hideTitle} onChange={handleToggle('hideTitle')} disabled={settings.hideFold} />
               <CardWithInput label="Creator" checked={settings.hideCreator} onChange={handleToggle('hideCreator')} disabled={settings.hideFold} />
               <CardWithInput label="Description" checked={settings.hideDescription} onChange={handleToggle('hideDescription')} disabled={settings.hideFold} />
+              <CardWithInput label="Category / Topic" checked={settings.hideCategoryAndTopic} onChange={handleToggle('hideCategoryAndTopic')} disabled={settings.hideFold} />
             </NestedToggle>
             <CardWithInput label="Comments" checked={settings.hideComments} onChange={handleToggle('hideComments')} />
             <CardWithInput label="Recommended" checked={settings.hideRecommended} onChange={handleToggle('hideRecommended')} />
-            <CardWithInput label="Category / Topic" checked={settings.hideCategoryAndTopic} onChange={handleToggle('hideCategoryAndTopic')} />
           </div>
         </SettingsGroup>
       </main>
