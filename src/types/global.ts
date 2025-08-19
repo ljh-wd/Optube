@@ -3,6 +3,7 @@ export type Settings = {
     hideSubscriptions: boolean;
     hideHome: boolean;
     hideMasthead: boolean;
+    hideSearchbar: boolean;
     hideFold: boolean;
     hideComments: boolean;
     hideCategoryAndTopic: boolean;

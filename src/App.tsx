@@ -1,6 +1,7 @@
 import './App.css';
 import { useEffect, useState } from 'react';
 import CardWithInput from './components/CardWithInput';
+import NestedToggle from './components/NestedToggle';
 import SettingsGroup from './components/SettingsGroup';
 import type { Settings } from './types/global';
 
@@ -9,6 +10,7 @@ const defaultSettings: Settings = {
   hideSubscriptions: false,
   hideHome: false,
   hideMasthead: false,
+  hideSearchbar: false,
   hideFold: false,
   hideComments: false,
   hideCategoryAndTopic: false,
@@ -51,6 +53,17 @@ function App() {
   const handleToggle = (key: keyof Settings) => (checked: boolean) => {
     setSettings(prev => {
       const updated = { ...prev, [key]: checked };
+
+      // If topbar is being enabled, also enable searchbar
+      if (key === 'hideMasthead' && checked) {
+        updated.hideSearchbar = true;
+      }
+
+      // If topbar is being disabled, also disable searchbar
+      if (key === 'hideMasthead' && !checked) {
+        updated.hideSearchbar = false;
+      }
+
       saveSettings(updated);
       return updated;
     });
@@ -88,12 +101,18 @@ function App() {
             onChange={handleToggle('hideSidebar')}
           />
 
-
-          <CardWithInput
+          <NestedToggle
             label="Toggle top bar"
             checked={settings.hideMasthead}
             onChange={handleToggle('hideMasthead')}
-          />
+          >
+            <CardWithInput
+              label="Toggle searchbar"
+              checked={settings.hideSearchbar}
+              onChange={handleToggle('hideSearchbar')}
+              disabled={settings.hideMasthead}
+            />
+          </NestedToggle>
         </SettingsGroup>
 
         <SettingsGroup title="Video Settings">

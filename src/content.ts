@@ -1,4 +1,4 @@
-import { observeMasthead, setMastheadVisibility } from './utils/topBar';
+import { observeMasthead, setMastheadVisibility, observeSearchbar, setSearchbarVisibility } from './utils/topBar';
 import { observeCategoryAndTopic, observeComments, observeFold, observeRecommended, setCategoryAndTopicVisibility, setCommentsVisibility, setFoldVisibility, setRecommendedVisibility } from './utils/video';
 import { observeSidebar, setSidebarVisibility } from './utils/sidebar';
 import type { Settings } from './types/global';
@@ -11,6 +11,7 @@ function cleanYouTube(settings: Settings): void {
   setHomeVisibility(!!settings.hideHome);
   setSubscriptionsVisibility(!!settings.hideSubscriptions);
   setMastheadVisibility(!!settings.hideMasthead);
+  setSearchbarVisibility(!!settings.hideSearchbar);
   setCommentsVisibility(!!settings.hideComments);
   setFoldVisibility(!!settings.hideFold);
   setCategoryAndTopicVisibility(!!settings.hideCategoryAndTopic);
@@ -19,7 +20,7 @@ function cleanYouTube(settings: Settings): void {
 }
 
 function run(): void {
-  chrome.storage.sync.get(['hideShorts', 'hideHome', 'hideSubscriptions', 'hideMasthead', 'hideFold', 'hideComments', 'hideCategoryAndTopic', 'hideRecommended', 'hideSidebar'], cleanYouTube);
+  chrome.storage.sync.get(['hideShorts', 'hideHome', 'hideSubscriptions', 'hideMasthead', 'hideSearchbar', 'hideFold', 'hideComments', 'hideCategoryAndTopic', 'hideRecommended', 'hideSidebar'], cleanYouTube);
 }
 
 let debounceId: number | null = null;
@@ -56,7 +57,7 @@ injectSubscriptionsCSS();
 chrome.storage.onChanged.addListener((changes, area) => {
   if (
     area === 'sync' &&
-    (changes.hideShorts || changes.hideHome || changes.hideSubscriptions || changes.hideMasthead || changes.hideFold || changes.hideComments || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hideSidebar)
+    (changes.hideShorts || changes.hideHome || changes.hideSubscriptions || changes.hideMasthead || changes.hideSearchbar || changes.hideFold || changes.hideComments || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hideSidebar)
   ) {
     setTimeout(() => {
       run();
@@ -68,6 +69,7 @@ observeShorts();
 observeHome();
 observeSubscriptions();
 observeMasthead();
+observeSearchbar();
 observeFold();
 observeComments();
 observeCategoryAndTopic();
