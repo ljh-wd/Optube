@@ -74,8 +74,14 @@ export function observeHome() {
     // Observer specifically for home page changes
     const observer = new MutationObserver(() => {
         const hideHome = document.documentElement.hasAttribute('hide_home');
-        if (hideHome && (window.location.pathname === '/' || window.location.pathname === '')) {
-            cleanupHomeFeed();
+        const isHomePage = window.location.pathname === '/' || window.location.pathname === '';
+
+        if (isHomePage) {
+            if (hideHome) {
+                cleanupHomeFeed();
+                return;
+            }
+            restoreHomeFeed();
         }
     });
 
