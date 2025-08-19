@@ -19,9 +19,9 @@ const NestedToggle = ({ label, checked, onChange, children, disabled = false }: 
 
     return (
         <div className="nested-toggle">
-            <div className="card-section">
+            <div className="card-section item-row">
                 <div className="nested-toggle-header">
-                    <label htmlFor={id} className={`Label ${disabled ? 'disabled' : ''}`}>
+                    <label htmlFor={id} className={`Label toggle-label ${disabled ? 'disabled' : ''}`}>
                         {label}
                     </label>
                     {children && (
@@ -41,7 +41,7 @@ const NestedToggle = ({ label, checked, onChange, children, disabled = false }: 
                 </div>
                 <Switch.Root
                     id={id}
-                    className="SwitchRoot"
+                    className="SwitchRoot modern-switch"
                     checked={checked}
                     onCheckedChange={onChange}
                     disabled={disabled}
