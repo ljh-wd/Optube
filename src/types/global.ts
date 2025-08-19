@@ -1,5 +1,6 @@
 export type Settings = {
     hideShorts: boolean;
+    hideSubscriptions: boolean;
     hideHome: boolean;
     hideMasthead: boolean;
     hideFold: boolean;

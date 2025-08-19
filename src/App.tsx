@@ -6,6 +6,7 @@ import type { Settings } from './types/global';
 
 const defaultSettings: Settings = {
   hideShorts: false,
+  hideSubscriptions: false,
   hideHome: false,
   hideMasthead: false,
   hideFold: false,
@@ -64,15 +65,21 @@ function App() {
 
         <SettingsGroup title="Navigation" >
           <CardWithInput
+            label="Toggle home"
+            checked={settings.hideHome}
+            onChange={handleToggle('hideHome')}
+          />
+
+          <CardWithInput
             label="Toggle shorts"
             checked={settings.hideShorts}
             onChange={handleToggle('hideShorts')}
           />
 
           <CardWithInput
-            label="Toggle home"
-            checked={settings.hideHome}
-            onChange={handleToggle('hideHome')}
+            label="Toggle subscriptions"
+            checked={settings.hideSubscriptions}
+            onChange={handleToggle('hideSubscriptions')}
           />
 
           <CardWithInput
