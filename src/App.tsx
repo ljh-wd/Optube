@@ -21,6 +21,22 @@ const defaultSettings: Settings = {
   hideDescription: false,
   hideTitle: false,
   hideCreator: false,
+  // Layout
+  hideDurationBadges: false,
+  hideLiveChannels: false,
+  hidePreviewDetails: false,
+  hidePreviewAvatars: false,
+  hideBadgesChips: false,
+  // Navigation additions
+  hideExplore: false,
+  hideMoreFromYouTube: false,
+  hideYouSection: false,
+  hidePlaylists: false,
+  hideYourVideos: false,
+  hideYourCourses: false,
+  hideWatchLater: false,
+  hideLikedVideos: false,
+  hideHistory: false,
 };
 
 function App() {
@@ -97,6 +113,32 @@ function App() {
         updated.hideCategoryAndTopic = false;
       }
 
+      // If preview details (layout) is enabled, also enable preview avatars automatically
+      if (key === 'hidePreviewDetails' && checked) {
+        updated.hidePreviewAvatars = true;
+      }
+      if (key === 'hidePreviewDetails' && !checked) {
+        updated.hidePreviewAvatars = false;
+      }
+
+      // If 'You' section is toggled, cascade to its children
+      if (key === 'hideYouSection' && checked) {
+        updated.hideHistory = true;
+        updated.hidePlaylists = true;
+        updated.hideYourVideos = true;
+        updated.hideYourCourses = true;
+        updated.hideWatchLater = true;
+        updated.hideLikedVideos = true;
+      }
+      if (key === 'hideYouSection' && !checked) {
+        updated.hideHistory = false;
+        updated.hidePlaylists = false;
+        updated.hideYourVideos = false;
+        updated.hideYourCourses = false;
+        updated.hideWatchLater = false;
+        updated.hideLikedVideos = false;
+      }
+
       saveSettings(updated);
       return updated;
     });
@@ -130,6 +172,27 @@ function App() {
               <CardWithInput label="Search" checked={settings.hideSearchbar} onChange={handleToggle('hideSearchbar')} disabled={settings.hideMasthead} />
               <CardWithInput label="Notifications" checked={settings.hideNotifications} onChange={handleToggle('hideNotifications')} disabled={settings.hideMasthead} />
             </NestedToggle>
+            <CardWithInput label="Explore" checked={settings.hideExplore} onChange={handleToggle('hideExplore')} />
+            <CardWithInput label="More from YouTube" checked={settings.hideMoreFromYouTube} onChange={handleToggle('hideMoreFromYouTube')} />
+            <NestedToggle label="You" checked={settings.hideYouSection} onChange={handleToggle('hideYouSection')}>
+              <CardWithInput label="History" checked={settings.hideHistory} onChange={handleToggle('hideHistory')} disabled={settings.hideYouSection} />
+              <CardWithInput label="Playlists" checked={settings.hidePlaylists} onChange={handleToggle('hidePlaylists')} disabled={settings.hideYouSection} />
+              <CardWithInput label="Your videos" checked={settings.hideYourVideos} onChange={handleToggle('hideYourVideos')} disabled={settings.hideYouSection} />
+              <CardWithInput label="Your courses" checked={settings.hideYourCourses} onChange={handleToggle('hideYourCourses')} disabled={settings.hideYouSection} />
+              <CardWithInput label="Watch later" checked={settings.hideWatchLater} onChange={handleToggle('hideWatchLater')} disabled={settings.hideYouSection} />
+              <CardWithInput label="Liked videos" checked={settings.hideLikedVideos} onChange={handleToggle('hideLikedVideos')} disabled={settings.hideYouSection} />
+            </NestedToggle>
+          </div>
+        </SettingsGroup>
+
+        <SettingsGroup title="Layout">
+          <div className="settings-grid">
+            <CardWithInput label="Duration badges" checked={settings.hideDurationBadges} onChange={handleToggle('hideDurationBadges')} />
+            <CardWithInput label="Live channels" checked={settings.hideLiveChannels} onChange={handleToggle('hideLiveChannels')} />
+            <NestedToggle label="Video preview details" checked={settings.hidePreviewDetails} onChange={handleToggle('hidePreviewDetails')}>
+              <CardWithInput label="Avatars" checked={settings.hidePreviewAvatars} onChange={handleToggle('hidePreviewAvatars')} disabled={settings.hidePreviewDetails} />
+            </NestedToggle>
+            <CardWithInput label="Filter chips (badges)" checked={settings.hideBadgesChips} onChange={handleToggle('hideBadgesChips')} />
           </div>
         </SettingsGroup>
 
