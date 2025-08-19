@@ -74,9 +74,65 @@ export function observeCategoryAndTopic() {
 
 
 export function setRecommendedVisibility(hide: boolean) {
-    const recommended = document.getElementById('secondary-inner');
-    if (!recommended) return
-    (recommended as HTMLElement).style.display = hide ? 'none' : '';
+    // Only apply on watch pages. Guard to avoid affecting layout on home/search/etc.
+    const isWatchPage = location.pathname === '/watch' || !!document.querySelector('ytd-watch-flexy');
+    if (!isWatchPage) {
+        // Safety: ensure attribute isn't lingering when navigating away.
+        if (document.documentElement.hasAttribute('optube_hide_recommended')) {
+            document.documentElement.removeAttribute('optube_hide_recommended');
+        }
+        return;
+    }
+    const recommendedInner = document.getElementById('secondary-inner');
+    const columns = document.getElementById('columns');
+    const primary = document.getElementById('primary');
+    // Secondary container (parent of #secondary-inner) is typically #secondary
+    const secondary = recommendedInner ? (recommendedInner.closest('#secondary') as HTMLElement | null) : null;
+    if (!recommendedInner || !columns || !primary || !secondary) return;
+
+    if (hide) {
+        // Mark attribute for potential future CSS hooking
+        document.documentElement.setAttribute('optube_hide_recommended', 'true');
+        // Collapse secondary completely using percentage (per requirement)
+        secondary.style.width = '0%';
+        secondary.style.minWidth = '0';
+        secondary.style.maxWidth = '0';
+        secondary.style.flex = '0 0 0%';
+        secondary.style.padding = '0';
+        secondary.style.margin = '0';
+        secondary.style.overflow = 'hidden';
+        secondary.style.visibility = 'hidden';
+        // Also hide inner content to avoid focusable residues
+        recommendedInner.style.display = 'none';
+        const related = secondary.querySelector('#related') as HTMLElement | null;
+        if (related) related.style.display = 'none';
+        // Center and expand primary
+        columns.style.display = 'flex';
+        columns.style.justifyContent = 'center';
+        columns.style.alignItems = 'flex-start';
+        primary.style.maxWidth = '1280px';
+        primary.style.flex = '1 1 auto';
+        primary.style.margin = '0 auto';
+    } else {
+        document.documentElement.removeAttribute('optube_hide_recommended');
+        secondary.style.width = '';
+        secondary.style.minWidth = '';
+        secondary.style.maxWidth = '';
+        secondary.style.flex = '';
+        secondary.style.padding = '';
+        secondary.style.margin = '';
+        secondary.style.overflow = '';
+        secondary.style.visibility = '';
+        recommendedInner.style.display = '';
+        const related = secondary.querySelector('#related') as HTMLElement | null;
+        if (related) related.style.display = '';
+        columns.style.display = '';
+        columns.style.justifyContent = '';
+        columns.style.alignItems = '';
+        primary.style.maxWidth = '';
+        primary.style.flex = '';
+        primary.style.margin = '';
+    }
 }
 
 export function observeRecommended() {
