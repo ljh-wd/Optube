@@ -1,6 +1,7 @@
 import './App.css';
 import { useEffect, useState } from 'react';
 import CardWithInput from './components/CardWithInput';
+import NestedToggle from './components/NestedToggle';
 import SettingsGroup from './components/SettingsGroup';
 import type { Settings } from './types/global';
 
@@ -9,11 +10,16 @@ const defaultSettings: Settings = {
   hideSubscriptions: false,
   hideHome: false,
   hideMasthead: false,
+  hideSearchbar: false,
+  hideNotifications: false,
   hideFold: false,
   hideComments: false,
   hideCategoryAndTopic: false,
   hideRecommended: false,
   hideSidebar: false,
+  hideDescription: false,
+  hideTitle: false,
+  hideCreator: false,
 };
 
 function App() {
@@ -51,6 +57,33 @@ function App() {
   const handleToggle = (key: keyof Settings) => (checked: boolean) => {
     setSettings(prev => {
       const updated = { ...prev, [key]: checked };
+
+      // If topbar is being enabled, also enable searchbar and notifications
+      if (key === 'hideMasthead' && checked) {
+        updated.hideSearchbar = true;
+        updated.hideNotifications = true;
+      }
+
+      // If topbar is being disabled, also disable searchbar and notifications
+      if (key === 'hideMasthead' && !checked) {
+        updated.hideSearchbar = false;
+        updated.hideNotifications = false;
+      }
+
+      // If video details is being enabled, also enable description, title, and creator
+      if (key === 'hideFold' && checked) {
+        updated.hideDescription = true;
+        updated.hideTitle = true;
+        updated.hideCreator = true;
+      }
+
+      // If video details is being disabled, also disable description, title, and creator
+      if (key === 'hideFold' && !checked) {
+        updated.hideDescription = false;
+        updated.hideTitle = false;
+        updated.hideCreator = false;
+      }
+
       saveSettings(updated);
       return updated;
     });
@@ -88,20 +121,51 @@ function App() {
             onChange={handleToggle('hideSidebar')}
           />
 
-
-          <CardWithInput
+          <NestedToggle
             label="Toggle top bar"
             checked={settings.hideMasthead}
             onChange={handleToggle('hideMasthead')}
-          />
+          >
+            <CardWithInput
+              label="Toggle searchbar"
+              checked={settings.hideSearchbar}
+              onChange={handleToggle('hideSearchbar')}
+              disabled={settings.hideMasthead}
+            />
+            <CardWithInput
+              label="Toggle notifications"
+              checked={settings.hideNotifications}
+              onChange={handleToggle('hideNotifications')}
+              disabled={settings.hideMasthead}
+            />
+          </NestedToggle>
         </SettingsGroup>
 
         <SettingsGroup title="Video Settings">
-          <CardWithInput
+          <NestedToggle
             label="Toggle video details"
             checked={settings.hideFold}
             onChange={handleToggle('hideFold')}
-          />
+          >
+            <CardWithInput
+              label="Toggle title"
+              checked={settings.hideTitle}
+              onChange={handleToggle('hideTitle')}
+              disabled={settings.hideFold}
+            />
+            <CardWithInput
+              label="Toggle creator"
+              checked={settings.hideCreator}
+              onChange={handleToggle('hideCreator')}
+              disabled={settings.hideFold}
+            />
+            <CardWithInput
+              label="Toggle description"
+              checked={settings.hideDescription}
+              onChange={handleToggle('hideDescription')}
+              disabled={settings.hideFold}
+            />
+          </NestedToggle>
 
           <CardWithInput
             label="Toggle video comments"

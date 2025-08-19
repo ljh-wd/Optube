@@ -135,3 +135,68 @@ font-size: 1rem;
   color: #888;
   text-align: center;
 }
+
+/* Nested Toggle Styles */
+.nested-toggle {
+  width: 100%;
+}
+
+.nested-toggle-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.expand-button {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.expand-button:hover {
+  color: #fff;
+  background-color: #333;
+}
+
+.expand-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  transition: opacity 0.2s ease;
+}
+
+.nested-content {
+  margin-left: 1rem;
+  padding-left: 1rem;
+  border-left: 2px solid #444;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, margin-top 0.3s ease-in-out;
+}
+
+.nested-content.expanded {
+  opacity: 1;
+  max-height: 300px;
+  margin-top: 0.5rem;
+}
+
+.nested-content.collapsed {
+  opacity: 0;
+  max-height: 0;
+  margin-top: 0;
+}
+
+.Label.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.SwitchRoot:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
