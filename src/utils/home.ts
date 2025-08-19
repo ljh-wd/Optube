@@ -103,6 +103,11 @@ export function injectHomeCSS() {
     }
 
     const css = `
+        /* Hide Home navigation in sidebar */
+        html[hide_home] ytd-guide-entry-renderer:has([title="Home"]) {
+            display: none !important;
+        }
+        
         /* Hide home feed when hide_home attribute is present - ONLY on home page */
         html[hide_home] ytd-browse[page-subtype="home"] {
             display: none !important;
