@@ -166,8 +166,8 @@ font-size: 1rem;
 }
 
 .expand-icon {
-  width: 16px;
-  height: 16px;
+  width: 1.125rem;
+  height: 1.125rem;
   transition: opacity 0.2s ease;
 }
 
