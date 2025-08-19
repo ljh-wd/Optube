@@ -8,6 +8,7 @@ import type { Settings } from './types/global';
 const defaultSettings: Settings = {
   hideShorts: false,
   hideSubscriptions: false,
+  hideSubscriptionsSidebar: false,
   hideHome: false,
   hideMasthead: false,
   hideSearchbar: false,
@@ -70,6 +71,16 @@ function App() {
         updated.hideNotifications = false;
       }
 
+      // If subscriptions is being enabled, also enable subscriptions sidebar
+      if (key === 'hideSubscriptions' && checked) {
+        updated.hideSubscriptionsSidebar = true;
+      }
+
+      // If subscriptions is being disabled, also disable subscriptions sidebar
+      if (key === 'hideSubscriptions' && !checked) {
+        updated.hideSubscriptionsSidebar = false;
+      }
+
       // If video details is being enabled, also enable description, title, creator and category/topic
       if (key === 'hideFold' && checked) {
         updated.hideDescription = true;
@@ -111,7 +122,9 @@ function App() {
           <div className="settings-grid">
             <CardWithInput label="Home" checked={settings.hideHome} onChange={handleToggle('hideHome')} />
             <CardWithInput label="Shorts" checked={settings.hideShorts} onChange={handleToggle('hideShorts')} />
-            <CardWithInput label="Subscriptions" checked={settings.hideSubscriptions} onChange={handleToggle('hideSubscriptions')} />
+            <NestedToggle label="Subscriptions" checked={settings.hideSubscriptions} onChange={handleToggle('hideSubscriptions')}>
+              <CardWithInput label="Toggle subscription sidebar" checked={settings.hideSubscriptionsSidebar} onChange={handleToggle('hideSubscriptionsSidebar')} disabled={settings.hideSubscriptions} />
+            </NestedToggle>
             <CardWithInput label="Sidebar" checked={settings.hideSidebar} onChange={handleToggle('hideSidebar')} />
             <NestedToggle label="Top bar" checked={settings.hideMasthead} onChange={handleToggle('hideMasthead')}>
               <CardWithInput label="Search" checked={settings.hideSearchbar} onChange={handleToggle('hideSearchbar')} disabled={settings.hideMasthead} />

@@ -4,12 +4,13 @@ import { observeSidebar, setSidebarVisibility } from './utils/sidebar';
 import type { Settings } from './types/global';
 import { observeShorts, setShortsVisibility, injectShortsCSS } from './utils/shorts';
 import { observeHome, setHomeVisibility, injectHomeCSS } from './utils/home';
-import { observeSubscriptions, setSubscriptionsVisibility, injectSubscriptionsCSS } from './utils/subscriptions';
+import { observeSubscriptions, observeSubscriptionsSidebar, setSubscriptionsVisibility, setSubscriptionsSidebarVisibility, injectSubscriptionsCSS } from './utils/subscriptions';
 
 function cleanYouTube(settings: Settings): void {
   setShortsVisibility(!!settings.hideShorts);
   setHomeVisibility(!!settings.hideHome);
   setSubscriptionsVisibility(!!settings.hideSubscriptions);
+  setSubscriptionsSidebarVisibility(!!settings.hideSubscriptionsSidebar);
   setMastheadVisibility(!!settings.hideMasthead);
   setSearchbarVisibility(!!settings.hideSearchbar);
   setNotificationsVisibility(!!settings.hideNotifications);
@@ -24,7 +25,7 @@ function cleanYouTube(settings: Settings): void {
 }
 
 function run(): void {
-  chrome.storage.sync.get(['hideShorts', 'hideHome', 'hideSubscriptions', 'hideMasthead', 'hideSearchbar', 'hideNotifications', 'hideFold', 'hideComments', 'hideCategoryAndTopic', 'hideRecommended', 'hideSidebar', 'hideDescription', 'hideTitle', 'hideCreator'], cleanYouTube);
+  chrome.storage.sync.get(['hideShorts', 'hideHome', 'hideSubscriptions', 'hideSubscriptionsSidebar', 'hideMasthead', 'hideSearchbar', 'hideNotifications', 'hideFold', 'hideComments', 'hideCategoryAndTopic', 'hideRecommended', 'hideSidebar', 'hideDescription', 'hideTitle', 'hideCreator'], cleanYouTube);
 }
 
 let debounceId: number | null = null;
@@ -61,7 +62,7 @@ injectSubscriptionsCSS();
 chrome.storage.onChanged.addListener((changes, area) => {
   if (
     area === 'sync' &&
-    (changes.hideShorts || changes.hideHome || changes.hideSubscriptions || changes.hideMasthead || changes.hideSearchbar || changes.hideNotifications || changes.hideFold || changes.hideComments || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hideSidebar || changes.hideDescription || changes.hideTitle || changes.hideCreator)
+    (changes.hideShorts || changes.hideHome || changes.hideSubscriptions || changes.hideSubscriptionsSidebar || changes.hideMasthead || changes.hideSearchbar || changes.hideNotifications || changes.hideFold || changes.hideComments || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hideSidebar || changes.hideDescription || changes.hideTitle || changes.hideCreator)
   ) {
     setTimeout(() => {
       run();
@@ -72,6 +73,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
 observeShorts();
 observeHome();
 observeSubscriptions();
+observeSubscriptionsSidebar();
 observeMasthead();
 observeSearchbar();
 observeNotifications();

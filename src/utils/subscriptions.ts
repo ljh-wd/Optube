@@ -12,6 +12,20 @@ export function setSubscriptionsVisibility(hide: boolean) {
     }
 }
 
+/**
+ * Toggle Subscriptions sidebar visibility using CSS injection.
+ * This hides the subscription section in the sidebar.
+ */
+export function setSubscriptionsSidebarVisibility(hide: boolean) {
+    if (hide) {
+        document.documentElement.setAttribute('hide_subscriptions_sidebar', 'true');
+        cleanupSubscriptionsSidebar();
+    } else {
+        document.documentElement.removeAttribute('hide_subscriptions_sidebar');
+        restoreSubscriptionsSidebar();
+    }
+}
+
 function cleanupSubscriptionsFeed() {
     // Hide the main subscriptions feed content
     document.querySelectorAll('ytd-browse[page-subtype="subscriptions"]').forEach(el => {
@@ -70,6 +84,26 @@ function restoreSubscriptionsFeed() {
     });
 }
 
+function cleanupSubscriptionsSidebar() {
+    // Hide the subscription section in the sidebar
+    document.querySelectorAll('ytd-guide-section-renderer').forEach(el => {
+        const titleElement = el.querySelector('#guide-section-title, yt-formatted-string');
+        if (titleElement && titleElement.textContent?.trim() === 'Subscriptions') {
+            (el as HTMLElement).style.display = 'none';
+        }
+    });
+}
+
+function restoreSubscriptionsSidebar() {
+    // Restore the subscription section in the sidebar
+    document.querySelectorAll('ytd-guide-section-renderer').forEach(el => {
+        const titleElement = el.querySelector('#guide-section-title, yt-formatted-string');
+        if (titleElement && titleElement.textContent?.trim() === 'Subscriptions') {
+            (el as HTMLElement).style.display = '';
+        }
+    });
+}
+
 export function observeSubscriptions() {
     // Observer specifically for subscriptions page changes
     const observer = new MutationObserver(() => {
@@ -82,6 +116,28 @@ export function observeSubscriptions() {
             } else {
                 restoreSubscriptionsFeed();
             }
+        }
+    });
+
+    if (document.body) {
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+        });
+    }
+
+    return observer;
+}
+
+export function observeSubscriptionsSidebar() {
+    // Observer specifically for subscriptions sidebar changes
+    const observer = new MutationObserver(() => {
+        const hideSubscriptionsSidebar = document.documentElement.hasAttribute('hide_subscriptions_sidebar');
+
+        if (hideSubscriptionsSidebar) {
+            cleanupSubscriptionsSidebar();
+        } else {
+            restoreSubscriptionsSidebar();
         }
     });
 

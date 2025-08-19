@@ -8,6 +8,7 @@ export interface Settings {
     hideSidebar: boolean;
     hideHome: boolean;
     hideSubscriptions: boolean;
+    hideSubscriptionsSidebar: boolean;
     hideSearchbar: boolean;
     hideNotifications: boolean;
     hideDescription: boolean;
