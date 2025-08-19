@@ -6,7 +6,7 @@ import type { Settings } from './types/global';
 
 const defaultSettings: Settings = {
   hideShorts: false,
-  hideMasthead: true,
+  hideMasthead: false,
   hideFold: false,
   hideComments: false,
   hideCategoryAndTopic: false,
@@ -76,7 +76,7 @@ function App() {
 
 
           <CardWithInput
-            label="toggle top bar"
+            label="Toggle top bar"
             checked={settings.hideMasthead}
             onChange={handleToggle('hideMasthead')}
           />
@@ -84,25 +84,25 @@ function App() {
 
         <SettingsGroup title="Video Settings">
           <CardWithInput
-            label="toggle video details"
+            label="Toggle video details"
             checked={settings.hideFold}
             onChange={handleToggle('hideFold')}
           />
 
           <CardWithInput
-            label="toggle video comments"
+            label="Toggle video comments"
             checked={settings.hideComments}
             onChange={handleToggle('hideComments')}
           />
 
           <CardWithInput
-            label="toggle recommended sidebar"
+            label="Toggle recommended"
             checked={settings.hideRecommended}
             onChange={handleToggle('hideRecommended')}
           />
 
           <CardWithInput
-            label="toggle video category/topic"
+            label="Toggle category/topic"
             checked={settings.hideCategoryAndTopic}
             onChange={handleToggle('hideCategoryAndTopic')}
           />
