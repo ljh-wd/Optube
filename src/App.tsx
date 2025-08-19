@@ -70,7 +70,7 @@ function App() {
         updated.hideNotifications = false;
       }
 
-      // If video details is being enabled, also enable description, title, and creator
+      // If video details is being enabled, also enable description, title, creator and category/topic
       if (key === 'hideFold' && checked) {
         updated.hideDescription = true;
         updated.hideTitle = true;
@@ -78,7 +78,7 @@ function App() {
         updated.hideCategoryAndTopic = true;
       }
 
-      // If video details is being disabled, also disable description, title, and creator
+      // If video details is being disabled, also disable description, title, creator and category/topic
       if (key === 'hideFold' && !checked) {
         updated.hideDescription = false;
         updated.hideTitle = false;
