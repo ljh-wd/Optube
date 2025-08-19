@@ -1,5 +1,5 @@
 import { observeMasthead, setMastheadVisibility, observeSearchbar, setSearchbarVisibility, observeNotifications, setNotificationsVisibility } from './utils/topBar';
-import { observeCategoryAndTopic, observeComments, observeFold, observeRecommended, setCategoryAndTopicVisibility, setCommentsVisibility, setFoldVisibility, setRecommendedVisibility } from './utils/video';
+import { observeCategoryAndTopic, observeComments, observeFold, observeRecommended, observeDescription, observeTitle, observeCreator, setCategoryAndTopicVisibility, setCommentsVisibility, setFoldVisibility, setRecommendedVisibility, setDescriptionVisibility, setTitleVisibility, setCreatorVisibility } from './utils/video';
 import { observeSidebar, setSidebarVisibility } from './utils/sidebar';
 import type { Settings } from './types/global';
 import { observeShorts, setShortsVisibility, injectShortsCSS } from './utils/shorts';
@@ -18,10 +18,13 @@ function cleanYouTube(settings: Settings): void {
   setCategoryAndTopicVisibility(!!settings.hideCategoryAndTopic);
   setRecommendedVisibility(!!settings.hideRecommended);
   setSidebarVisibility(!!settings.hideSidebar);
+  setDescriptionVisibility(!!settings.hideDescription);
+  setTitleVisibility(!!settings.hideTitle);
+  setCreatorVisibility(!!settings.hideCreator);
 }
 
 function run(): void {
-  chrome.storage.sync.get(['hideShorts', 'hideHome', 'hideSubscriptions', 'hideMasthead', 'hideSearchbar', 'hideNotifications', 'hideFold', 'hideComments', 'hideCategoryAndTopic', 'hideRecommended', 'hideSidebar'], cleanYouTube);
+  chrome.storage.sync.get(['hideShorts', 'hideHome', 'hideSubscriptions', 'hideMasthead', 'hideSearchbar', 'hideNotifications', 'hideFold', 'hideComments', 'hideCategoryAndTopic', 'hideRecommended', 'hideSidebar', 'hideDescription', 'hideTitle', 'hideCreator'], cleanYouTube);
 }
 
 let debounceId: number | null = null;
@@ -58,7 +61,7 @@ injectSubscriptionsCSS();
 chrome.storage.onChanged.addListener((changes, area) => {
   if (
     area === 'sync' &&
-    (changes.hideShorts || changes.hideHome || changes.hideSubscriptions || changes.hideMasthead || changes.hideSearchbar || changes.hideNotifications || changes.hideFold || changes.hideComments || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hideSidebar)
+    (changes.hideShorts || changes.hideHome || changes.hideSubscriptions || changes.hideMasthead || changes.hideSearchbar || changes.hideNotifications || changes.hideFold || changes.hideComments || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hideSidebar || changes.hideDescription || changes.hideTitle || changes.hideCreator)
   ) {
     setTimeout(() => {
       run();
@@ -77,4 +80,7 @@ observeComments();
 observeCategoryAndTopic();
 observeRecommended();
 observeSidebar();
+observeDescription();
+observeTitle();
+observeCreator();
 

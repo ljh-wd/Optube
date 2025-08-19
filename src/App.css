@@ -166,30 +166,28 @@ font-size: 1rem;
 }
 
 .expand-icon {
-  transition: transform 0.2s ease;
-}
-
-.expand-icon.expanded {
-  transform: rotate(45deg);
+  width: 16px;
+  height: 16px;
+  transition: opacity 0.2s ease;
 }
 
 .nested-content {
   margin-left: 1rem;
   padding-left: 1rem;
   border-left: 2px solid #444;
-  transition: all 0.2s ease-in-out;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, margin-top 0.3s ease-in-out;
 }
 
-.nested-content.visible {
+.nested-content.expanded {
   opacity: 1;
-  max-height: 200px;
+  max-height: 300px;
   margin-top: 0.5rem;
 }
 
-.nested-content.hidden {
-  opacity: 0.5;
+.nested-content.collapsed {
+  opacity: 0;
   max-height: 0;
-  overflow: hidden;
   margin-top: 0;
 }
 

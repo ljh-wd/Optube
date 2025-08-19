@@ -17,6 +17,9 @@ const defaultSettings: Settings = {
   hideCategoryAndTopic: false,
   hideRecommended: false,
   hideSidebar: false,
+  hideDescription: false,
+  hideTitle: false,
+  hideCreator: false,
 };
 
 function App() {
@@ -65,6 +68,20 @@ function App() {
       if (key === 'hideMasthead' && !checked) {
         updated.hideSearchbar = false;
         updated.hideNotifications = false;
+      }
+
+      // If video details is being enabled, also enable description, title, and creator
+      if (key === 'hideFold' && checked) {
+        updated.hideDescription = true;
+        updated.hideTitle = true;
+        updated.hideCreator = true;
+      }
+
+      // If video details is being disabled, also disable description, title, and creator
+      if (key === 'hideFold' && !checked) {
+        updated.hideDescription = false;
+        updated.hideTitle = false;
+        updated.hideCreator = false;
       }
 
       saveSettings(updated);
@@ -125,11 +142,30 @@ function App() {
         </SettingsGroup>
 
         <SettingsGroup title="Video Settings">
-          <CardWithInput
+          <NestedToggle
             label="Toggle video details"
             checked={settings.hideFold}
             onChange={handleToggle('hideFold')}
-          />
+          >
+            <CardWithInput
+              label="Toggle title"
+              checked={settings.hideTitle}
+              onChange={handleToggle('hideTitle')}
+              disabled={settings.hideFold}
+            />
+            <CardWithInput
+              label="Toggle creator"
+              checked={settings.hideCreator}
+              onChange={handleToggle('hideCreator')}
+              disabled={settings.hideFold}
+            />
+            <CardWithInput
+              label="Toggle description"
+              checked={settings.hideDescription}
+              onChange={handleToggle('hideDescription')}
+              disabled={settings.hideFold}
+            />
+          </NestedToggle>
 
           <CardWithInput
             label="Toggle video comments"

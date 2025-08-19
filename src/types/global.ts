@@ -1,13 +1,16 @@
-export type Settings = {
+export interface Settings {
     hideShorts: boolean;
-    hideSubscriptions: boolean;
-    hideHome: boolean;
-    hideMasthead: boolean;
-    hideSearchbar: boolean;
-    hideNotifications: boolean;
     hideFold: boolean;
     hideComments: boolean;
     hideCategoryAndTopic: boolean;
     hideRecommended: boolean;
+    hideMasthead: boolean;
     hideSidebar: boolean;
-};
+    hideHome: boolean;
+    hideSubscriptions: boolean;
+    hideSearchbar: boolean;
+    hideNotifications: boolean;
+    hideDescription: boolean;
+    hideTitle: boolean;
+    hideCreator: boolean;
+}

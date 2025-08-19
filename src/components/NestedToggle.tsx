@@ -1,6 +1,7 @@
 import * as Switch from "@radix-ui/react-switch";
 import { useId, useState } from "react";
 import type { ReactNode } from "react";
+import { PlusIcon, MinusIcon } from '@heroicons/react/24/solid';
 
 import '../App.css';
 
@@ -30,16 +31,11 @@ const NestedToggle = ({ label, checked, onChange, children, disabled = false }: 
                             type="button"
                             aria-label={isExpanded ? "Collapse" : "Expand"}
                         >
-                            <svg
-                                width="12"
-                                height="12"
-                                viewBox="0 0 12 12"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                className={`expand-icon ${isExpanded ? 'expanded' : ''}`}
-                            >
-                                <path d="M6 3V9M3 6H9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                            </svg>
+                            {isExpanded ? (
+                                <MinusIcon className="expand-icon" />
+                            ) : (
+                                <PlusIcon className="expand-icon" />
+                            )}
                         </button>
                     )}
                 </div>
@@ -54,8 +50,8 @@ const NestedToggle = ({ label, checked, onChange, children, disabled = false }: 
                 </Switch.Root>
             </div>
 
-            {children && isExpanded && (
-                <div className="nested-content visible">
+            {children && (
+                <div className={`nested-content ${isExpanded ? 'expanded' : 'collapsed'}`}>
                     {children}
                 </div>
             )}
