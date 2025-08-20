@@ -2,6 +2,7 @@ export interface Settings {
     hideShorts: boolean;
     hideFold: boolean;
     hideComments: boolean;
+    hideCommentAvatars: boolean; // new sub option under Comments
     hideCategoryAndTopic: boolean;
     hideRecommended: boolean;
     hideMasthead: boolean;
@@ -11,6 +12,7 @@ export interface Settings {
     hideSubscriptionsSidebar: boolean;
     hideSearchbar: boolean;
     hideNotifications: boolean;
+    hideCreateButton: boolean; // new create button in top bar
     hideDescription: boolean;
     hideTitle: boolean;
     hideCreator: boolean;

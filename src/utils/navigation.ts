@@ -61,6 +61,14 @@ export function applyNavigation(settings: Partial<NavSettings>) {
             { title: 'Liked videos', hide: !!settings.hideLikedVideos },
         ]);
     }
+
+    // Mini guide (collapsed) entry for "You" – hide when the full You section is hidden
+    document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
+        const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
+        if (label === 'You') {
+            (entry as HTMLElement).style.display = settings.hideYouSection ? 'none' : '';
+        }
+    });
 }
 
 export function observeNavigation() {

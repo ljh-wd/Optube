@@ -33,6 +33,40 @@ export function setCommentsVisibility(hide: boolean) {
     });
 }
 
+export function setCommentAvatarsVisibility(hide: boolean) {
+    // Use attribute + injected CSS so dynamically loaded comments update automatically.
+    if (hide) {
+        document.documentElement.setAttribute('hide_comment_avatars', 'true');
+    } else {
+        document.documentElement.removeAttribute('hide_comment_avatars');
+    }
+    // Fallback immediate inline application for currently present nodes (in case CSS race).
+    document.querySelectorAll('#author-thumbnail, ytd-comment-view-model #author-thumbnail, ytd-comment-simplebox-renderer #author-thumbnail').forEach(el => {
+        (el as HTMLElement).style.display = hide ? 'none' : '';
+    });
+}
+
+export function observeCommentAvatars() {
+    chrome.storage.sync.get(['hideCommentAvatars'], (settings) => setCommentAvatarsVisibility(!!settings.hideCommentAvatars));
+    const observer = new MutationObserver(() => {
+        chrome.storage.sync.get(['hideCommentAvatars'], (settings) => setCommentAvatarsVisibility(!!settings.hideCommentAvatars));
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+}
+
+// Inject CSS for comment avatar hiding (once)
+let commentAvatarCSSInjected = false;
+export function injectCommentAvatarCSS() {
+    if (commentAvatarCSSInjected) return;
+    const id = 'optube-comment-avatars-css';
+    if (document.getElementById(id)) { commentAvatarCSSInjected = true; return; }
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = `html[hide_comment_avatars] #author-thumbnail,\nhtml[hide_comment_avatars] ytd-comment-view-model #author-thumbnail,\nhtml[hide_comment_avatars] ytd-comment-simplebox-renderer #author-thumbnail {\n  display: none !important;\n}`;
+    document.head.appendChild(style);
+    commentAvatarCSSInjected = true;
+}
+
 export function observeComments() {
     chrome.storage.sync.get(['hideComments'], (settings) => {
         const hide = !!settings.hideComments;

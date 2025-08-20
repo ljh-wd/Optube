@@ -53,6 +53,14 @@ function cleanupSubscriptionsFeed() {
             (el as HTMLElement).style.display = 'none';
         }
     });
+
+    // Hide mini guide Subscriptions entry
+    document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
+        const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
+        if (label === 'Subscriptions') {
+            (entry as HTMLElement).style.display = 'none';
+        }
+    });
 }
 
 function restoreSubscriptionsFeed() {
@@ -80,6 +88,14 @@ function restoreSubscriptionsFeed() {
     document.querySelectorAll('ytd-rich-section-renderer').forEach(el => {
         if (window.location.pathname.includes('/feed/subscriptions')) {
             (el as HTMLElement).style.display = '';
+        }
+    });
+
+    // Restore mini guide Subscriptions entry
+    document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
+        const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
+        if (label === 'Subscriptions') {
+            (entry as HTMLElement).style.display = '';
         }
     });
 }

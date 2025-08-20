@@ -343,11 +343,10 @@ html,
 
 /* Indeterminate / half state support */
 .SwitchRoot.modern-switch[data-state="indeterminate"] {
-  /* Slight orange (amber) glow distinct from full accent */
-  background: linear-gradient(135deg, #ffb347, #ff9447);
-  /* soft orange gradient */
-  box-shadow: 0 0 0 1px rgba(255 165 64 / 55%), 0 0 0 4px rgba(255 149 40 / 18%), 0 2px 6px -2px rgba(255 140 0 / 35%);
-  border-color: rgba(255 170 70 / 65%);
+  background: linear-gradient(135deg, #ff8fa3, #ffb5c1);
+  /* lighter pink range */
+  box-shadow: 0 0 0 1px rgba(var(--accent-glow)/0.4), 0 0 0 4px rgba(var(--accent-glow)/0.16), 0 2px 5px -2px rgba(var(--accent-glow)/0.28);
+  border-color: rgba(var(--accent-glow)/0.5);
 }
 
 .SwitchRoot.modern-switch:hover {
@@ -454,7 +453,7 @@ html,
   opacity: 1;
   max-height: 600px;
   /* allow taller groups */
-  margin-top: .35rem;
+  margin-top: .5rem;
   overflow-y: auto;
   /* scroll if exceeds */
 }
@@ -463,6 +462,29 @@ html,
   opacity: 0;
   max-height: 0;
   margin-top: 0;
+}
+
+/* Inner nested content differentiation */
+.nested-content .nested-content .item-row {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0));
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.nested-content .nested-content {
+  padding-left: .9rem;
+  margin-top: .45rem;
+}
+
+.nested-content .nested-content::before {
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+}
+
+/* Spacing between siblings inside expanded nested group */
+.nested-content.expanded>.card-section+.card-section,
+.nested-content.expanded>.card-section+.nested-toggle,
+.nested-content.expanded>.nested-toggle+.card-section,
+.nested-content.expanded>.nested-toggle+.nested-toggle {
+  margin-top: .35rem;
 }
 
 .chevron {
@@ -550,7 +572,7 @@ html,
 }
 
 .info-text {
-  font-size: .7rem;
+  font-size: .75rem;
   text-transform: uppercase;
   letter-spacing: 1.5px;
   font-weight: 500;

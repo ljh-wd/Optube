@@ -18,6 +18,14 @@ function cleanupHomeFeed() {
         (el as HTMLElement).style.display = 'none';
     });
 
+    // Hide mini guide Home entry
+    document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
+        const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
+        if (label === 'Home') {
+            (entry as HTMLElement).style.display = 'none';
+        }
+    });
+
     // Hide rich grid renderer on home page (main feed container)
     document.querySelectorAll('ytd-rich-grid-renderer').forEach(el => {
         // Only hide if we're on the home page
@@ -45,6 +53,14 @@ function restoreHomeFeed() {
     // Restore the main home feed content
     document.querySelectorAll('ytd-browse[page-subtype="home"]').forEach(el => {
         (el as HTMLElement).style.display = '';
+    });
+
+    // Restore mini guide Home entry
+    document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
+        const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
+        if (label === 'Home') {
+            (entry as HTMLElement).style.display = '';
+        }
     });
 
     // Restore rich grid renderer on home page (main feed container)

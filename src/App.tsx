@@ -13,8 +13,10 @@ const defaultSettings: Settings = {
   hideMasthead: false,
   hideSearchbar: false,
   hideNotifications: false,
+  hideCreateButton: false,
   hideFold: false,
   hideComments: false,
+  hideCommentAvatars: false,
   hideCategoryAndTopic: false,
   hideRecommended: false,
   hideSidebar: false,
@@ -100,12 +102,14 @@ function App() {
       if (key === 'hideMasthead' && checked) {
         updated.hideSearchbar = true;
         updated.hideNotifications = true;
+        updated.hideCreateButton = true;
       }
 
       // If topbar is being disabled, also disable searchbar and notifications
       if (key === 'hideMasthead' && !checked) {
         updated.hideSearchbar = false;
         updated.hideNotifications = false;
+        updated.hideCreateButton = false;
       }
 
       // If subscriptions is being enabled, also enable subscriptions sidebar
@@ -132,6 +136,14 @@ function App() {
         updated.hideTitle = false;
         updated.hideCreator = false;
         updated.hideCategoryAndTopic = false;
+      }
+
+      // Cascade comment avatars with comments parent
+      if (key === 'hideComments' && checked) {
+        updated.hideCommentAvatars = true;
+      }
+      if (key === 'hideComments' && !checked) {
+        updated.hideCommentAvatars = false;
       }
 
       // If preview details (layout) is enabled, also enable preview avatars automatically
@@ -196,12 +208,28 @@ function App() {
       </header>
 
       <main className="panels" role="region" aria-label="Settings">
-        <SettingsGroup title="Navigation">
+        <SettingsGroup title="Feeds">
           <div className="settings-grid">
             <CardWithInput label="Home" checked={settings.hideHome} onChange={handleToggle('hideHome')} />
             <CardWithInput label="Shorts" checked={settings.hideShorts} onChange={handleToggle('hideShorts')} />
             <NestedToggle label="Subscriptions" checked={settings.hideSubscriptions} onChange={handleToggle('hideSubscriptions')}>
               <CardWithInput label="Subscription sidebar" checked={settings.hideSubscriptionsSidebar} onChange={handleToggle('hideSubscriptionsSidebar')} disabled={settings.hideSubscriptions} />
+            </NestedToggle>
+            {/* Explore / More / You moved under Sidebar group */}
+          </div>
+        </SettingsGroup>
+
+        <SettingsGroup title="Layout">
+          <div className="settings-grid">
+            <CardWithInput label="Duration badges" checked={settings.hideDurationBadges} onChange={handleToggle('hideDurationBadges')} />
+            <NestedToggle label="Video preview details" checked={settings.hidePreviewDetails} onChange={handleToggle('hidePreviewDetails')}>
+              <CardWithInput label="Avatars" checked={settings.hidePreviewAvatars} onChange={handleToggle('hidePreviewAvatars')} disabled={settings.hidePreviewDetails} />
+            </NestedToggle>
+            <CardWithInput label="Filter chips (badges)" checked={settings.hideBadgesChips} onChange={handleToggle('hideBadgesChips')} />
+            <NestedToggle label="Top bar" checked={settings.hideMasthead} onChange={handleToggle('hideMasthead')}>
+              <CardWithInput label="Search" checked={settings.hideSearchbar} onChange={handleToggle('hideSearchbar')} disabled={settings.hideMasthead} />
+              <CardWithInput label="Notifications" checked={settings.hideNotifications} onChange={handleToggle('hideNotifications')} disabled={settings.hideMasthead} />
+              <CardWithInput label="Create" checked={settings.hideCreateButton} onChange={handleToggle('hideCreateButton')} disabled={settings.hideMasthead} />
             </NestedToggle>
             <NestedToggle label="Sidebar" checked={settings.hideSidebar} onChange={handleToggle('hideSidebar')}>
               <CardWithInput label="Explore" checked={settings.hideExplore} onChange={handleToggle('hideExplore')} disabled={settings.hideSidebar} />
@@ -215,21 +243,6 @@ function App() {
                 <CardWithInput label="Liked videos" checked={settings.hideLikedVideos} onChange={handleToggle('hideLikedVideos')} disabled={settings.hideYouSection || settings.hideSidebar} />
               </NestedToggle>
             </NestedToggle>
-            <NestedToggle label="Top bar" checked={settings.hideMasthead} onChange={handleToggle('hideMasthead')}>
-              <CardWithInput label="Search" checked={settings.hideSearchbar} onChange={handleToggle('hideSearchbar')} disabled={settings.hideMasthead} />
-              <CardWithInput label="Notifications" checked={settings.hideNotifications} onChange={handleToggle('hideNotifications')} disabled={settings.hideMasthead} />
-            </NestedToggle>
-            {/* Explore / More / You moved under Sidebar group */}
-          </div>
-        </SettingsGroup>
-
-        <SettingsGroup title="Layout">
-          <div className="settings-grid">
-            <CardWithInput label="Duration badges" checked={settings.hideDurationBadges} onChange={handleToggle('hideDurationBadges')} />
-            <NestedToggle label="Video preview details" checked={settings.hidePreviewDetails} onChange={handleToggle('hidePreviewDetails')}>
-              <CardWithInput label="Avatars" checked={settings.hidePreviewAvatars} onChange={handleToggle('hidePreviewAvatars')} disabled={settings.hidePreviewDetails} />
-            </NestedToggle>
-            <CardWithInput label="Filter chips (badges)" checked={settings.hideBadgesChips} onChange={handleToggle('hideBadgesChips')} />
           </div>
         </SettingsGroup>
 
@@ -241,7 +254,9 @@ function App() {
               <CardWithInput label="Description" checked={settings.hideDescription} onChange={handleToggle('hideDescription')} disabled={settings.hideFold} />
               <CardWithInput label="Category / Topic" checked={settings.hideCategoryAndTopic} onChange={handleToggle('hideCategoryAndTopic')} disabled={settings.hideFold} />
             </NestedToggle>
-            <CardWithInput label="Comments" checked={settings.hideComments} onChange={handleToggle('hideComments')} />
+            <NestedToggle label="Comments" checked={settings.hideComments} onChange={handleToggle('hideComments')}>
+              <CardWithInput label="Avatars" checked={settings.hideCommentAvatars} onChange={handleToggle('hideCommentAvatars')} disabled={settings.hideComments} />
+            </NestedToggle>
             <CardWithInput label="Recommended" checked={settings.hideRecommended} onChange={handleToggle('hideRecommended')} />
           </div>
         </SettingsGroup>

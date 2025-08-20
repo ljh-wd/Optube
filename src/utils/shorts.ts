@@ -9,6 +9,13 @@ export function setShortsVisibility(hide: boolean) {
         cleanupShortsShelves();
     } else {
         document.documentElement.removeAttribute('hide_shorts');
+        // Restore mini guide Shorts entry
+        document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
+            const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
+            if (label === 'Shorts') {
+                (entry as HTMLElement).style.display = '';
+            }
+        });
     }
 }
 
@@ -43,6 +50,14 @@ function cleanupShortsShelves() {
     document.querySelectorAll('ytm-shorts-lockup-view-model, ytm-shorts-lockup-view-model-v2').forEach(el => (el as HTMLElement).style.display = 'none');
 
     hideShortsFilterChip();
+
+    // Hide mini guide Shorts entry
+    document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
+        const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
+        if (label === 'Shorts') {
+            (entry as HTMLElement).style.display = 'none';
+        }
+    });
 }
 
 // Hide the "Shorts" filter chip in search (and any chip cloud areas)
