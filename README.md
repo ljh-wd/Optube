@@ -1,69 +1,37 @@
-# React + TypeScript + Vite
+# Optube — A YouTube UI customizer (developer README)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Optube is a browser extension that customizes the YouTube web UI by hiding or changing parts of the page (recommended sidebar, shorts, description, comments, etc.). The extension injects a content script (`content.js`) into YouTube pages and provides a small React-based settings UI bundled with Vite.
 
-Currently, two official plugins are available:
+Key files:
+- `public/manifest.json` — extension manifest (content script matches `https://www.youtube.com/*`).
+- `src/utils/video.ts` — logic that shows/hides video-page elements (recommended, description, title, creator, etc.).
+- `src/content.ts` — wiring that applies settings and registers observers.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Developer setup
+1. Install dependencies:
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```zsh
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2 Load the extension into Chrome for development:
+- Open chrome://extensions
+- Enable "Developer mode"
+- Click "Load unpacked" and select the project `dist`/`public` output folder. (When developing with Vite you may want to build or copy the generated assets into a folder Chrome can load — see "Build for production" below.)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Build for production
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```zsh
+npm run build
 ```
+
+This runs TypeScript build and Vite build. The final assets (including `content.js`) will be emitted to the project's `dist` folder. Load that folder in Chrome via "Load unpacked".
+
+How to test the content script quickly
+- After building, open a YouTube video page and verify that the content script is active (it runs on match `https://www.youtube.com/*`).
+- Toggle settings in the extension popup (index.html) to see UI-driven changes to the page.
+
+Notes and troubleshooting
+- The extension uses `chrome.storage.sync` for settings. When changing settings in dev, the content script watches storage changes and re-applies styling.
+- If you see layout changes on non-video routes, ensure the content script's logic runs only on watch pages — the code already checks for `/watch?v=` and the presence of `ytd-watch-flexy` before applying video-only layout changes.
+- If the popup/settings UI doesn't reflect changes, open DevTools for the extension popup (from chrome://extensions) to inspect any console errors.
