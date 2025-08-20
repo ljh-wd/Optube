@@ -77,9 +77,16 @@ let recommendedApplied = false;
 
 function cleanupRecommendedStyles() {
     const recommendedInner = document.getElementById('secondary-inner');
-    const columns = document.getElementById('columns');
-    const primary = document.getElementById('primary');
     const secondary = recommendedInner ? (recommendedInner.closest('#secondary') as HTMLElement | null) : document.getElementById('secondary') as HTMLElement | null;
+    // Prefer a #columns that actually contains the #secondary (scoped to the watch layout).
+    let columns = document.getElementById('columns') as HTMLElement | null;
+    if (secondary && columns && !columns.contains(secondary)) {
+        // try finding a columns element relative to the secondary
+        const candidate = secondary.closest('#columns') as HTMLElement | null;
+        if (candidate) columns = candidate;
+    }
+    // If columns is scoped, try to find primary inside it; fallback to global lookup.
+    const primary = columns ? columns.querySelector('#primary') as HTMLElement | null : document.getElementById('primary') as HTMLElement | null;
     if (secondary) {
         secondary.style.width = '';
         secondary.style.minWidth = '';
@@ -119,10 +126,18 @@ export function setRecommendedVisibility(hide: boolean) {
     }
 
     const recommendedInner = document.getElementById('secondary-inner');
-    const columns = document.getElementById('columns');
-    const primary = document.getElementById('primary');
     const secondary = recommendedInner ? (recommendedInner.closest('#secondary') as HTMLElement | null) : null;
-    if (!recommendedInner || !columns || !primary || !secondary) return;
+    if (!recommendedInner || !secondary) return;
+
+    // Prefer a #columns that actually contains the #secondary (scoped to the watch layout).
+    let columns = document.getElementById('columns') as HTMLElement | null;
+    if (columns && !columns.contains(secondary)) {
+        const candidate = secondary.closest('#columns') as HTMLElement | null;
+        if (candidate) columns = candidate;
+    }
+    // Find primary inside the scoped columns when possible.
+    const primary = columns ? columns.querySelector('#primary') as HTMLElement | null : document.getElementById('primary') as HTMLElement | null;
+    if (!columns || !primary) return;
 
     if (hide) {
         document.documentElement.setAttribute('optube_hide_recommended', 'true');
