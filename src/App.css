@@ -162,8 +162,10 @@ html,
 
 .app-title {
   font-size: 1.75rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.5px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
 .tagline {
@@ -535,27 +537,7 @@ html,
   letter-spacing: 1.5px;
   font-weight: 500;
   color: var(--text-dim);
-}
-
-/* Scrollbars inside extension popup */
-/* Custom scrollbars (WebKit) */
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(var(--accent), #ff6a84);
-  border-radius: 100px;
-  border: 2px solid var(--bg);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  filter: brightness(1.1);
+  text-align: center;
 }
 
 /* Animations */
