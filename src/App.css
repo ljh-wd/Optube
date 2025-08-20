@@ -220,6 +220,15 @@ html,
   overflow: hidden;
 }
 
+/* Subtle accent wash (lighter than header) */
+.settings-group::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(var(--accent-glow)/0.07), transparent 62%);
+  pointer-events: none;
+}
+
 .settings-group-header {
   display: flex;
   align-items: center;
@@ -493,6 +502,15 @@ html,
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
+}
+
+/* Even softer footer accent */
+.footer-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(125deg, rgba(var(--accent-glow)/0.055), transparent 65%);
+  pointer-events: none;
 }
 
 .footer-card .info-text {
