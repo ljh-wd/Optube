@@ -4,6 +4,7 @@ import CardWithInput from './components/CardWithInput';
 import NestedToggle from './components/NestedToggle';
 import SettingsGroup from './components/SettingsGroup';
 import type { Settings } from './types/global';
+import { InformationCircleIcon } from '@heroicons/react/24/solid';
 
 const defaultSettings: Settings = {
   hideShorts: false,
@@ -209,7 +210,10 @@ function App() {
           <span>{activeCount}</span><span className="divider" />{total}
         </div>
       </header>
-
+      <div className='hint-container'>
+        <InformationCircleIcon className='hint-icon' />
+        <p className="hint">Enable filters to customize your view</p>
+      </div>
       <main className="panels" role="region" aria-label="Settings">
         <SettingsGroup title="Feeds">
           <div className="settings-grid">
@@ -279,7 +283,7 @@ function App() {
             }}
             type='button'
           >
-            Reset to defaults
+            Reset filters
           </button>
           <div className="info-text">Settings persist across YouTube pages.</div>
         </div>
