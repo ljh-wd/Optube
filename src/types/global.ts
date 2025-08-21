@@ -5,6 +5,7 @@ export interface Settings {
     hideCommentAvatars: boolean; // new sub option under Comments
     hideCategoryAndTopic: boolean;
     hideRecommended: boolean;
+    hidePosts: boolean; // new posts (community) feed items
     hideMasthead: boolean;
     hideSidebar: boolean;
     hideHome: boolean;

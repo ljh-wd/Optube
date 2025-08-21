@@ -7,6 +7,7 @@ import { observeHome, setHomeVisibility, injectHomeCSS } from './utils/home';
 import { observeSubscriptions, observeSubscriptionsSidebar, setSubscriptionsVisibility, setSubscriptionsSidebarVisibility, injectSubscriptionsCSS } from './utils/subscriptions';
 import { applyLayout, injectLayoutCSS, observeLayout } from './utils/layout';
 import { applyNavigation, observeNavigation } from './utils/navigation';
+import { setPostsVisibility, observePosts, injectPostsCSS } from './utils/posts.ts';
 
 function cleanYouTube(settings: Settings): void {
   setShortsVisibility(!!settings.hideShorts);
@@ -22,6 +23,7 @@ function cleanYouTube(settings: Settings): void {
   setFoldVisibility(!!settings.hideFold);
   setCategoryAndTopicVisibility(!!settings.hideCategoryAndTopic);
   setRecommendedVisibility(!!settings.hideRecommended);
+  setPostsVisibility(!!settings.hidePosts);
   setSidebarVisibility(!!settings.hideSidebar);
   setDescriptionVisibility(!!settings.hideDescription);
   setTitleVisibility(!!settings.hideTitle);
@@ -47,7 +49,7 @@ function cleanYouTube(settings: Settings): void {
 
 function run(): void {
   chrome.storage.sync.get([
-    'hideShorts', 'hideHome', 'hideSubscriptions', 'hideSubscriptionsSidebar', 'hideMasthead', 'hideSearchbar', 'hideNotifications', 'hideCreateButton', 'hideFold', 'hideComments', 'hideCommentAvatars', 'hideCategoryAndTopic', 'hideRecommended', 'hideSidebar', 'hideDescription', 'hideTitle', 'hideCreator',
+    'hideShorts', 'hideHome', 'hideSubscriptions', 'hideSubscriptionsSidebar', 'hideMasthead', 'hideSearchbar', 'hideNotifications', 'hideCreateButton', 'hideFold', 'hideComments', 'hideCommentAvatars', 'hideCategoryAndTopic', 'hideRecommended', 'hidePosts', 'hideSidebar', 'hideDescription', 'hideTitle', 'hideCreator',
     'hideDurationBadges', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips',
     'hideExplore', 'hideMoreFromYouTube', 'hideYouSection', 'hideHistory', 'hidePlaylists', 'hideYourVideos', 'hideYourCourses', 'hideWatchLater', 'hideLikedVideos'
   ], cleanYouTube);
@@ -85,11 +87,12 @@ injectHomeCSS();
 injectSubscriptionsCSS();
 injectCreateButtonCSS();
 injectCommentAvatarCSS();
+injectPostsCSS();
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (
     area === 'sync' &&
-    (changes.hideShorts || changes.hideHome || changes.hideSubscriptions || changes.hideSubscriptionsSidebar || changes.hideMasthead || changes.hideSearchbar || changes.hideNotifications || changes.hideCreateButton || changes.hideFold || changes.hideComments || changes.hideCommentAvatars || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hideSidebar || changes.hideDescription || changes.hideTitle || changes.hideCreator ||
+    (changes.hideShorts || changes.hideHome || changes.hideSubscriptions || changes.hideSubscriptionsSidebar || changes.hideMasthead || changes.hideSearchbar || changes.hideNotifications || changes.hideCreateButton || changes.hideFold || changes.hideComments || changes.hideCommentAvatars || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hidePosts || changes.hideSidebar || changes.hideDescription || changes.hideTitle || changes.hideCreator ||
       changes.hideDurationBadges || changes.hidePreviewDetails || changes.hidePreviewAvatars || changes.hideBadgesChips ||
       changes.hideExplore || changes.hideMoreFromYouTube || changes.hideYouSection || changes.hideHistory || changes.hidePlaylists || changes.hideYourVideos || changes.hideYourCourses || changes.hideWatchLater || changes.hideLikedVideos || changes.cinematicMode)
   ) {
@@ -118,6 +121,7 @@ observeTitle();
 observeCreator();
 observeLayout();
 observeNavigation();
+observePosts();
 
 // Inject layout CSS last
 injectLayoutCSS();
