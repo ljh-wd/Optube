@@ -98,11 +98,10 @@ function App() {
           <div className="settings-grid">
             <CardWithInput label="Home" checked={settings.hideHome} onChange={handleToggle('hideHome')} />
             <CardWithInput label="Shorts" checked={settings.hideShorts} onChange={handleToggle('hideShorts')} />
-            <CardWithInput label="Posts" checked={settings.hidePosts} onChange={handleToggle('hidePosts')} />
             <NestedToggle label="Subscriptions" checked={settings.hideSubscriptions} onChange={handleToggle('hideSubscriptions')}>
               <CardWithInput label="Subscription sidebar" checked={settings.hideSubscriptionsSidebar} onChange={handleToggle('hideSubscriptionsSidebar')} disabled={settings.hideSubscriptions} />
             </NestedToggle>
-            {/* Explore / More / You moved under Sidebar group */}
+            <CardWithInput label="Posts" checked={settings.hidePosts} onChange={handleToggle('hidePosts')} />
           </div>
         </SettingsGroup>
 
