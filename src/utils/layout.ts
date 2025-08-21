@@ -6,6 +6,7 @@ interface LayoutToggles {
     hidePreviewDetails: boolean;
     hidePreviewAvatars: boolean;
     hideBadgesChips: boolean;
+    hideWatchedProgress: boolean;
 }
 
 const STYLE_ID = 'optube-layout-css';
@@ -14,6 +15,7 @@ const STYLE_ID = 'optube-layout-css';
 let durationObserver: MutationObserver | null = null;
 let durationObserverActive = false;
 let durationDebounce: number | null = null;
+// Watched progress: pure CSS (no removal) so layout stays stable.
 
 function ensureDurationObserver(active: boolean) {
     if (active && !durationObserverActive) {
@@ -38,10 +40,13 @@ export function applyLayout(settings: Partial<LayoutToggles>) {
     toggleAttr(root, 'hide_preview_details', settings.hidePreviewDetails);
     toggleAttr(root, 'hide_preview_avatars', settings.hidePreviewAvatars);
     toggleAttr(root, 'hide_badges_chips', settings.hideBadgesChips);
+    toggleAttr(root, 'hide_watched_progress', settings.hideWatchedProgress);
 
     // Manage duration badges (JS + observer)
     ensureDurationObserver(!!settings.hideDurationBadges);
     if (settings.hideDurationBadges) hideDurationBadges(); else showDurationBadges();
+
+    // Watched progress handled by CSS opacity only (no JS needed)
 }
 
 function toggleAttr(el: HTMLElement, name: string, enabled?: boolean) {
@@ -127,15 +132,23 @@ export function injectLayoutCSS() {
         html[hide_preview_details] ytd-watch-flexy #secondary yt-lockup-view-model .yt-lockup-metadata-view-model-wiz__menu-button {
             display: none !important;
         }
+
+        /* Watched progress overlay: make transparent but preserve space */
+        html[hide_watched_progress] yt-thumbnail-overlay-progress-bar-view-model,
+        html[hide_watched_progress] yt-thumbnail-overlay-progress-bar-view-model * {
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }
+        html[hide_watched_progress] yt-thumbnail-overlay-progress-bar-view-model { pointer-events: none !important; }
   `;
     document.head.appendChild(style);
 }
 
 export function observeLayout() {
-    chrome.storage.sync.get(['hideDurationBadges', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips'], applyLayout);
+    chrome.storage.sync.get(['hideDurationBadges', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips', 'hideWatchedProgress'], applyLayout);
     chrome.storage.onChanged.addListener(ch => {
-        if (ch.hideDurationBadges || ch.hidePreviewDetails || ch.hidePreviewAvatars || ch.hideBadgesChips) {
-            chrome.storage.sync.get(['hideDurationBadges', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips'], applyLayout);
+        if (ch.hideDurationBadges || ch.hidePreviewDetails || ch.hidePreviewAvatars || ch.hideBadgesChips || ch.hideWatchedProgress) {
+            chrome.storage.sync.get(['hideDurationBadges', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips', 'hideWatchedProgress'], applyLayout);
         }
     });
 }

@@ -22,6 +22,7 @@ export interface Settings {
     hidePreviewDetails: boolean; // video preview metadata (feed cards)
     hidePreviewAvatars: boolean;
     hideBadgesChips: boolean; // filter chips row
+    hideWatchedProgress: boolean; // watched progress bar overlay
     // Navigation additions
     hideExplore: boolean;
     hideMoreFromYouTube: boolean;
