@@ -11,6 +11,17 @@ interface NavSettings {
     hideYourCourses: boolean;
     hideWatchLater: boolean;
     hideLikedVideos: boolean;
+    // Explore sub items
+    hideExploreMusic: boolean;
+    hideExploreMovies: boolean;
+    hideExploreLive: boolean;
+    hideExploreGaming: boolean;
+    hideExploreNews: boolean;
+    hideExploreSport: boolean;
+    hideExploreLearning: boolean;
+    hideExploreFashion: boolean;
+    hideExplorePodcasts: boolean;
+    hideExplorePlayables: boolean;
 }
 
 function hideMatchingGuideSections(predicate: (title: string) => boolean, hide: boolean) {
@@ -46,7 +57,21 @@ function hideIndividualEntries(matchers: { title: string, hide: boolean }[]) {
 }
 
 export function applyNavigation(settings: Partial<NavSettings>) {
-    hideMatchingGuideSections(t => t === 'Explore', !!settings.hideExplore);
+    // Compute effective hideExplore if all children hidden
+    const allExploreChildrenHidden = [
+        settings.hideExploreMusic,
+        settings.hideExploreMovies,
+        settings.hideExploreLive,
+        settings.hideExploreGaming,
+        settings.hideExploreNews,
+        settings.hideExploreSport,
+        settings.hideExploreLearning,
+        settings.hideExploreFashion,
+        settings.hideExplorePodcasts,
+        settings.hideExplorePlayables
+    ].every(v => v);
+    const effectiveHideExplore = !!settings.hideExplore || allExploreChildrenHidden;
+    hideMatchingGuideSections(t => t === 'Explore', effectiveHideExplore);
     hideMatchingGuideSections(t => t === 'More from YouTube', !!settings.hideMoreFromYouTube);
     hideMatchingGuideSections(t => t === 'You', !!settings.hideYouSection);
 
@@ -62,6 +87,22 @@ export function applyNavigation(settings: Partial<NavSettings>) {
         ]);
     }
 
+    // Explore sub-items (only process if we are not hiding entire Explore section to reduce work)
+    if (!effectiveHideExplore) {
+        hideIndividualEntries([
+            { title: 'Music', hide: !!settings.hideExploreMusic },
+            { title: 'Movies & TV', hide: !!settings.hideExploreMovies },
+            { title: 'Live', hide: !!settings.hideExploreLive },
+            { title: 'Gaming', hide: !!settings.hideExploreGaming },
+            { title: 'News', hide: !!settings.hideExploreNews },
+            { title: 'Sport', hide: !!settings.hideExploreSport },
+            { title: 'Learning', hide: !!settings.hideExploreLearning },
+            { title: 'Fashion & beauty', hide: !!settings.hideExploreFashion },
+            { title: 'Podcasts', hide: !!settings.hideExplorePodcasts },
+            { title: 'Playables', hide: !!settings.hideExplorePlayables },
+        ]);
+    }
+
     // Mini guide (collapsed) entry for "You" – hide when the full You section is hidden
     document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
         const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
@@ -72,7 +113,7 @@ export function applyNavigation(settings: Partial<NavSettings>) {
 }
 
 export function observeNavigation() {
-    const KEYS: (keyof NavSettings)[] = ['hideExplore', 'hideMoreFromYouTube', 'hideYouSection', 'hideHistory', 'hidePlaylists', 'hideYourVideos', 'hideYourCourses', 'hideWatchLater', 'hideLikedVideos'];
+    const KEYS: (keyof NavSettings)[] = ['hideExplore', 'hideMoreFromYouTube', 'hideYouSection', 'hideHistory', 'hidePlaylists', 'hideYourVideos', 'hideYourCourses', 'hideWatchLater', 'hideLikedVideos', 'hideExploreMusic', 'hideExploreMovies', 'hideExploreLive', 'hideExploreGaming', 'hideExploreNews', 'hideExploreSport', 'hideExploreLearning', 'hideExploreFashion', 'hideExplorePodcasts', 'hideExplorePlayables'];
     chrome.storage.sync.get(KEYS, applyNavigation);
     chrome.storage.onChanged.addListener(ch => {
         if (KEYS.some(k => ch[k])) {

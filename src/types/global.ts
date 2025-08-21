@@ -34,4 +34,15 @@ export interface Settings {
     hideWatchLater: boolean;
     hideLikedVideos: boolean;
     hideHistory: boolean; // newly added for You section sub item
+    // Explore submenu additions
+    hideExploreMusic: boolean;
+    hideExploreMovies: boolean;
+    hideExploreLive: boolean;
+    hideExploreGaming: boolean;
+    hideExploreNews: boolean;
+    hideExploreSport: boolean;
+    hideExploreLearning: boolean;
+    hideExploreFashion: boolean;
+    hideExplorePodcasts: boolean;
+    hideExplorePlayables: boolean;
 }

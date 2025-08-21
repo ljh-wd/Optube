@@ -38,6 +38,16 @@ function cleanYouTube(settings: Settings): void {
   });
   applyNavigation({
     hideExplore: settings.hideExplore,
+    hideExploreMusic: settings.hideExploreMusic,
+    hideExploreMovies: settings.hideExploreMovies,
+    hideExploreLive: settings.hideExploreLive,
+    hideExploreGaming: settings.hideExploreGaming,
+    hideExploreNews: settings.hideExploreNews,
+    hideExploreSport: settings.hideExploreSport,
+    hideExploreLearning: settings.hideExploreLearning,
+    hideExploreFashion: settings.hideExploreFashion,
+    hideExplorePodcasts: settings.hideExplorePodcasts,
+    hideExplorePlayables: settings.hideExplorePlayables,
     hideMoreFromYouTube: settings.hideMoreFromYouTube,
     hideYouSection: settings.hideYouSection,
     hideHistory: settings.hideHistory,
@@ -54,7 +64,7 @@ function run(): void {
     'hideShorts', 'hideHome', 'hideSubscriptions', 'hideSubscriptionsSidebar', 'hideMasthead', 'hideSearchbar', 'hideNotifications', 'hideCreateButton', 'hideFold', 'hideComments', 'hideCommentAvatars', 'hideCategoryAndTopic', 'hideRecommended', 'hidePosts', 'hideSidebar', 'hideDescription', 'hideTitle', 'hideCreator',
     'hideDurationBadges', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips',
     'hideWatchedProgress', 'hideHoverPreview',
-    'hideExplore', 'hideMoreFromYouTube', 'hideYouSection', 'hideHistory', 'hidePlaylists', 'hideYourVideos', 'hideYourCourses', 'hideWatchLater', 'hideLikedVideos'
+    'hideExplore', 'hideExploreMovies', 'hideExploreMusic', 'hideExploreLive', 'hideExploreGaming', 'hideExploreNews', 'hideExploreSport', 'hideExploreLearning', 'hideExploreFashion', 'hideExplorePodcasts', 'hideExplorePlayables', 'hideMoreFromYouTube', 'hideYouSection', 'hideHistory', 'hidePlaylists', 'hideYourVideos', 'hideYourCourses', 'hideWatchLater', 'hideLikedVideos'
   ], cleanYouTube);
 }
 
@@ -98,7 +108,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
     (changes.hideShorts || changes.hideHome || changes.hideSubscriptions || changes.hideSubscriptionsSidebar || changes.hideMasthead || changes.hideSearchbar || changes.hideNotifications || changes.hideCreateButton || changes.hideFold || changes.hideComments || changes.hideCommentAvatars || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hidePosts || changes.hideSidebar || changes.hideDescription || changes.hideTitle || changes.hideCreator ||
       changes.hideDurationBadges || changes.hidePreviewDetails || changes.hidePreviewAvatars || changes.hideBadgesChips || changes.hideWatchedProgress ||
       changes.hideHoverPreview ||
-      changes.hideExplore || changes.hideMoreFromYouTube || changes.hideYouSection || changes.hideHistory || changes.hidePlaylists || changes.hideYourVideos || changes.hideYourCourses || changes.hideWatchLater || changes.hideLikedVideos || changes.cinematicMode)
+      changes.hideExplore || changes.hideExploreMovies || changes.hideExploreLive || changes.hideExploreGaming || changes.hideExploreNews || changes.hideExploreSport || changes.hideExploreLearning || changes.hideExploreFashion || changes.hideExplorePodcasts || changes.hideExplorePlayables || changes.hideMoreFromYouTube || changes.hideYouSection || changes.hideHistory || changes.hidePlaylists || changes.hideYourVideos || changes.hideYourCourses || changes.hideWatchLater || changes.hideLikedVideos || changes.cinematicMode)
   ) {
     setTimeout(() => {
       run();

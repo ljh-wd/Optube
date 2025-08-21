@@ -42,6 +42,17 @@ const defaultSettings: Settings = {
   hideWatchLater: false,
   hideLikedVideos: false,
   hideHistory: false,
+  // Explore submenu
+  hideExploreMusic: false,
+  hideExploreMovies: false,
+  hideExploreLive: false,
+  hideExploreGaming: false,
+  hideExploreNews: false,
+  hideExploreSport: false,
+  hideExploreLearning: false,
+  hideExploreFashion: false,
+  hideExplorePodcasts: false,
+  hideExplorePlayables: false,
 };
 
 function App() {
@@ -75,6 +86,39 @@ function App() {
   const saveSettings = (newSettings: Settings) => {
     chrome.storage.sync.set(newSettings);
   };
+
+  // Helper for Explore cascade
+  const allExploreToggled = [
+    settings.hideExploreMusic,
+    settings.hideExploreMovies,
+    settings.hideExploreLive,
+    settings.hideExploreGaming,
+    settings.hideExploreNews,
+    settings.hideExploreSport,
+    settings.hideExploreLearning,
+    settings.hideExploreFashion,
+    settings.hideExplorePodcasts,
+    settings.hideExplorePlayables
+  ].every(Boolean);
+
+  function toggleAllExplore(checked: boolean) {
+    setSettings(prev => {
+      const updated: Settings = { ...prev };
+      updated.hideExploreMusic = checked;
+      updated.hideExploreMovies = checked;
+      updated.hideExploreLive = checked;
+      updated.hideExploreGaming = checked;
+      updated.hideExploreNews = checked;
+      updated.hideExploreSport = checked;
+      updated.hideExploreLearning = checked;
+      updated.hideExploreFashion = checked;
+      updated.hideExplorePodcasts = checked;
+      updated.hideExplorePlayables = checked;
+      updated.hideExplore = checked;
+      saveSettings(updated);
+      return updated;
+    });
+  }
 
   const handleToggle = (key: keyof Settings) => (checked: boolean) => {
     // Restoration path: user is turning OFF the hideSidebar flag (showing sidebar again)
@@ -176,20 +220,48 @@ function App() {
         updated.hideLikedVideos = false;
       }
 
-      // When hiding entire sidebar (checked true), backup current nav states then force-hide all for consistency
-      if (key === 'hideSidebar' && checked) {
-        // Hiding sidebar: force all nested hides true; we no longer preserve prior states
-        updated.hideExplore = true;
-        updated.hideMoreFromYouTube = true;
-        updated.hideYouSection = true;
-        updated.hideHistory = true;
-        updated.hidePlaylists = true;
-        updated.hideYourVideos = true;
-        updated.hideYourCourses = true;
-        updated.hideWatchLater = true;
-        updated.hideLikedVideos = true;
+      // If parent Explore is toggled, cascade to all children
+      if (key === 'hideExplore') {
+        updated.hideExploreMusic = checked;
+        updated.hideExploreMovies = checked;
+        updated.hideExploreLive = checked;
+        updated.hideExploreGaming = checked;
+        updated.hideExploreNews = checked;
+        updated.hideExploreSport = checked;
+        updated.hideExploreLearning = checked;
+        updated.hideExploreFashion = checked;
+        updated.hideExplorePodcasts = checked;
+        updated.hideExplorePlayables = checked;
       }
 
+      // If any Explore child is toggled, only update itself and parent
+      if ([
+        'hideExploreMusic',
+        'hideExploreMovies',
+        'hideExploreLive',
+        'hideExploreGaming',
+        'hideExploreNews',
+        'hideExploreSport',
+        'hideExploreLearning',
+        'hideExploreFashion',
+        'hideExplorePodcasts',
+        'hideExplorePlayables'
+      ].includes(key)) {
+        // Only update parent Explore toggle to reflect all children
+        const allChildren = [
+          key === 'hideExploreMusic' ? checked : prev.hideExploreMusic,
+          key === 'hideExploreMovies' ? checked : prev.hideExploreMovies,
+          key === 'hideExploreLive' ? checked : prev.hideExploreLive,
+          key === 'hideExploreGaming' ? checked : prev.hideExploreGaming,
+          key === 'hideExploreNews' ? checked : prev.hideExploreNews,
+          key === 'hideExploreSport' ? checked : prev.hideExploreSport,
+          key === 'hideExploreLearning' ? checked : prev.hideExploreLearning,
+          key === 'hideExploreFashion' ? checked : prev.hideExploreFashion,
+          key === 'hideExplorePodcasts' ? checked : prev.hideExplorePodcasts,
+          key === 'hideExplorePlayables' ? checked : prev.hideExplorePlayables
+        ];
+        updated.hideExplore = allChildren.every(Boolean);
+      }
 
       saveSettings(updated);
       return updated;
@@ -242,7 +314,18 @@ function App() {
               <CardWithInput label="Create" checked={settings.hideCreateButton} onChange={handleToggle('hideCreateButton')} disabled={settings.hideMasthead} />
             </NestedToggle>
             <NestedToggle label="Sidebar" checked={settings.hideSidebar} onChange={handleToggle('hideSidebar')}>
-              <CardWithInput label="Explore" checked={settings.hideExplore} onChange={handleToggle('hideExplore')} disabled={settings.hideSidebar} />
+              <NestedToggle label="Explore" checked={allExploreToggled} onChange={toggleAllExplore} disabled={settings.hideSidebar}>
+                <CardWithInput label="Music" checked={settings.hideExploreMusic} onChange={handleToggle('hideExploreMusic')} disabled={settings.hideSidebar} />
+                <CardWithInput label="Movies & TV" checked={settings.hideExploreMovies} onChange={handleToggle('hideExploreMovies')} disabled={settings.hideSidebar} />
+                <CardWithInput label="Live" checked={settings.hideExploreLive} onChange={handleToggle('hideExploreLive')} disabled={settings.hideSidebar} />
+                <CardWithInput label="Gaming" checked={settings.hideExploreGaming} onChange={handleToggle('hideExploreGaming')} disabled={settings.hideSidebar} />
+                <CardWithInput label="News" checked={settings.hideExploreNews} onChange={handleToggle('hideExploreNews')} disabled={settings.hideSidebar} />
+                <CardWithInput label="Sport" checked={settings.hideExploreSport} onChange={handleToggle('hideExploreSport')} disabled={settings.hideSidebar} />
+                <CardWithInput label="Learning" checked={settings.hideExploreLearning} onChange={handleToggle('hideExploreLearning')} disabled={settings.hideSidebar} />
+                <CardWithInput label="Fashion & Beauty" checked={settings.hideExploreFashion} onChange={handleToggle('hideExploreFashion')} disabled={settings.hideSidebar} />
+                <CardWithInput label="Podcasts" checked={settings.hideExplorePodcasts} onChange={handleToggle('hideExplorePodcasts')} disabled={settings.hideSidebar} />
+                <CardWithInput label="Playables" checked={settings.hideExplorePlayables} onChange={handleToggle('hideExplorePlayables')} disabled={settings.hideSidebar} />
+              </NestedToggle>
               <CardWithInput label="More from YouTube" checked={settings.hideMoreFromYouTube} onChange={handleToggle('hideMoreFromYouTube')} disabled={settings.hideSidebar} />
               <NestedToggle label="You" checked={settings.hideYouSection} onChange={handleToggle('hideYouSection')} disabled={settings.hideSidebar}>
                 <CardWithInput label="History" checked={settings.hideHistory} onChange={handleToggle('hideHistory')} disabled={settings.hideYouSection || settings.hideSidebar} />
