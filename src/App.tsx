@@ -30,6 +30,7 @@ const defaultSettings: Settings = {
   hidePreviewAvatars: false,
   hideBadgesChips: false,
   hideWatchedProgress: false,
+  hideHoverPreview: false,
   // Navigation additions
   hideExplore: false,
   hideMoreFromYouTube: false,
@@ -226,6 +227,7 @@ function App() {
           <div className="settings-grid">
             <CardWithInput label="Duration badges" checked={settings.hideDurationBadges} onChange={handleToggle('hideDurationBadges')} />
             <CardWithInput label="Duration watched" checked={settings.hideWatchedProgress} onChange={handleToggle('hideWatchedProgress')} />
+            <CardWithInput label="Hover preview" checked={settings.hideHoverPreview} onChange={handleToggle('hideHoverPreview')} />
             <NestedToggle label="Video preview details" checked={settings.hidePreviewDetails} onChange={handleToggle('hidePreviewDetails')}>
               <CardWithInput label="Avatars" checked={settings.hidePreviewAvatars} onChange={handleToggle('hidePreviewAvatars')} disabled={settings.hidePreviewDetails} />
             </NestedToggle>

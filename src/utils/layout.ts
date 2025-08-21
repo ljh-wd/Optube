@@ -7,6 +7,7 @@ interface LayoutToggles {
     hidePreviewAvatars: boolean;
     hideBadgesChips: boolean;
     hideWatchedProgress: boolean;
+    hideHoverPreview: boolean;
 }
 
 const STYLE_ID = 'optube-layout-css';
@@ -20,6 +21,7 @@ let durationDebounce: number | null = null;
 // Additional hover delegation to catch elements rendered inside ShadyDOM / shadow roots during inline preview
 let hoverDelegationAttached = false;
 const hoverProgressObservers = new WeakMap<HTMLElement, MutationObserver>();
+let previewBlockerAttached = false;
 
 function ensureDurationObserver(active: boolean) {
     if (active && !durationObserverActive) {
@@ -45,6 +47,7 @@ export function applyLayout(settings: Partial<LayoutToggles>) {
     toggleAttr(root, 'hide_preview_avatars', settings.hidePreviewAvatars);
     toggleAttr(root, 'hide_badges_chips', settings.hideBadgesChips);
     toggleAttr(root, 'hide_watched_progress', settings.hideWatchedProgress);
+    toggleAttr(root, 'hide_hover_preview', settings.hideHoverPreview);
 
     // Manage duration badges (JS + observer)
     ensureDurationObserver(!!settings.hideDurationBadges);
@@ -174,6 +177,19 @@ export function injectLayoutCSS() {
         }
         /* Also guard against the container being re-inserted while progress bar present */
         html[hide_duration_badges] yt-thumbnail-bottom-overlay-view-model:has(.ytThumbnailOverlayProgressBarHost) .ytThumbnailBottomOverlayViewModelBadgeContainer { display: none !important; }
+
+        /* Disable hover preview playback (prevent inline video from appearing) */
+        html[hide_hover_preview] ytd-rich-item-renderer:hover video,
+        html[hide_hover_preview] ytd-rich-grid-media:hover video,
+        html[hide_hover_preview] yt-lockup-view-model:hover video {
+            display: none !important;
+        }
+        /* Block preview container transitions */
+        html[hide_hover_preview] ytd-rich-item-renderer:hover .ytd-rich-item-renderer,
+        html[hide_hover_preview] ytd-rich-item-renderer:hover .yt-thumbnail-view-model__image img { filter: none !important; }
+        /* Prevent any play button overlays */
+        html[hide_hover_preview] ytd-rich-item-renderer [class*='inline-preview'],
+        html[hide_hover_preview] ytd-rich-item-renderer [class*='InlinePreview'] { display: none !important; }
   `;
     document.head.appendChild(style);
 }
@@ -186,6 +202,7 @@ export function observeLayout() {
         }
     });
     attachHoverDelegation();
+    attachPreviewBlocker();
 }
 
 // JS helpers for duration & live badges (more precise than CSS alone)
@@ -253,6 +270,41 @@ function attachHoverDelegation() {
         }
     }, true);
     hoverDelegationAttached = true;
+}
+
+function attachPreviewBlocker() {
+    if (previewBlockerAttached) return;
+    // Cancel events that often trigger preview initialization
+    const cancelEvents = ['mouseover', 'mouseenter', 'mousemove'];
+    cancelEvents.forEach(ev => {
+        document.addEventListener(ev, e => {
+            const root = document.documentElement;
+            if (!root.hasAttribute('hide_hover_preview')) return;
+            const card = (e.target as HTMLElement)?.closest('ytd-rich-item-renderer, ytd-rich-grid-media, yt-lockup-view-model');
+            if (!card) return;
+            // Stop propagation so YouTube's preview logic doesn't run
+            e.stopImmediatePropagation();
+        }, true);
+    });
+    // Also remove any video elements inserted inside hovered cards quickly
+    const mo = new MutationObserver(muts => {
+        if (!document.documentElement.hasAttribute('hide_hover_preview')) return;
+        for (const m of muts) {
+            m.addedNodes.forEach(node => {
+                if (node instanceof HTMLElement) {
+                    if (node.tagName === 'VIDEO' && node.closest('ytd-rich-item-renderer, ytd-rich-grid-media, yt-lockup-view-model')) {
+                        node.remove();
+                    } else {
+                        node.querySelectorAll?.('video').forEach(v => {
+                            if (v.closest('ytd-rich-item-renderer, ytd-rich-grid-media, yt-lockup-view-model')) v.remove();
+                        });
+                    }
+                }
+            });
+        }
+    });
+    mo.observe(document.documentElement, { childList: true, subtree: true });
+    previewBlockerAttached = true;
 }
 
 function hideDurationBadgesWithin(scope: HTMLElement) {

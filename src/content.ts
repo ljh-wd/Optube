@@ -34,6 +34,7 @@ function cleanYouTube(settings: Settings): void {
     hidePreviewAvatars: settings.hidePreviewAvatars,
     hideBadgesChips: settings.hideBadgesChips,
     hideWatchedProgress: settings.hideWatchedProgress,
+    hideHoverPreview: settings.hideHoverPreview,
   });
   applyNavigation({
     hideExplore: settings.hideExplore,
@@ -52,7 +53,7 @@ function run(): void {
   chrome.storage.sync.get([
     'hideShorts', 'hideHome', 'hideSubscriptions', 'hideSubscriptionsSidebar', 'hideMasthead', 'hideSearchbar', 'hideNotifications', 'hideCreateButton', 'hideFold', 'hideComments', 'hideCommentAvatars', 'hideCategoryAndTopic', 'hideRecommended', 'hidePosts', 'hideSidebar', 'hideDescription', 'hideTitle', 'hideCreator',
     'hideDurationBadges', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips',
-    'hideWatchedProgress',
+    'hideWatchedProgress', 'hideHoverPreview',
     'hideExplore', 'hideMoreFromYouTube', 'hideYouSection', 'hideHistory', 'hidePlaylists', 'hideYourVideos', 'hideYourCourses', 'hideWatchLater', 'hideLikedVideos'
   ], cleanYouTube);
 }
@@ -96,6 +97,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
     area === 'sync' &&
     (changes.hideShorts || changes.hideHome || changes.hideSubscriptions || changes.hideSubscriptionsSidebar || changes.hideMasthead || changes.hideSearchbar || changes.hideNotifications || changes.hideCreateButton || changes.hideFold || changes.hideComments || changes.hideCommentAvatars || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hidePosts || changes.hideSidebar || changes.hideDescription || changes.hideTitle || changes.hideCreator ||
       changes.hideDurationBadges || changes.hidePreviewDetails || changes.hidePreviewAvatars || changes.hideBadgesChips || changes.hideWatchedProgress ||
+      changes.hideHoverPreview ||
       changes.hideExplore || changes.hideMoreFromYouTube || changes.hideYouSection || changes.hideHistory || changes.hidePlaylists || changes.hideYourVideos || changes.hideYourCourses || changes.hideWatchLater || changes.hideLikedVideos || changes.cinematicMode)
   ) {
     setTimeout(() => {
