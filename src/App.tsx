@@ -44,11 +44,13 @@ function App() {
     <AppShell>
       <Header />
       <Hint />
+
       <Panels>
         <Feeds />
         <Layout />
         <Video />
       </Panels>
+
       <Footer />
     </AppShell>
   );
