@@ -17,6 +17,10 @@ let durationObserverActive = false;
 let durationDebounce: number | null = null;
 // Watched progress: pure CSS (no removal) so layout stays stable.
 
+// Additional hover delegation to catch elements rendered inside ShadyDOM / shadow roots during inline preview
+let hoverDelegationAttached = false;
+const hoverProgressObservers = new WeakMap<HTMLElement, MutationObserver>();
+
 function ensureDurationObserver(active: boolean) {
     if (active && !durationObserverActive) {
         durationObserver = new MutationObserver(() => {
@@ -140,6 +144,36 @@ export function injectLayoutCSS() {
             visibility: hidden !important;
         }
         html[hide_watched_progress] yt-thumbnail-overlay-progress-bar-view-model { pointer-events: none !important; }
+        /* Broaden watched progress hiding to legacy / class-based hosts & hover preview */
+        html[hide_watched_progress] .ytThumbnailOverlayProgressBarHost,
+        html[hide_watched_progress] .ytThumbnailOverlayProgressBarHost *,
+        html[hide_watched_progress] .ytThumbnailOverlayProgressBarHostWatchedProgressBar,
+        html[hide_watched_progress] .ytThumbnailOverlayProgressBarHostWatchedProgressBar * {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        /* Generic substring match fallbacks */
+        html[hide_watched_progress] ytd-rich-item-renderer [class*='ProgressBar'],
+        html[hide_watched_progress] ytd-rich-grid-media [class*='ProgressBar'],
+        html[hide_watched_progress] yt-lockup-view-model [class*='ProgressBar'],
+        html[hide_watched_progress] ytd-video-renderer [class*='ProgressBar'] {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        /* Ensure badge hides even when hover preview swaps overlay structure */
+        html[hide_duration_badges] ytd-rich-item-renderer:hover .ytThumbnailBottomOverlayViewModelBadgeContainer,
+        html[hide_duration_badges] ytd-rich-item-renderer:hover badge-shape.badge-shape-wiz--thumbnail-badge,
+        html[hide_duration_badges] ytd-rich-item-renderer:hover .thumbnail-overlay-badge-shape,
+        html[hide_duration_badges] ytd-rich-item-renderer:hover ytd-thumbnail-overlay-time-status-renderer,
+        html[hide_duration_badges] ytd-rich-item-renderer:hover yt-thumbnail-overlay-time-status-renderer,
+        html[hide_duration_badges] ytd-rich-item-renderer:hover yt-thumbnail-badge-view-model,
+        html[hide_duration_badges] ytd-rich-item-renderer:hover .ytThumbnailBottomOverlayViewModelBadgeContainer:has(.badge-shape-wiz__text) {
+            display: none !important;
+        }
+        /* Also guard against the container being re-inserted while progress bar present */
+        html[hide_duration_badges] yt-thumbnail-bottom-overlay-view-model:has(.ytThumbnailOverlayProgressBarHost) .ytThumbnailBottomOverlayViewModelBadgeContainer { display: none !important; }
   `;
     document.head.appendChild(style);
 }
@@ -151,6 +185,7 @@ export function observeLayout() {
             chrome.storage.sync.get(['hideDurationBadges', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips', 'hideWatchedProgress'], applyLayout);
         }
     });
+    attachHoverDelegation();
 }
 
 // JS helpers for duration & live badges (more precise than CSS alone)
@@ -192,6 +227,85 @@ function showDurationBadges() {
             el.style.display = '';
         }
     });
+}
+
+// Re-hide on hover for dynamically reparented / regenerated nodes
+function attachHoverDelegation() {
+    if (hoverDelegationAttached) return;
+    document.addEventListener('mouseenter', evt => {
+        const root = document.documentElement;
+        if (!root.hasAttribute('hide_duration_badges') && !root.hasAttribute('hide_watched_progress')) return;
+        const target = (evt.target as HTMLElement)?.closest('ytd-rich-item-renderer, ytd-rich-grid-media, yt-lockup-view-model');
+        if (!target) return;
+        if (root.hasAttribute('hide_duration_badges')) hideDurationBadgesWithin(target as HTMLElement);
+        if (root.hasAttribute('hide_watched_progress')) {
+            hideWatchedProgressWithin(target as HTMLElement);
+            ensureProgressObserver(target as HTMLElement);
+        }
+    }, true); // capture so we run early
+    document.addEventListener('mouseleave', evt => {
+        const target = (evt.target as HTMLElement)?.closest('ytd-rich-item-renderer, ytd-rich-grid-media, yt-lockup-view-model');
+        if (!target) return;
+        const obs = hoverProgressObservers.get(target as HTMLElement);
+        if (obs) {
+            obs.disconnect();
+            hoverProgressObservers.delete(target as HTMLElement);
+        }
+    }, true);
+    hoverDelegationAttached = true;
+}
+
+function hideDurationBadgesWithin(scope: HTMLElement) {
+    const nodes = scope.querySelectorAll<HTMLElement>([
+        'ytd-thumbnail-overlay-time-status-renderer',
+        'yt-thumbnail-overlay-time-status-renderer',
+        'ytd-thumbnail-overlay-resume-playback-renderer',
+        'yt-thumbnail-overlay-badge-view-model',
+        '.ytThumbnailBottomOverlayViewModelBadgeContainer',
+        '.thumbnail-overlay-badge-shape',
+        'badge-shape.badge-shape-wiz--thumbnail-badge'
+    ].join(','));
+    nodes.forEach(el => {
+        const textEl = el.querySelector('.badge-shape-wiz__text') as HTMLElement | null;
+        const text = (textEl?.textContent || el.textContent || '').trim();
+        if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(text)) {
+            el.style.display = 'none';
+        }
+    });
+}
+
+function hideWatchedProgressWithin(scope: HTMLElement) {
+    const nodes = scope.querySelectorAll<HTMLElement>([
+        'yt-thumbnail-overlay-progress-bar-view-model',
+        '.ytThumbnailOverlayProgressBarHost',
+        '.ytThumbnailOverlayProgressBarHostWatchedProgressBar'
+    ].join(','));
+    nodes.forEach(el => {
+        el.style.opacity = '0';
+        el.style.visibility = 'hidden';
+        el.style.pointerEvents = 'none';
+    });
+}
+
+function ensureProgressObserver(card: HTMLElement) {
+    if (hoverProgressObservers.has(card)) return;
+    const obs = new MutationObserver(mutations => {
+        let added = false;
+        for (const m of mutations) {
+            if (m.addedNodes && m.addedNodes.length) { added = true; break; }
+        }
+        if (added) hideWatchedProgressWithin(card);
+    });
+    obs.observe(card, { childList: true, subtree: true });
+    hoverProgressObservers.set(card, obs);
+    // Auto-clean after 6s to avoid lingering observers
+    setTimeout(() => {
+        const existing = hoverProgressObservers.get(card);
+        if (existing === obs) {
+            existing.disconnect();
+            hoverProgressObservers.delete(card);
+        }
+    }, 6000);
 }
 
 // (Observer logic moved above; single applyLayout definition retained.)
