@@ -38,9 +38,7 @@ function App() {
     return () => {
       chrome.storage.onChanged.removeListener(handleStorageChange);
     };
-    // TODO: come back to this dependency
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [defaultSettings, setSettings, settings]);
 
   return (
     <AppShell>
