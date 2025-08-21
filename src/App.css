@@ -285,7 +285,6 @@ html,
   display: flex;
   flex-direction: column;
   gap: .4rem;
-  /* increased breathing room */
   padding: 0 .95rem 1.05rem;
 }
 
@@ -304,7 +303,6 @@ html,
   align-items: center;
   justify-content: space-between;
   padding: .7rem .75rem;
-  /* slightly more padding */
   margin: 0;
   border-radius: var(--radius);
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0));
