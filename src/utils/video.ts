@@ -81,7 +81,16 @@ export function injectCommentAvatarCSS() {
     if (document.getElementById(id)) { commentAvatarCSSInjected = true; return; }
     const style = document.createElement('style');
     style.id = id;
-    style.textContent = `html[hide_comment_avatars] #author-thumbnail,\nhtml[hide_comment_avatars] ytd-comment-view-model #author-thumbnail,\nhtml[hide_comment_avatars] ytd-comment-simplebox-renderer #author-thumbnail {\n  display: none !important;\n}`;
+    style.textContent = `
+html[hide_comment_avatars] #author-thumbnail,
+html[hide_comment_avatars] ytd-comment-view-model #author-thumbnail,
+html[hide_comment_avatars] ytd-comment-simplebox-renderer #author-thumbnail {
+  display: none !important;
+}
+html[hide_comment_avatars] #expander.style-scope.ytd-comment-replies-renderer .expander-header.style-scope.ytd-comment-replies-renderer {
+  align-items: flex-start !important;
+}
+`;
     document.head.appendChild(style);
     commentAvatarCSSInjected = true;
 }
