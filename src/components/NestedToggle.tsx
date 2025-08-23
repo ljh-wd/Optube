@@ -58,8 +58,8 @@ const NestedToggle = ({ label, checked, onChange, children, disabled = false }: 
                     {children && (
                         <button
                             className="expand-button"
-                            onClick={() => setIsExpanded(!isExpanded)}
                             type="button"
+                            onClick={() => setIsExpanded((prev) => !prev)}
                             aria-label={isExpanded ? "Collapse" : "Expand"}
                         >
                             {isExpanded ? (
