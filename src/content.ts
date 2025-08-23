@@ -1,5 +1,5 @@
 import { observeMasthead, setMastheadVisibility, observeSearchbar, setSearchbarVisibility, observeNotifications, setNotificationsVisibility, observeCreateButton, injectCreateButtonCSS, setCreateButtonVisibility } from './utils/topBar';
-import { observeCategoryAndTopic, observeComments, observeFold, observeRecommended, observeDescription, observeTitle, observeCreator, setCategoryAndTopicVisibility, setCommentsVisibility, setFoldVisibility, setRecommendedVisibility, setDescriptionVisibility, setTitleVisibility, setCreatorVisibility, observeCommentAvatars, setCommentAvatarsVisibility, injectCommentAvatarCSS } from './utils/video';
+import { observeCategoryAndTopic, observeComments, observeFold, observeRecommended, observeDescription, observeTitle, observeCreator, setCategoryAndTopicVisibility, setCommentsVisibility, setFoldVisibility, setRecommendedVisibility, setDescriptionVisibility, setTitleVisibility, setCreatorVisibility, observeCommentAvatars, setCommentAvatarsVisibility, setAiSummaryVisibility, injectCommentAvatarCSS, observeAiSummary } from './utils/video';
 import { observeSidebar, setSidebarVisibility } from './utils/sidebar';
 import type { Settings } from './types/global';
 import { observeShorts, setShortsVisibility, injectShortsCSS } from './utils/shorts';
@@ -20,6 +20,7 @@ function cleanYouTube(settings: Settings): void {
   setCreateButtonVisibility(!!settings.hideCreateButton);
   setCommentsVisibility(!!settings.hideComments);
   setCommentAvatarsVisibility(!!settings.hideCommentAvatars);
+  setAiSummaryVisibility(!!settings.hideAiSummary);
   setFoldVisibility(!!settings.hideFold);
   setCategoryAndTopicVisibility(!!settings.hideCategoryAndTopic);
   setRecommendedVisibility(!!settings.hideRecommended);
@@ -64,6 +65,7 @@ function run(): void {
     'hideShorts', 'hideHome', 'hideSubscriptions', 'hideSubscriptionsSidebar', 'hideMasthead', 'hideSearchbar', 'hideNotifications', 'hideCreateButton', 'hideFold', 'hideComments', 'hideCommentAvatars', 'hideCategoryAndTopic', 'hideRecommended', 'hidePosts', 'hideSidebar', 'hideDescription', 'hideTitle', 'hideCreator',
     'hideDurationBadges', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips',
     'hideWatchedProgress', 'hideHoverPreview',
+    "hideAiSummary",
     'hideExplore', 'hideExploreMovies', 'hideExploreMusic', 'hideExploreLive', 'hideExploreGaming', 'hideExploreNews', 'hideExploreSport', 'hideExploreLearning', 'hideExploreFashion', 'hideExplorePodcasts', 'hideExplorePlayables', 'hideMoreFromYouTube', 'hideYouSection', 'hideHistory', 'hidePlaylists', 'hideYourVideos', 'hideYourCourses', 'hideWatchLater', 'hideLikedVideos'
   ], cleanYouTube);
 }
@@ -107,7 +109,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
     area === 'sync' &&
     (changes.hideShorts || changes.hideHome || changes.hideSubscriptions || changes.hideSubscriptionsSidebar || changes.hideMasthead || changes.hideSearchbar || changes.hideNotifications || changes.hideCreateButton || changes.hideFold || changes.hideComments || changes.hideCommentAvatars || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hidePosts || changes.hideSidebar || changes.hideDescription || changes.hideTitle || changes.hideCreator ||
       changes.hideDurationBadges || changes.hidePreviewDetails || changes.hidePreviewAvatars || changes.hideBadgesChips || changes.hideWatchedProgress ||
-      changes.hideHoverPreview ||
+      changes.hideHoverPreview || changes.hideAiSummary ||
       changes.hideExplore || changes.hideExploreMovies || changes.hideExploreLive || changes.hideExploreGaming || changes.hideExploreNews || changes.hideExploreSport || changes.hideExploreLearning || changes.hideExploreFashion || changes.hideExplorePodcasts || changes.hideExplorePlayables || changes.hideMoreFromYouTube || changes.hideYouSection || changes.hideHistory || changes.hidePlaylists || changes.hideYourVideos || changes.hideYourCourses || changes.hideWatchLater || changes.hideLikedVideos || changes.cinematicMode)
   ) {
     setTimeout(() => {
@@ -127,6 +129,7 @@ observeCreateButton();
 observeFold();
 observeComments();
 observeCommentAvatars();
+observeAiSummary();
 observeCategoryAndTopic();
 observeRecommended();
 observeSidebar();

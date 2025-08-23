@@ -30,14 +30,10 @@ function App() {
       _: { [key: string]: chrome.storage.StorageChange },
       areaName: 'sync' | 'local' | 'managed' | 'session'
     ) {
-      if (areaName === 'sync') {
-        chrome.storage.sync.get(Object.keys(defaultSettings) as (keyof Settings)[], updateFromStorage);
-      }
+      if (areaName === 'sync') chrome.storage.sync.get(Object.keys(defaultSettings) as (keyof Settings)[], updateFromStorage);
     }
     chrome.storage.onChanged.addListener(handleStorageChange);
-    return () => {
-      chrome.storage.onChanged.removeListener(handleStorageChange);
-    };
+    return () => chrome.storage.onChanged.removeListener(handleStorageChange);
   }, [defaultSettings, setSettings, settings]);
 
   return (

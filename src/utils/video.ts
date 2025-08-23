@@ -33,6 +33,25 @@ export function setCommentsVisibility(hide: boolean) {
     });
 }
 
+export function setAiSummaryVisibility(hide: boolean) {
+    document.querySelectorAll('#expandable-metadata').forEach(el => {
+        (el as HTMLElement).style.display = hide ? 'none' : '';
+    });
+}
+
+export function observeAiSummary() {
+    chrome.storage.sync.get(['hideAiSummary'], (settings) => {
+        setAiSummaryVisibility(!!settings.hideAiSummary);
+    });
+    const observer = new MutationObserver(() => {
+        chrome.storage.sync.get(['hideAiSummary'], (settings) => {
+            setAiSummaryVisibility(!!settings.hideAiSummary);
+        });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+}
+
+
 export function setCommentAvatarsVisibility(hide: boolean) {
     // Use attribute + injected CSS so dynamically loaded comments update automatically.
     if (hide) {
@@ -55,8 +74,8 @@ export function observeCommentAvatars() {
 }
 
 // Inject CSS for comment avatar hiding (once)
-let commentAvatarCSSInjected = false;
 export function injectCommentAvatarCSS() {
+    let commentAvatarCSSInjected = false;
     if (commentAvatarCSSInjected) return;
     const id = 'optube-comment-avatars-css';
     if (document.getElementById(id)) { commentAvatarCSSInjected = true; return; }

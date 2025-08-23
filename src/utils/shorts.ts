@@ -109,7 +109,6 @@ export function observeShorts() {
     });
 }
 
-// Add this CSS to your content stylesheet or inject it
 export function injectShortsCSS() {
     const style = document.createElement('style');
     style.textContent = `

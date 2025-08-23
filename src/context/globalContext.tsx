@@ -2,9 +2,11 @@
 import { createContext, useContext, useState, type Dispatch, type PropsWithChildren, type SetStateAction } from 'react';
 import type { Settings } from '../types/global';
 
+// TODO: Split these types up for better maintainability and readability
 const defaultSettings: Settings = {
     hideShorts: false,
     hideSubscriptions: false,
+    hideAiSummary: false,
     hideSubscriptionsSidebar: false,
     hideHome: false,
     hideMasthead: false,
@@ -146,6 +148,7 @@ export function useGlobalContext() {
                 updated.hideDescription = true;
                 updated.hideTitle = true;
                 updated.hideCreator = true;
+                updated.hideAiSummary = true;
                 updated.hideCategoryAndTopic = true;
             }
 
@@ -154,6 +157,7 @@ export function useGlobalContext() {
                 updated.hideDescription = false;
                 updated.hideTitle = false;
                 updated.hideCreator = false;
+                updated.hideAiSummary = false;
                 updated.hideCategoryAndTopic = false;
             }
 

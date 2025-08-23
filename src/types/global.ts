@@ -16,6 +16,7 @@ export interface Settings {
     hideCreateButton: boolean; // new create button in top bar
     hideDescription: boolean;
     hideTitle: boolean;
+    hideAiSummary: boolean;
     hideCreator: boolean;
     // Layout category
     hideDurationBadges: boolean;
