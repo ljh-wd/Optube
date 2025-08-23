@@ -98,6 +98,16 @@ export function useGlobalContext() {
             setSettings(prev => {
                 const updated: Settings = { ...prev, hideSidebar: false };
                 updated.hideExplore = false;
+                updated.hideExploreMusic = false;
+                updated.hideExploreMovies = false;
+                updated.hideExploreLive = false;
+                updated.hideExploreGaming = false;
+                updated.hideExploreNews = false;
+                updated.hideExploreSport = false;
+                updated.hideExploreLearning = false;
+                updated.hideExploreFashion = false;
+                updated.hideExplorePodcasts = false;
+                updated.hideExplorePlayables = false;
                 updated.hideMoreFromYouTube = false;
                 updated.hideYouSection = false;
                 updated.hideHistory = false;
@@ -108,6 +118,36 @@ export function useGlobalContext() {
                 updated.hideLikedVideos = false;
                 saveSettings(updated);
                 // Clean any legacy backup key if exists
+                chrome.storage.sync.remove('_sidebarNestedBackup');
+                return updated;
+            });
+            return;
+        }
+
+        if (key === 'hideSidebar' && checked) {
+            // Showing sidebar again: force ALL nested hides to true (hide everything)
+            setSettings(prev => {
+                const updated: Settings = { ...prev, hideSidebar: true };
+                updated.hideExplore = true;
+                updated.hideExploreMusic = true;
+                updated.hideExploreMovies = true;
+                updated.hideExploreLive = true;
+                updated.hideExploreGaming = true;
+                updated.hideExploreNews = true;
+                updated.hideExploreSport = true;
+                updated.hideExploreLearning = true;
+                updated.hideExploreFashion = true;
+                updated.hideExplorePodcasts = true;
+                updated.hideExplorePlayables = true;
+                updated.hideMoreFromYouTube = true;
+                updated.hideYouSection = true;
+                updated.hideHistory = true;
+                updated.hidePlaylists = true;
+                updated.hideYourVideos = true;
+                updated.hideYourCourses = true;
+                updated.hideWatchLater = true;
+                updated.hideLikedVideos = true;
+                saveSettings(updated);
                 chrome.storage.sync.remove('_sidebarNestedBackup');
                 return updated;
             });
