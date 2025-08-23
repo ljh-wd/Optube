@@ -101,21 +101,43 @@ function restoreSubscriptionsFeed() {
 }
 
 function cleanupSubscriptionsSidebar() {
-    // Hide the subscription section in the sidebar
-    document.querySelectorAll('ytd-guide-section-renderer').forEach(el => {
-        const titleElement = el.querySelector('#guide-section-title, yt-formatted-string');
-        if (titleElement && titleElement.textContent?.trim() === 'Subscriptions') {
-            (el as HTMLElement).style.display = 'none';
+    // Hide the subscription section in the sidebar, accounting for collapsible structure
+    document.querySelectorAll('ytd-guide-section-renderer').forEach(sec => {
+        const collapsible = sec.querySelector('ytd-guide-collapsible-section-entry-renderer');
+        if (collapsible) {
+            const titleElement = collapsible.querySelector('#header-entry .title');
+            if (titleElement && titleElement.textContent?.trim() === 'Subscriptions') {
+                (sec as HTMLElement).style.display = 'none';
+            }
+        }
+    });
+
+    // Hide mini guide Subscriptions entry for consistency
+    document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
+        const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
+        if (label === 'Subscriptions') {
+            (entry as HTMLElement).style.display = 'none';
         }
     });
 }
 
 function restoreSubscriptionsSidebar() {
-    // Restore the subscription section in the sidebar
-    document.querySelectorAll('ytd-guide-section-renderer').forEach(el => {
-        const titleElement = el.querySelector('#guide-section-title, yt-formatted-string');
-        if (titleElement && titleElement.textContent?.trim() === 'Subscriptions') {
-            (el as HTMLElement).style.display = '';
+    // Restore the subscription section in the sidebar, accounting for collapsible structure
+    document.querySelectorAll('ytd-guide-section-renderer').forEach(sec => {
+        const collapsible = sec.querySelector('ytd-guide-collapsible-section-entry-renderer');
+        if (collapsible) {
+            const titleElement = collapsible.querySelector('#header-entry .title');
+            if (titleElement && titleElement.textContent?.trim() === 'Subscriptions') {
+                (sec as HTMLElement).style.display = '';
+            }
+        }
+    });
+
+    // Restore mini guide Subscriptions entry for consistency
+    document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
+        const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
+        if (label === 'Subscriptions') {
+            (entry as HTMLElement).style.display = '';
         }
     });
 }
@@ -146,7 +168,19 @@ export function observeSubscriptions() {
 }
 
 export function observeSubscriptionsSidebar() {
-    // Observer specifically for subscriptions sidebar changes
+    // Initial fetch from storage and apply
+    chrome.storage.sync.get(['hideSubscriptionsSidebar'], (settings) => {
+        setSubscriptionsSidebarVisibility(!!settings.hideSubscriptionsSidebar);
+    });
+
+    // Listen for storage changes and re-apply
+    chrome.storage.onChanged.addListener((changes) => {
+        if (changes.hideSubscriptionsSidebar) {
+            setSubscriptionsSidebarVisibility(!!changes.hideSubscriptionsSidebar.newValue);
+        }
+    });
+
+    // Observer specifically for subscriptions sidebar changes (reapplies on DOM mutations)
     const observer = new MutationObserver(() => {
         const hideSubscriptionsSidebar = document.documentElement.hasAttribute('hide_subscriptions_sidebar');
 
@@ -181,7 +215,7 @@ export function injectSubscriptionsCSS() {
     }
 
     const css = `
-        /* Hide Subscriptions navigation in sidebar */
+        /* Hide Subscriptions navigation in sidebar (for feed hide) */
         html[hide_subscriptions] ytd-guide-entry-renderer:has([title="Subscriptions"]) {
             display: none !important;
         }
@@ -215,6 +249,16 @@ export function injectSubscriptionsCSS() {
         
         /* Hide subscriptions content container */
         html[hide_subscriptions] ytd-browse[page-subtype="subscriptions"] ytd-two-column-browse-results-renderer {
+            display: none !important;
+        }
+
+        /* Hide the subscriptions sidebar section, targeting the collapsible structure */
+        html[hide_subscriptions_sidebar] ytd-guide-section-renderer:has(ytd-guide-collapsible-section-entry-renderer:has(#header-entry .title.yt-formatted-string)) {
+            display: none !important;
+        }
+        
+        /* Also hide mini-guide entry for consistency with sidebar hide */
+        html[hide_subscriptions_sidebar] ytd-mini-guide-entry-renderer[aria-label="Subscriptions"] {
             display: none !important;
         }
     `;
