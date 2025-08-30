@@ -27,20 +27,20 @@ export function setSubscriptionsSidebarVisibility(hide: boolean) {
 }
 
 function cleanupSubscriptionsFeed() {
-    // Hide the main subscriptions feed content
+    // Hide the main subscription feed content
     document.querySelectorAll('ytd-browse[page-subtype="subscriptions"]').forEach(el => {
         (el as HTMLElement).style.display = 'none';
     });
 
-    // Hide rich grid renderer on subscriptions page
+    // Hide rich grid renderer on subscription page
     document.querySelectorAll('ytd-rich-grid-renderer').forEach(el => {
-        // Only hide if we're on the subscriptions page
+        // Only hide if we're on the subscription page
         if (window.location.pathname.includes('/feed/subscriptions')) {
             (el as HTMLElement).style.display = 'none';
         }
     });
 
-    // Hide individual rich items on subscriptions page
+    // Hide individual rich items on the subscription page
     document.querySelectorAll('ytd-rich-item-renderer').forEach(el => {
         if (window.location.pathname.includes('/feed/subscriptions')) {
             (el as HTMLElement).style.display = 'none';
@@ -69,15 +69,15 @@ function restoreSubscriptionsFeed() {
         (el as HTMLElement).style.display = '';
     });
 
-    // Restore rich grid renderer on subscriptions page
+    // Restore rich grid renderer on subscription page
     document.querySelectorAll('ytd-rich-grid-renderer').forEach(el => {
-        // Only restore if we're on the subscriptions page
+        // Only restore if we're on the subscription page
         if (window.location.pathname.includes('/feed/subscriptions')) {
             (el as HTMLElement).style.display = '';
         }
     });
 
-    // Restore individual rich items on subscriptions page
+    // Restore individual rich items on the subscription page
     document.querySelectorAll('ytd-rich-item-renderer').forEach(el => {
         if (window.location.pathname.includes('/feed/subscriptions')) {
             (el as HTMLElement).style.display = '';
@@ -208,7 +208,7 @@ export function observeSubscriptionsSidebar() {
 export function injectSubscriptionsCSS() {
     const cssId = 'optube-subscriptions-css';
 
-    // Remove existing CSS if it exists
+    // Remove the existing CSS if it exists
     const existingStyle = document.getElementById(cssId);
     if (existingStyle) {
         existingStyle.remove();
