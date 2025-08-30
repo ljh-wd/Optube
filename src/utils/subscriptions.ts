@@ -1,6 +1,6 @@
 /**
  * Toggle Subscriptions feed visibility using CSS injection.
- * This hides the subscriptions feed content and navigation.
+ * This hides the subscription feed content and navigation.
  */
 export function setSubscriptionsVisibility(hide: boolean) {
     if (hide) {
