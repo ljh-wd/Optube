@@ -77,7 +77,7 @@ export function observeCommentAvatars() {
 export function injectCommentAvatarCSS() {
     let commentAvatarCSSInjected = false;
     if (commentAvatarCSSInjected) return;
-    const id = 'optube-comment-avatars-css';
+    const id = 'tuboji-comment-avatars-css';
     if (document.getElementById(id)) { commentAvatarCSSInjected = true; return; }
     const style = document.createElement('style');
     style.id = id;
@@ -172,7 +172,7 @@ function cleanupRecommendedStyles() {
         primary.style.flex = '';
         primary.style.margin = '';
     }
-    document.documentElement.removeAttribute('optube_hide_recommended');
+    document.documentElement.removeAttribute('tuboji_hide_recommended');
 }
 
 export function setRecommendedVisibility(hide: boolean) {
@@ -202,7 +202,7 @@ export function setRecommendedVisibility(hide: boolean) {
     if (!columns || !primary) return;
 
     if (hide) {
-        document.documentElement.setAttribute('optube_hide_recommended', 'true');
+        document.documentElement.setAttribute('tuboji_hide_recommended', 'true');
         secondary.style.width = '0%';
         secondary.style.minWidth = '0';
         secondary.style.maxWidth = '0';

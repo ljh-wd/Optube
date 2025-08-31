@@ -10,7 +10,7 @@ interface LayoutToggles {
     hideHoverPreview: boolean;
 }
 
-const STYLE_ID = 'optube-layout-css';
+const STYLE_ID = 'tuboji-layout-css';
 
 // Mutation observer to keep hiding duration badges on dynamically loaded content
 let durationObserver: MutationObserver | null = null;

@@ -19,7 +19,7 @@ export default function Footer() {
                 >
                     Reset filters
                 </button>
-                <div className="info-text">Settings persist across YouTube pages.</div>
+                <div className="info-text">Settings persist across pages.</div>
             </div>
         </footer>
     )

@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "Optube",
+    "name": "Tuboji",
     "version": "1.0",
-    "description": "Customizes your YouTube experience. WIP.",
+    "description": "Focus your YouTube experience. Block distracting elements and enhance productivity.",
     "action": {
         "default_popup": "index.html"
     },
@@ -24,9 +24,6 @@
     },
     "optional_permissions": [
         "tabs"
-    ],
-    "optional_host_permissions": [
-        "https://www.google.com/"
     ],
     "permissions": [
         "activeTab",
