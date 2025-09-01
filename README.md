@@ -1,6 +1,6 @@
-# Tuboji — A YouTube UI customizer (developer README)
+# Optube — A YouTube UI customizer (developer README)
 
-Tuboji is a browser extension that customizes the YouTube web UI by hiding or changing parts of the page (recommended sidebar, shorts, description, comments, etc.). The extension injects a content script (`content.js`) into YouTube pages and provides a small React-based settings UI bundled with Vite.
+Optube is a browser extension that customizes the YouTube web UI by hiding or changing parts of the page (recommended sidebar, shorts, description, comments, etc.). The extension injects a content script (`content.js`) into YouTube pages and provides a small React-based settings UI bundled with Vite.
 
 Key files:
 - `public/manifest.json` — extension manifest (content script matches `https://www.youtube.com/*`).

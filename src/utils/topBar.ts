@@ -67,7 +67,7 @@ export function observeCreateButton() {
 let createButtonCSSInjected = false;
 export function injectCreateButtonCSS() {
     if (createButtonCSSInjected) return;
-    const id = 'tuboji-create-button-css';
+    const id = 'optube-create-button-css';
     if (document.getElementById(id)) { createButtonCSSInjected = true; return; }
     const style = document.createElement('style');
     style.id = id;

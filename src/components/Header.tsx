@@ -9,7 +9,7 @@ export default function Header() {
     return (
         <header className="app-header">
             <div className="brand-block">
-                <h1 className="app-title">Tuboji</h1>
+                <h1 className="app-title">Optube</h1>
                 <p className="tagline">Focus your YouTube experience</p>
             </div>
                 <div className="status-pill" aria-label={`Active filters ${activeCount} of ${total}`}>

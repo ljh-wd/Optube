@@ -3,14 +3,14 @@ const FEED_LEFT_PADDING = '16px'; // gutter to apply to rich grid when sidebar h
 
 function ensureSidebarCSS() {
     if (injected) return;
-    const styleId = 'tuboji-sidebar-style';
+    const styleId = 'optube-sidebar-style';
     if (document.getElementById(styleId)) {
         injected = true;
         return;
     }
     const style = document.createElement('style');
     style.id = styleId;
-    style.textContent = `html[tuboji_hide_sidebar] tp-yt-app-drawer#guide,\nhtml[tuboji_hide_sidebar] ytd-mini-guide-renderer,\nhtml[tuboji_hide_sidebar] ytd-guide-renderer,\nhtml[tuboji_hide_sidebar] #guide-content,\nhtml[tuboji_hide_sidebar] #guide-wrapper {\n  display: none !important;\n  visibility: hidden !important;\n}\nhtml[tuboji_hide_sidebar] #content,\nhtml[tuboji_hide_sidebar] ytd-app #content,\nhtml[tuboji_hide_sidebar] ytd-app #page-manager {\n  margin-left: 0 !important;\n  padding-left: 0 !important;\n  --ytd-guide-width: 0px !important;\n  --ytd-mini-guide-width: 0px !important;\n}\nhtml[tuboji_hide_sidebar] ytd-app {\n  --ytd-guide-width: 0px !important;\n  --ytd-mini-guide-width: 0px !important;\n}\n/* Feed grid left gutter when sidebar removed */\nhtml[tuboji_hide_sidebar] ytd-rich-grid-renderer #contents {\n  padding-left: ${FEED_LEFT_PADDING} !important;\n  box-sizing: border-box !important;\n}\n/* Also adjust shelf renderers container */\nhtml[tuboji_hide_sidebar] ytd-rich-shelf-renderer #contents {\n  padding-left: ${FEED_LEFT_PADDING} !important;\n  box-sizing: border-box !important;\n}\n/* Hide the hamburger / guide toggle button when sidebar is hidden */\nhtml[tuboji_hide_sidebar] #guide-button,\nhtml[tuboji_hide_sidebar] ytd-masthead #guide-button,\nhtml[tuboji_hide_sidebar] yt-icon-button#guide-button {\n  display: none !important;\n  visibility: hidden !important;\n}`;
+    style.textContent = `html[optube_hide_sidebar] tp-yt-app-drawer#guide,\nhtml[optube_hide_sidebar] ytd-mini-guide-renderer,\nhtml[optube_hide_sidebar] ytd-guide-renderer,\nhtml[optube_hide_sidebar] #guide-content,\nhtml[optube_hide_sidebar] #guide-wrapper {\n  display: none !important;\n  visibility: hidden !important;\n}\nhtml[optube_hide_sidebar] #content,\nhtml[optube_hide_sidebar] ytd-app #content,\nhtml[optube_hide_sidebar] ytd-app #page-manager {\n  margin-left: 0 !important;\n  padding-left: 0 !important;\n  --ytd-guide-width: 0px !important;\n  --ytd-mini-guide-width: 0px !important;\n}\nhtml[optube_hide_sidebar] ytd-app {\n  --ytd-guide-width: 0px !important;\n  --ytd-mini-guide-width: 0px !important;\n}\n/* Feed grid left gutter when sidebar removed */\nhtml[optube_hide_sidebar] ytd-rich-grid-renderer #contents {\n  padding-left: ${FEED_LEFT_PADDING} !important;\n  box-sizing: border-box !important;\n}\n/* Also adjust shelf renderers container */\nhtml[optube_hide_sidebar] ytd-rich-shelf-renderer #contents {\n  padding-left: ${FEED_LEFT_PADDING} !important;\n  box-sizing: border-box !important;\n}\n/* Hide the hamburger / guide toggle button when sidebar is hidden */\nhtml[optube_hide_sidebar] #guide-button,\nhtml[optube_hide_sidebar] ytd-masthead #guide-button,\nhtml[optube_hide_sidebar] yt-icon-button#guide-button {\n  display: none !important;\n  visibility: hidden !important;\n}`;
     document.documentElement.appendChild(style);
     injected = true;
 }
@@ -95,10 +95,10 @@ function restoreFullSidebar() {
 
 export function setSidebarVisibility(hide: boolean) {
     if (hide) {
-        document.documentElement.setAttribute('tuboji_hide_sidebar', 'true');
+        document.documentElement.setAttribute('optube_hide_sidebar', 'true');
         hideFullSidebar();
     } else {
-        document.documentElement.removeAttribute('tuboji_hide_sidebar');
+        document.documentElement.removeAttribute('optube_hide_sidebar');
         restoreFullSidebar();
     }
 }

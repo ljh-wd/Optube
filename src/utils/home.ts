@@ -116,7 +116,7 @@ export function observeHome() {
  * This provides a more reliable way to hide content that gets dynamically loaded.
  */
 export function injectHomeCSS() {
-    const cssId = 'tuboji-home-css';
+    const cssId = 'optube-home-css';
 
     // Remove existing CSS if it exists
     const existingStyle = document.getElementById(cssId);

@@ -91,7 +91,7 @@ export function observePosts() {
 }
 
 export function injectPostsCSS() {
-    const id = 'tuboji-posts-css';
+    const id = 'optube-posts-css';
     document.getElementById(id)?.remove();
     const style = document.createElement('style');
     style.id = id;

@@ -10,13 +10,13 @@ interface LayoutToggles {
     hideHoverPreview: boolean;
 }
 
-const STYLE_ID = 'tuboji-layout-css';
+const STYLE_ID = 'optube-layout-css';
 
 // Mutation observer to keep hiding duration badges on dynamically loaded content
 let durationObserver: MutationObserver | null = null;
 let durationObserverActive = false;
 let durationDebounce: number | null = null;
-// Watched progress: pure CSS (no removal) so layout stays stable.
+// Watched progress: pure CSS (no removal) so the layout stays stable.
 
 // Additional hover delegation to catch elements rendered inside ShadyDOM / shadow roots during inline preview
 let hoverDelegationAttached = false;
@@ -31,7 +31,7 @@ function ensureDurationObserver(active: boolean) {
                 if (document.documentElement.hasAttribute('hide_duration_badges')) hideDurationBadges();
             }, 100);
         });
-        durationObserver.observe(document.body, { childList: true, subtree: true });
+        durationObserver.observe(document.body, {childList: true, subtree: true});
         durationObserverActive = true;
     } else if (!active && durationObserverActive && durationObserver) {
         durationObserver.disconnect();
@@ -40,7 +40,7 @@ function ensureDurationObserver(active: boolean) {
 }
 
 export function applyLayout(settings: Partial<LayoutToggles>) {
-    // We set attributes for easier pure-CSS hiding where feasible
+    // We set attributes for easier pure-CSS hiding where necessary
     const root = document.documentElement;
     toggleAttr(root, 'hide_duration_badges', settings.hideDurationBadges);
     toggleAttr(root, 'hide_preview_details', settings.hidePreviewDetails);
@@ -49,13 +49,14 @@ export function applyLayout(settings: Partial<LayoutToggles>) {
     toggleAttr(root, 'hide_watched_progress', settings.hideWatchedProgress);
     toggleAttr(root, 'hide_hover_preview', settings.hideHoverPreview);
 
-    // Manage duration badges (JS + observer)
+    // Manage duration badges (JS and observer)
     ensureDurationObserver(!!settings.hideDurationBadges);
     if (settings.hideDurationBadges) hideDurationBadges(); else showDurationBadges();
 
     // Watched progress handled by CSS opacity only (no JS needed)
 }
 
+// TODO: Export this as a global util for the other util files
 function toggleAttr(el: HTMLElement, name: string, enabled?: boolean) {
     if (enabled) el.setAttribute(name, 'true'); else el.removeAttribute(name);
 }
@@ -66,7 +67,6 @@ export function injectLayoutCSS() {
     style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
-            /* live channel removal option removed */
 
     /* Duration badges (broad selectors) when attribute active */
     html[hide_duration_badges] ytd-thumbnail-overlay-time-status-renderer,
@@ -79,14 +79,10 @@ export function injectLayoutCSS() {
     }
 
   /* Video preview metadata blocks (feed card metadata container) */
-  html[hide_preview_details] .yt-lockup-metadata-view-model-wiz__metadata, 
-  html[hide_preview_details] .yt-lockup-metadata-view-model-wiz__text-container,
-  html[hide_preview_details] .yt-lockup-metadata-view-model-wiz__menu-button,
-  html[hide_preview_details] ytd-rich-grid-media #details,
-  html[hide_preview_details] ytd-video-renderer #metadata { display: none !important; }
+  html[hide_preview_details] .yt-lockup-view-model__metadata { display: none !important; }
 
   /* Avatars inside preview cards */
-  html[hide_preview_avatars] .yt-lockup-metadata-view-model-wiz__avatar,
+  html[hide_preview_avatars] .yt-lockup-metadata-view-model__avatar,
   html[hide_preview_avatars] ytd-rich-grid-media #avatar-container,
   html[hide_preview_avatars] ytd-video-renderer #avatar-link { display: none !important; }
 
@@ -205,7 +201,7 @@ export function observeLayout() {
     attachPreviewBlocker();
 }
 
-// JS helpers for duration & live badges (more precise than CSS alone)
+// JS helpers for duration and live badges (more precise than CSS alone)
 function hideDurationBadges() {
     const candidates = document.querySelectorAll<HTMLElement>([
         'ytd-thumbnail-overlay-time-status-renderer',
@@ -286,10 +282,10 @@ function attachPreviewBlocker() {
             e.stopImmediatePropagation();
         }, true);
     });
-    // Also remove any video elements inserted inside hovered cards quickly
-    const mo = new MutationObserver(muts => {
+    // Also, remove any video elements inserted inside hovered cards quickly
+    const mo = new MutationObserver(mutations => {
         if (!document.documentElement.hasAttribute('hide_hover_preview')) return;
-        for (const m of muts) {
+        for (const m of mutations) {
             m.addedNodes.forEach(node => {
                 if (node instanceof HTMLElement) {
                     if (node.tagName === 'VIDEO' && node.closest('ytd-rich-item-renderer, ytd-rich-grid-media, yt-lockup-view-model')) {
@@ -303,7 +299,7 @@ function attachPreviewBlocker() {
             });
         }
     });
-    mo.observe(document.documentElement, { childList: true, subtree: true });
+    mo.observe(document.documentElement, {childList: true, subtree: true});
     previewBlockerAttached = true;
 }
 
@@ -344,13 +340,16 @@ function ensureProgressObserver(card: HTMLElement) {
     const obs = new MutationObserver(mutations => {
         let added = false;
         for (const m of mutations) {
-            if (m.addedNodes && m.addedNodes.length) { added = true; break; }
+            if (m.addedNodes && m.addedNodes.length) {
+                added = true;
+                break;
+            }
         }
         if (added) hideWatchedProgressWithin(card);
     });
-    obs.observe(card, { childList: true, subtree: true });
+    obs.observe(card, {childList: true, subtree: true});
     hoverProgressObservers.set(card, obs);
-    // Auto-clean after 6s to avoid lingering observers
+    // Auto-clean after 6 seconds to avoid lingering observers
     setTimeout(() => {
         const existing = hoverProgressObservers.get(card);
         if (existing === obs) {
@@ -359,5 +358,3 @@ function ensureProgressObserver(card: HTMLElement) {
         }
     }, 6000);
 }
-
-// (Observer logic moved above; single applyLayout definition retained.)

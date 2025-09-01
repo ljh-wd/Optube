@@ -206,7 +206,7 @@ export function observeSubscriptionsSidebar() {
  * This provides a more reliable way to hide content that gets dynamically loaded.
  */
 export function injectSubscriptionsCSS() {
-    const cssId = 'tuboji-subscriptions-css';
+    const cssId = 'optube-subscriptions-css';
 
     // Remove the existing CSS if it exists
     const existingStyle = document.getElementById(cssId);
