@@ -31,7 +31,7 @@ function ensureDurationObserver(active: boolean) {
                 if (document.documentElement.hasAttribute('hide_duration_badges')) hideDurationBadges();
             }, 100);
         });
-        durationObserver.observe(document.body, {childList: true, subtree: true});
+        durationObserver.observe(document.body, { childList: true, subtree: true });
         durationObserverActive = true;
     } else if (!active && durationObserverActive && durationObserver) {
         durationObserver.disconnect();
@@ -79,7 +79,19 @@ export function injectLayoutCSS() {
     }
 
   /* Video preview metadata blocks (feed card metadata container) */
-  html[hide_preview_details] .yt-lockup-view-model__metadata { display: none !important; }
+  html[hide_preview_details] .yt-lockup-view-model__metadata, 
+  html[hide_preview_details] .yt-lockup-metadata-view-model__text-container,
+  html[hide_preview_details] .yt-lockup-metadata-view-model__menu-button,
+  html[hide_preview_details] ytd-rich-grid-media #details,
+  html[hide_preview_details] ytd-video-renderer #metadata { display: none !important; }
+  
+  html[hide_preview_details] .yt-lockup-view-model__content-image,
+  html[hide_preview_details] ytd-rich-grid-media #thumbnail,
+  html[hide_preview_details] ytd-video-renderer #thumbnail { width: 100% !important; margin-right: 0 !important; }
+
+  html[hide_preview_details] .yt-lockup-view-model,
+  html[hide_preview_details] ytd-rich-grid-media,
+  html[hide_preview_details] ytd-video-renderer { max-width: 100% !important; }
 
   /* Avatars inside preview cards */
   html[hide_preview_avatars] .yt-lockup-metadata-view-model__avatar,
@@ -299,7 +311,7 @@ function attachPreviewBlocker() {
             });
         }
     });
-    mo.observe(document.documentElement, {childList: true, subtree: true});
+    mo.observe(document.documentElement, { childList: true, subtree: true });
     previewBlockerAttached = true;
 }
 
@@ -340,14 +352,11 @@ function ensureProgressObserver(card: HTMLElement) {
     const obs = new MutationObserver(mutations => {
         let added = false;
         for (const m of mutations) {
-            if (m.addedNodes && m.addedNodes.length) {
-                added = true;
-                break;
-            }
+            if (m.addedNodes && m.addedNodes.length) { added = true; break; }
         }
         if (added) hideWatchedProgressWithin(card);
     });
-    obs.observe(card, {childList: true, subtree: true});
+    obs.observe(card, { childList: true, subtree: true });
     hoverProgressObservers.set(card, obs);
     // Auto-clean after 6 seconds to avoid lingering observers
     setTimeout(() => {
