@@ -28,7 +28,7 @@ import {
     setCommentAvatarsVisibility,
     setAiSummaryVisibility,
     injectCommentAvatarCSS,
-    observeAiSummary
+    observeAiSummary, injectVideoPlayerCSS
 } from './utils/video';
 import {observeSidebar, setSidebarVisibility} from './utils/sidebar';
 import type {Settings} from './types/global';
@@ -135,6 +135,7 @@ startObserver();
 // Inject CSS for shorts, home, and subscriptions hiding
 injectShortsCSS();
 injectHomeCSS();
+injectVideoPlayerCSS()
 injectSubscriptionsCSS();
 injectCreateButtonCSS();
 injectCommentAvatarCSS();
