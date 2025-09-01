@@ -31,7 +31,7 @@ function ensureDurationObserver(active: boolean) {
                 if (document.documentElement.hasAttribute('hide_duration_badges')) hideDurationBadges();
             }, 100);
         });
-        durationObserver.observe(document.body, { childList: true, subtree: true });
+        durationObserver.observe(document.body, {childList: true, subtree: true});
         durationObserverActive = true;
     } else if (!active && durationObserverActive && durationObserver) {
         durationObserver.disconnect();
@@ -100,7 +100,8 @@ export function injectLayoutCSS() {
 
   /* Filter chips row */
   html[hide_badges_chips] #chips-wrapper, html[hide_badges_chips] ytd-feed-filter-chip-bar-renderer { display: none !important; }
-
+  html[hide_badges_chips] #frosted-glass { height: 65px !important; }
+  
     /* Watch page: expand recommended thumbnails to use freed space when details hidden */
     html[hide_preview_details] ytd-watch-flexy #secondary ytd-video-renderer #dismissible,
     html[hide_preview_details] ytd-watch-flexy #secondary ytd-compact-video-renderer #dismissible,
@@ -311,7 +312,7 @@ function attachPreviewBlocker() {
             });
         }
     });
-    mo.observe(document.documentElement, { childList: true, subtree: true });
+    mo.observe(document.documentElement, {childList: true, subtree: true});
     previewBlockerAttached = true;
 }
 
@@ -352,11 +353,14 @@ function ensureProgressObserver(card: HTMLElement) {
     const obs = new MutationObserver(mutations => {
         let added = false;
         for (const m of mutations) {
-            if (m.addedNodes && m.addedNodes.length) { added = true; break; }
+            if (m.addedNodes && m.addedNodes.length) {
+                added = true;
+                break;
+            }
         }
         if (added) hideWatchedProgressWithin(card);
     });
-    obs.observe(card, { childList: true, subtree: true });
+    obs.observe(card, {childList: true, subtree: true});
     hoverProgressObservers.set(card, obs);
     // Auto-clean after 6 seconds to avoid lingering observers
     setTimeout(() => {
