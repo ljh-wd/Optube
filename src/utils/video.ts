@@ -53,7 +53,6 @@ export function observeAiSummary() {
 
 
 export function setCommentAvatarsVisibility(hide: boolean) {
-    // Use attribute and injected CSS so dynamically loaded comments update automatically.
     if (hide) {
         document.documentElement.setAttribute('hide_comment_avatars', 'true');
     } else {
@@ -67,8 +66,6 @@ export function setCommentAvatarsVisibility(hide: boolean) {
 
 
 export function injectVideoPlayerCSS() {
-    let videoPlayerCSSInjected = false;
-    if (videoPlayerCSSInjected) return;
     const id = 'optube-video-player-css';
     if (document.getElementById(id)) {
         return;
@@ -83,9 +80,11 @@ height: 100% !important;
 box-sizing: border-box !important;
 position: relative !important;
 }
+
 html[optube_hide_recommended] #movie_player .ytp-chrome-bottom {
 width: 100% !important;
 }
+
 html[optube_hide_recommended] #movie_player .html5-video-container video {
 width: 100% !important;
 height: 100% !important;
@@ -96,6 +95,7 @@ position: absolute !important;
 top: 0 !important;
 left: 0 !important;
 }
+
 html[optube_hide_recommended] #movie_player .ytp-chapters-container {
 width: 100% !important;
 display: flex !important;
@@ -103,6 +103,7 @@ justify-content: space-between !important;
 box-sizing: border-box !important;
 gap: 0.2rem !important;
 }
+
 html[optube_hide_recommended] #movie_player .ytp-heat-map-container {
 width: 100% !important;
 display: flex !important;
@@ -110,6 +111,7 @@ justify-content: space-between !important;
 box-sizing: border-box !important;
 gap: 0.2rem !important;
 }
+
 html[optube_hide_recommended] #movie_player .ytp-heat-map-container > div {
 width: auto !important;
 flex-grow: 1 !important;
@@ -117,6 +119,7 @@ left: unset !important;
 position: relative !important;
 margin-right: 0 !important;
 }
+
 html[optube_hide_recommended] #movie_player .ytp-chapters-container .ytp-chapter-hover-container {
 width: auto !important;
 min-width: 0 !important;
@@ -124,12 +127,12 @@ margin-right: 0 !important;
 flex-grow: 1 !important;
 box-sizing: border-box !important;
 }
+
 html[optube_hide_recommended] #movie_player .ytp-chapters-container .ytp-chapter-hover-container:last-child {
 margin-right: 0 !important; /* Remove margin on the last child */
 }
 `;
     document.head.appendChild(style);
-    videoPlayerCSSInjected = true;
 }
 
 export function observeCommentAvatars() {
@@ -141,13 +144,9 @@ export function observeCommentAvatars() {
 }
 
 
-// Inject CSS for comment avatar hiding (once)
 export function injectCommentAvatarCSS() {
-    let commentAvatarCSSInjected = false;
-    if (commentAvatarCSSInjected) return;
     const id = 'optube-comment-avatars-css';
     if (document.getElementById(id)) {
-        commentAvatarCSSInjected = true;
         return;
     }
     const style = document.createElement('style');
@@ -163,7 +162,6 @@ html[hide_comment_avatars] #expander.style-scope.ytd-comment-replies-renderer .e
 }
 `;
     document.head.appendChild(style);
-    commentAvatarCSSInjected = true;
 }
 
 export function observeComments() {
