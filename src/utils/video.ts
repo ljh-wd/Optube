@@ -77,17 +77,55 @@ export function injectVideoPlayerCSS() {
     const style = document.createElement('style');
     style.id = id;
     style.textContent = `
-html[optube_hide_recommended] #movie_player > * {
-pointer-events: none !important;
-box-sizing: border-box !important;
+html[optube_hide_recommended] #movie_player .html5-video-container {
 width: 100% !important;
 height: 100% !important;
-padding: 1rem !important;
+box-sizing: border-box !important;
+position: relative !important;
 }
-
-html[optube_hide_recommended] #movie_player video {
-  min-width: 100% !important;
-  min-height: 100% !important;
+html[optube_hide_recommended] #movie_player .ytp-chrome-bottom {
+width: 100% !important;
+}
+html[optube_hide_recommended] #movie_player .html5-video-container video {
+width: 100% !important;
+height: 100% !important;
+min-width: 100% !important;
+min-height: 100% !important;
+object-fit: cover !important;
+position: absolute !important;
+top: 0 !important;
+left: 0 !important;
+}
+html[optube_hide_recommended] #movie_player .ytp-chapters-container {
+width: 100% !important;
+display: flex !important;
+justify-content: space-between !important;
+box-sizing: border-box !important;
+gap: 0.2rem !important;
+}
+html[optube_hide_recommended] #movie_player .ytp-heat-map-container {
+width: 100% !important;
+display: flex !important;
+justify-content: space-between !important;
+box-sizing: border-box !important;
+gap: 0.2rem !important;
+}
+html[optube_hide_recommended] #movie_player .ytp-heat-map-container > div {
+width: auto !important;
+flex-grow: 1 !important;
+left: unset !important;
+position: relative !important;
+margin-right: 0 !important;
+}
+html[optube_hide_recommended] #movie_player .ytp-chapters-container .ytp-chapter-hover-container {
+width: auto !important;
+min-width: 0 !important;
+margin-right: 0 !important;
+flex-grow: 1 !important;
+box-sizing: border-box !important;
+}
+html[optube_hide_recommended] #movie_player .ytp-chapters-container .ytp-chapter-hover-container:last-child {
+margin-right: 0 !important; /* Remove margin on the last child */
 }
 `;
     document.head.appendChild(style);
