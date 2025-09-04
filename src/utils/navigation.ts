@@ -1,6 +1,3 @@
-// Fine-grained navigation sidebar element removal.
-// We rely on text content matching of section titles / item titles.
-
 interface NavSettings {
     hideExplore: boolean;
     hideMoreFromYouTube: boolean;
@@ -24,13 +21,35 @@ interface NavSettings {
     hideExplorePlayables: boolean;
 }
 
-function hideMatchingGuideSections(predicate: (title: string) => boolean, hide: boolean) {
+export function injectNavigationCSS() {
+    const id = 'optube-navigation-css';
+    if (document.getElementById(id)) {
+        return;
+    }
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = `
+        ytd-guide-section-renderer[data-optube-hidden="true"],
+        ytd-guide-collapsible-section-entry-renderer[data-optube-hidden="true"],
+        ytd-guide-entry-renderer[data-optube-hidden="true"],
+        ytd-mini-guide-entry-renderer[data-optube-hidden="true"] {
+            display: none !important;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function markMatchingGuideSections(predicate: (title: string) => boolean, hide: boolean) {
     // Standard sections
     document.querySelectorAll('ytd-guide-section-renderer').forEach(sec => {
         const titleEl = sec.querySelector('#guide-section-title, yt-formatted-string');
         const title = (titleEl?.textContent || '').trim();
         if (predicate(title)) {
-            (sec as HTMLElement).style.display = hide ? 'none' : '';
+            if (hide) {
+                sec.setAttribute('data-optube-hidden', 'true');
+            } else {
+                sec.removeAttribute('data-optube-hidden');
+            }
         }
     });
     // Collapsible 'You' section container uses a different host element
@@ -38,19 +57,27 @@ function hideMatchingGuideSections(predicate: (title: string) => boolean, hide: 
         document.querySelectorAll('ytd-guide-collapsible-section-entry-renderer').forEach(sec => {
             const headerText = sec.querySelector('#header-entry .title')?.textContent?.trim();
             if (headerText === 'You') {
-                (sec as HTMLElement).style.display = hide ? 'none' : '';
+                if (hide) {
+                    sec.setAttribute('data-optube-hidden', 'true');
+                } else {
+                    sec.removeAttribute('data-optube-hidden');
+                }
             }
         });
     }
 }
 
-function hideIndividualEntries(matchers: { title: string, hide: boolean }[]) {
+function markIndividualEntries(matchers: { title: string, hide: boolean }[]) {
     // Entries inside all guide sections including collapsible
     document.querySelectorAll('ytd-guide-entry-renderer').forEach(entry => {
         const label = (entry.querySelector('.title, yt-formatted-string')?.textContent || '').trim();
         matchers.forEach(m => {
             if (label === m.title) {
-                (entry as HTMLElement).style.display = m.hide ? 'none' : '';
+                if (m.hide) {
+                    entry.setAttribute('data-optube-hidden', 'true');
+                } else {
+                    entry.removeAttribute('data-optube-hidden');
+                }
             }
         });
     });
@@ -69,15 +96,29 @@ export function applyNavigation(settings: Partial<NavSettings>) {
         settings.hideExploreFashion,
         settings.hideExplorePodcasts,
         settings.hideExplorePlayables
-    ].every(v => v);
+    ].every(v => v === true);  // Adjusted to check for true, assuming undefined as false
+
     const effectiveHideExplore = !!settings.hideExplore || allExploreChildrenHidden;
-    hideMatchingGuideSections(t => t === 'Explore', effectiveHideExplore);
-    hideMatchingGuideSections(t => t === 'More from YouTube', !!settings.hideMoreFromYouTube);
-    hideMatchingGuideSections(t => t === 'You', !!settings.hideYouSection);
+
+    // Compute effective hideYouSection if all children hidden
+    const allYouChildrenHidden = [
+        settings.hideHistory,
+        settings.hidePlaylists,
+        settings.hideYourVideos,
+        settings.hideYourCourses,
+        settings.hideWatchLater,
+        settings.hideLikedVideos
+    ].every(v => v === true);  // Adjusted to check for true, assuming undefined as false
+
+    const effectiveHideYouSection = !!settings.hideYouSection || allYouChildrenHidden;
+
+    markMatchingGuideSections(t => t === 'Explore', effectiveHideExplore);
+    markMatchingGuideSections(t => t === 'More from YouTube', !!settings.hideMoreFromYouTube);
+    markMatchingGuideSections(t => t === 'You', effectiveHideYouSection);
 
     // If whole You section hidden, skip individual entries for performance
-    if (!settings.hideYouSection) {
-        hideIndividualEntries([
+    if (!effectiveHideYouSection) {
+        markIndividualEntries([
             { title: 'History', hide: !!settings.hideHistory },
             { title: 'Playlists', hide: !!settings.hidePlaylists },
             { title: 'Your videos', hide: !!settings.hideYourVideos },
@@ -89,7 +130,7 @@ export function applyNavigation(settings: Partial<NavSettings>) {
 
     // Explore sub-items (only process if we are not hiding entire Explore section to reduce work)
     if (!effectiveHideExplore) {
-        hideIndividualEntries([
+        markIndividualEntries([
             { title: 'Music', hide: !!settings.hideExploreMusic },
             { title: 'Movies & TV', hide: !!settings.hideExploreMovies },
             { title: 'Live', hide: !!settings.hideExploreLive },
@@ -107,12 +148,18 @@ export function applyNavigation(settings: Partial<NavSettings>) {
     document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
         const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
         if (label === 'You') {
-            (entry as HTMLElement).style.display = settings.hideYouSection ? 'none' : '';
+            if (effectiveHideYouSection) {
+                entry.setAttribute('data-optube-hidden', 'true');
+            } else {
+                entry.removeAttribute('data-optube-hidden');
+            }
         }
     });
 }
 
 export function observeNavigation() {
+    injectNavigationCSS();  // Inject the static CSS once
+
     const KEYS: (keyof NavSettings)[] = ['hideExplore', 'hideMoreFromYouTube', 'hideYouSection', 'hideHistory', 'hidePlaylists', 'hideYourVideos', 'hideYourCourses', 'hideWatchLater', 'hideLikedVideos', 'hideExploreMusic', 'hideExploreMovies', 'hideExploreLive', 'hideExploreGaming', 'hideExploreNews', 'hideExploreSport', 'hideExploreLearning', 'hideExploreFashion', 'hideExplorePodcasts', 'hideExplorePlayables'];
     chrome.storage.sync.get(KEYS, applyNavigation);
     chrome.storage.onChanged.addListener(ch => {
