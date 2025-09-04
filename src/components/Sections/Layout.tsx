@@ -57,6 +57,7 @@ export default function Layout() {
                     <CardWithInput label="Create" checked={settings.hideCreateButton} onChange={handleToggle('hideCreateButton')} disabled={settings.hideMasthead} />
                 </NestedToggle>
                 <NestedToggle label="Sidebar" checked={settings.hideSidebar} onChange={handleToggle('hideSidebar')}>
+                    <CardWithInput label="Subscriptions" checked={settings.hideSubscriptionsSidebar} onChange={handleToggle('hideSubscriptionsSidebar')} disabled={settings.hideSubscriptions} />
                     <NestedToggle label="Explore" checked={allExploreToggled} onChange={toggleAllExplore} disabled={settings.hideSidebar}>
                         <CardWithInput label="Music" checked={settings.hideExploreMusic} onChange={handleToggle('hideExploreMusic')} disabled={settings.hideSidebar} />
                         <CardWithInput label="Movies & TV" checked={settings.hideExploreMovies} onChange={handleToggle('hideExploreMovies')} disabled={settings.hideSidebar} />
