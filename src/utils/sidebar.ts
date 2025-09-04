@@ -17,7 +17,7 @@ function ensureSidebarCSS() {
 
 function hideFullSidebar() {
     ensureSidebarCSS();
-    // IMPORTANT: Do NOT remove YouTube's guide persistence attributes; doing so can
+    // IMPORTANT: Do NOT remove `You`Tube's guide persistence attributes; doing so can
     // trigger internal re-initialisation that spawns a duplicate drawer/miniguide
     // when the user re-enables the sidebar. We'll rely purely on CSS + inline
     // overrides so that restoring simply unhides existing nodes.
@@ -86,7 +86,7 @@ function restoreFullSidebar() {
         // Only clear if we set it (best effort)
         if (el.style.paddingLeft === FEED_LEFT_PADDING) el.style.paddingLeft = '';
         if (el.style.boxSizing === 'border-box') el.style.boxSizing = '';
-    });
+    }); 
     if (app) {
         app.style.removeProperty('--ytd-guide-width');
         app.style.removeProperty('--ytd-mini-guide-width');
