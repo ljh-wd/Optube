@@ -10,17 +10,55 @@ let spotlightInterval: number | null = null;
 let spotlightEl: HTMLElement | null = null;
 let lastSpotlightIndex = -1; // track last used index to avoid immediate repeats
 let itemsObserver: MutationObserver | null = null;
+// Preserve user hide settings we temporarily modify while cinema mode is active
+let prevHideState: Record<string, boolean> | null = null;
 
 declare global {
     interface Window { optubeForceSpotlight?: () => void }
+}
+// Minimal chrome storage typing to avoid 'any'
+interface ChromeRuntimeLike {
+    storage?: { sync?: { get(keys: string[] | Record<string, unknown>, cb: (data: Record<string, boolean>) => void): void; set(items: Record<string, boolean>): void } };
+}
+
+function isHome(): boolean {
+    // Restrict cinematic mode to root home feed only
+    return location.pathname === '/' || location.pathname === '/feed' || location.pathname === '/feed/';
+}
+
+function ensureCinemaHomeState() {
+    if (!document.documentElement.hasAttribute(ATTR)) return;
+    if (isHome()) {
+        document.body.classList.add('cinematic-home');
+    } else {
+        document.body.classList.remove('cinematic-home');
+    }
 }
 
 export function setCinemaMode(on: boolean) {
     if (on) {
         document.documentElement.setAttribute(ATTR, 'true');
-        document.body.classList.add('cinematic-home');
+        if (isHome()) document.body.classList.add('cinematic-home');
         // Remove #frosted-glass if present
         document.getElementById('frosted-glass')?.remove();
+        // Auto-enable (i.e. hide corresponding elements) for immersive mode
+        try {
+            const keys = ['hideShorts', 'hidePosts', 'hideHoverPreview', 'hideSidebar', 'hideBadgesChips', 'hideCreateButton', 'hideNotifications', 'hideSearchbar'];
+            const chromeLike: ChromeRuntimeLike | undefined = (window as unknown as { chrome?: ChromeRuntimeLike }).chrome;
+            if (chromeLike?.storage?.sync) {
+                chromeLike.storage.sync.get(keys, (data: Record<string, boolean>) => {
+                    prevHideState = {};
+                    const updates: Record<string, boolean> = {};
+                    keys.forEach(k => {
+                        prevHideState![k] = !!data[k];
+                        if (!data[k]) updates[k] = true; // only set if not already true
+                    });
+                    if (Object.keys(updates).length) {
+                        chromeLike.storage!.sync!.set(updates);
+                    }
+                });
+            }
+        } catch { /* ignore */ }
         // Ensure fresh layout (only once per enable session)
         try {
             if (!sessionStorage.getItem('optubeCinemaReloaded')) {
@@ -33,6 +71,14 @@ export function setCinemaMode(on: boolean) {
         document.body.classList.remove('cinematic-home');
         document.body.classList.remove('cinema-spotlight-active');
         document.body.classList.remove('cinema-spotlight-half', 'cinema-spotlight-quarter');
+        // Restore previously modified hide settings
+        try {
+            const chromeLike: ChromeRuntimeLike | undefined = (window as unknown as { chrome?: ChromeRuntimeLike }).chrome;
+            if (prevHideState && chromeLike?.storage?.sync) {
+                chromeLike.storage.sync.set(prevHideState);
+            }
+        } catch { /* ignore */ }
+        prevHideState = null;
         try { sessionStorage.removeItem('optubeCinemaReloaded'); } catch { /* ignore */ }
         if (spotlightInterval) window.clearInterval(spotlightInterval);
         spotlightInterval = null;
@@ -98,13 +144,11 @@ export function injectCinemaCSS() {
     /* Full-width 16:9 player cropped vertically to remove side pillar bars */
     html[${ATTR}] body.cinematic-home #optube-cinema-spotlight .optube-spotlight-video iframe {
         position:absolute; left:0; top:50%;
-        /* Force intrinsic 16:9 based on viewport width so width always fills container */
         width:100vw; height:calc(100vw * 9 / 16);
-        /* Center vertically and crop overflow (container has smaller fixed height) */
         transform:translateY(-50%);
-        border:0; object-fit:cover; pointer-events:none; opacity:0; transition:opacity .6s ease; background:#000;
+        border:0; object-fit:cover; pointer-events:none; opacity:0; transition:opacity .65s ease; background:#000;
     }
-    html[${ATTR}] body.cinematic-home #optube-cinema-spotlight .optube-spotlight-video iframe.optube-loaded { opacity:1; }
+    html[${ATTR}] body.cinematic-home #optube-cinema-spotlight .optube-spotlight-video iframe.active { opacity:1; }
     html[${ATTR}] body.cinematic-home #optube-cinema-spotlight .optube-spotlight-meta { position:relative; z-index:2; max-width:640px; pointer-events:auto; padding: calc(var(--ytd-masthead-height,56px) + 0px) 48px 24px 88px; box-sizing:border-box; display:flex; flex-direction:column; gap:18px; }
     html[${ATTR}] body.cinematic-home #optube-cinema-spotlight .optube-spotlight-title { font-size:clamp(1.6rem, 3vw, 3rem); font-weight:700; line-height:1.1; margin:0; color:#fff; text-shadow:0 2px 14px rgba(0,0,0,.65); letter-spacing:.5px; }
     html[${ATTR}] body.cinematic-home #optube-cinema-spotlight .optube-spotlight-title a { color:#fff; text-decoration:none; }
@@ -191,10 +235,10 @@ export function observeCinema() {
     // Re-apply body class on navigation mutations (SPA transitions)
     const observer = new MutationObserver(() => {
         if (document.documentElement.hasAttribute(ATTR)) {
-            if (location.pathname === '/' || location.pathname === '/feed/subscriptions' || location.pathname.startsWith('/feed')) {
-                document.body.classList.add('cinematic-home');
+            ensureCinemaHomeState();
+            if (document.body.classList.contains('cinematic-home')) {
+                attachCarouselEnhancements();
             }
-            attachCarouselEnhancements();
         }
     });
     if (document.body) observer.observe(document.body, { childList: true, subtree: true });
@@ -205,7 +249,7 @@ export function observeCinema() {
 }
 
 function attachCarouselEnhancements() {
-    if (!document.documentElement.hasAttribute(ATTR)) return;
+    if (!document.documentElement.hasAttribute(ATTR) || !isHome()) return;
     let candidate = document.querySelector<HTMLElement>('ytd-browse[page-subtype="home"] ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer');
     if (!candidate) {
         // Fallback older structure
@@ -238,7 +282,7 @@ function attachCarouselEnhancements() {
 }
 
 function initSpotlight() {
-    if (!document.documentElement.hasAttribute(ATTR)) return;
+    if (!document.documentElement.hasAttribute(ATTR) || !isHome()) return;
     // Always ensure container exists even if carousel not yet resolved
     if (!spotlightEl) {
         spotlightEl = document.createElement('div');
@@ -253,7 +297,7 @@ function initSpotlight() {
         const meta = document.createElement('div');
         meta.className = 'optube-spotlight-meta';
         meta.innerHTML = `
-                <h2 class="optube-spotlight-title">Loading feed…</h2>
+                <h2 class="optube-spotlight-title">Loading spotlight…</h2>
                 <div class="optube-spotlight-actions">
                     <a class="optube-spotlight-watch" href="#" data-disabled="true">Watch</a>
                 </div>`;
@@ -316,7 +360,7 @@ function pickRandomVideo(): HTMLElement | null {
 }
 
 function runSpotlightCycle() {
-    if (!document.documentElement.hasAttribute(ATTR)) return;
+    if (!document.documentElement.hasAttribute(ATTR) || !isHome()) return;
     const target = pickRandomVideo();
     if (!target || !spotlightEl) {
         // Retry soon if nothing yet (feed still populating)
@@ -335,27 +379,16 @@ function runSpotlightCycle() {
     const watchBtn = spotlightEl.querySelector<HTMLAnchorElement>('.optube-spotlight-watch');
     const cleanedTitle = titleText ? cleanTitle(titleText) : '';
     if (titleDest && cleanedTitle) {
-        if (anchor && anchor.href) {
-            titleDest.innerHTML = `<a href="${anchor.href}">${escapeHtml(cleanedTitle)}</a>`;
-        } else {
-            titleDest.textContent = cleanedTitle;
-        }
+        titleDest.textContent = cleanedTitle; // plain text only; navigation via Watch button
     }
     if (watchBtn && anchor && anchor.href) {
         watchBtn.href = anchor.href;
         watchBtn.removeAttribute('data-disabled');
     }
     if (backdrop) spotlightEl.style.backgroundImage = `url(${backdrop})`;
-    const iframe = spotlightEl.querySelector<HTMLIFrameElement>('.optube-spotlight-video iframe');
-    if (iframe && anchor?.href) {
+    if (anchor?.href) {
         const vid = extractVideoId(anchor.href);
-        if (vid) {
-            // Fade transition: remove loaded class, then set src
-            iframe.classList.remove('optube-loaded');
-            const autoplaySrc = `https://www.youtube.com/embed/${vid}?autoplay=1&mute=1&controls=0&playsinline=1&rel=0&modestbranding=1&loop=1&playlist=${vid}`;
-            if (iframe.src !== autoplaySrc) iframe.src = autoplaySrc;
-            iframe.onload = () => { iframe.classList.add('optube-loaded'); };
-        }
+        if (vid) switchSpotlightVideo(vid);
     }
 }
 
@@ -380,9 +413,6 @@ function observeItemsForSpotlight() {
 }
 
 // Helpers
-function escapeHtml(str: string) {
-    return str.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
-}
 function extractText(titleEl: Element | null, anchor: HTMLAnchorElement | null): string {
     if (!titleEl && anchor) return (anchor.getAttribute('title') || anchor.textContent || '').trim();
     if (!titleEl) return '';
@@ -410,7 +440,50 @@ function extractVideoId(href: string): string | null {
 
 // Remove typical trailing duration patterns (e.g., " - 12:34", " | 8:07", or appended timestamps)
 function cleanTitle(raw: string): string {
-    return raw.replace(/([-|–|•]|\|)?\s*(\d{1,2}:\d{2})(:?\d{2})?$/, '').trim();
+    // Strip common appended duration / time phrases YouTube sometimes places in titles (or channel formatting) leaving only core title text.
+    let t = raw
+        // Bracketed timecodes at end e.g. "(12:34)" / "[1:02:03]"
+        .replace(/\s*[[(](\d{1,2}:\d{2}(?::\d{2})?)[)]]\s*$/i, '')
+        // Trailing plain timecodes
+        .replace(/(?:[-–•|]|\bat\b)?\s*\d{1,2}:\d{2}(?::\d{2})?\s*$/i, '')
+        // Composite "1 hour, 20 minutes" style
+        .replace(/\b\d+\s+hours?,\s*\d+\s+minutes?\b[,.:;-]*$/i, '')
+        // Single unit with optional trailing comma / punctuation
+        .replace(/\b\d+\s+(seconds?|minutes?|hours?|days?|weeks?|months?|years?)(\s+ago)?[,.:;-]*$/i, '')
+        // "streamed 2 hours ago" / "premiered 3 days ago"
+        .replace(/\b(streamed|premiered)\s+\d+\s+(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\s+ago[,.:;-]*$/i, '')
+        // Remove hanging separators (| - : • ,) + spaces at end
+        .replace(/([\s]*[-–•|:,])+\s*$/i, '')
+        .trim();
+    // If we accidentally removed everything, fall back to original
+    if (!t) t = raw.trim();
+    return t;
+}
+
+function switchSpotlightVideo(videoId: string) {
+    if (!spotlightEl) return;
+    const frames = spotlightEl.querySelectorAll<HTMLIFrameElement>('.optube-spotlight-video iframe');
+    if (!frames.length) return;
+    const active = Array.from(frames).find(f => f.classList.contains('active')) || frames[0];
+    const next = frames.length > 1 ? (frames[0] === active ? frames[1] : frames[0]) : active;
+    const autoplaySrc = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&playsinline=1&rel=0&modestbranding=1&loop=1&playlist=${videoId}`;
+    if (next === active) {
+        // Single frame fallback: fade out then in
+        active.classList.remove('active');
+        setTimeout(() => { active.src = autoplaySrc; }, 200);
+        active.onload = () => { active.classList.add('active'); };
+        return;
+    }
+    // Prepare next frame
+    next.classList.remove('active');
+    next.style.opacity = '0';
+    next.onload = () => {
+        // Crossfade
+        next.classList.add('active');
+        // After fade, blank out old frame to stop playback
+        setTimeout(() => { if (active !== next) { active.classList.remove('active'); active.src = 'about:blank'; } }, 700);
+    };
+    if (next.src !== autoplaySrc) next.src = autoplaySrc; else next.onload?.(new Event('load'));
 }
 
 function globalWheelRedirect(e: WheelEvent) {
