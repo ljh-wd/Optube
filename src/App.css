@@ -65,15 +65,15 @@ html,
     /* for fade overlays */
     /* gradient mask (webkit) for softer edges */
     -webkit-mask-image: linear-gradient(to bottom,
-    transparent 0,
-    #000 calc(var(--fade-edge) * 0.55),
-    #000 calc(100% - var(--fade-edge) * 0.55),
-    transparent 100%);
+            transparent 0,
+            #000 calc(var(--fade-edge) * 0.55),
+            #000 calc(100% - var(--fade-edge) * 0.55),
+            transparent 100%);
     mask-image: linear-gradient(to bottom,
-    transparent 0,
-    #000 calc(var(--fade-edge) * 0.55),
-    #000 calc(100% - var(--fade-edge) * 0.55),
-    transparent 100%);
+            transparent 0,
+            #000 calc(var(--fade-edge) * 0.55),
+            #000 calc(100% - var(--fade-edge) * 0.55),
+            transparent 100%);
 }
 
 
@@ -93,19 +93,19 @@ html,
 .panels-scroll::before {
     top: 0;
     background: linear-gradient(to bottom,
-    var(--bg) 0%,
-    rgba(13, 17, 23, 0.92) 35%,
-    rgba(13, 17, 23, 0.55) 65%,
-    rgba(13, 17, 23, 0) 100%);
+            var(--bg) 0%,
+            rgba(13, 17, 23, 0.92) 35%,
+            rgba(13, 17, 23, 0.55) 65%,
+            rgba(13, 17, 23, 0) 100%);
 }
 
 .panels-scroll::after {
     bottom: 0;
     background: linear-gradient(to top,
-    var(--bg) 0%,
-    rgba(13, 17, 23, 0.92) 35%,
-    rgba(13, 17, 23, 0.55) 65%,
-    rgba(13, 17, 23, 0) 100%);
+            var(--bg) 0%,
+            rgba(13, 17, 23, 0.92) 35%,
+            rgba(13, 17, 23, 0.55) 65%,
+            rgba(13, 17, 23, 0) 100%);
 }
 
 /* Hide scrollbar track space visually (webkit) while retaining usability */
@@ -190,12 +190,14 @@ html,
 .hint-icon {
     width: 20px;
     height: 20px;
+    flex: 0 0 20px;
     color: var(--accent-glow);
+    align-self: flex-start;
 }
 
 .hint-container {
-    display: inline-flex;
-    align-items: center;
+    display: flex;
+    align-items: flex-start;
     gap: 0.45rem;
 }
 
@@ -314,8 +316,8 @@ html,
     /* subtle border for separation */
     min-height: 48px;
     transition: background var(--trans-fast),
-    border-color var(--trans-fast),
-    transform 140ms ease, box-shadow var(--trans-fast);
+        border-color var(--trans-fast),
+        transform 140ms ease, box-shadow var(--trans-fast);
 }
 
 .item-row:hover {
@@ -499,10 +501,10 @@ html,
 }
 
 /* Spacing between siblings inside expanded nested group */
-.nested-content.expanded > .card-section + .card-section,
-.nested-content.expanded > .card-section + .nested-toggle,
-.nested-content.expanded > .nested-toggle + .card-section,
-.nested-content.expanded > .nested-toggle + .nested-toggle {
+.nested-content.expanded>.card-section+.card-section,
+.nested-content.expanded>.card-section+.nested-toggle,
+.nested-content.expanded>.nested-toggle+.card-section,
+.nested-content.expanded>.nested-toggle+.nested-toggle {
     margin-top: .35rem;
 }
 

@@ -11,7 +11,9 @@ let spotlightEl: HTMLElement | null = null;
 let lastSpotlightIndex = -1; // track last used index to avoid immediate repeats
 let itemsObserver: MutationObserver | null = null;
 // Preserve user hide settings we temporarily modify while cinema mode is active
-let prevHideState: Record<string, boolean> | null = null;
+// We no longer preserve individual user hide settings when cinema toggles.
+// Per updated requirement: toggling cinema ON resets all filters and applies a fixed set;
+// toggling cinema OFF resets (clears) all filters to default (false).
 
 declare global {
     interface Window { optubeForceSpotlight?: () => void }
@@ -35,35 +37,37 @@ function ensureCinemaHomeState() {
     }
 }
 
+const ALL_HIDE_KEYS = [
+    'hideShorts', 'hideFold', 'hideComments', 'hideCommentAvatars', 'hideCategoryAndTopic', 'hideRecommended', 'hidePosts', 'hideMasthead', 'hideSidebar', 'hideHome', 'hideYouFeed', 'hideSubscriptions', 'hideSubscriptionsSidebar', 'hideSearchbar', 'hideNotifications', 'hideCreateButton', 'hideDescription', 'hideTitle', 'hideAiSummary', 'hideCreator', 'hideDurationBadges', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips', 'hideWatchedProgress', 'hideHoverPreview', 'hideExplore', 'hideMoreFromYouTube', 'hideYouSection', 'hidePlaylists', 'hideYourVideos', 'hideYourCourses', 'hideWatchLater', 'hideLikedVideos', 'hideHistory', 'hideExploreMusic', 'hideExploreMovies', 'hideExploreLive', 'hideExploreGaming', 'hideExploreNews', 'hideExploreSport', 'hideExploreLearning', 'hideExploreFashion', 'hideExplorePodcasts', 'hideExplorePlayables'
+];
+// Subset to force-enable during cinema mode for immersion
+const CINEMA_HIDE_KEYS = [
+    'hideShorts', 'hidePosts', 'hideHoverPreview', 'hideSidebar', 'hideBadgesChips', 'hideCreateButton', 'hideNotifications', 'hideSearchbar'
+];
+
 export function setCinemaMode(on: boolean) {
     if (on) {
         document.documentElement.setAttribute(ATTR, 'true');
         if (isHome()) document.body.classList.add('cinematic-home');
         // Remove #frosted-glass if present
         document.getElementById('frosted-glass')?.remove();
-        // Auto-enable (i.e. hide corresponding elements) for immersive mode
+        // Deterministic reset then apply cinema subset
         try {
-            const keys = ['hideShorts', 'hidePosts', 'hideHoverPreview', 'hideSidebar', 'hideBadgesChips', 'hideCreateButton', 'hideNotifications', 'hideSearchbar'];
             const chromeLike: ChromeRuntimeLike | undefined = (window as unknown as { chrome?: ChromeRuntimeLike }).chrome;
             if (chromeLike?.storage?.sync) {
-                chromeLike.storage.sync.get(keys, (data: Record<string, boolean>) => {
-                    prevHideState = {};
-                    const updates: Record<string, boolean> = {};
-                    keys.forEach(k => {
-                        prevHideState![k] = !!data[k];
-                        if (!data[k]) updates[k] = true; // only set if not already true
-                    });
-                    if (Object.keys(updates).length) {
-                        chromeLike.storage!.sync!.set(updates);
-                    }
-                });
+                const updates: Record<string, boolean> = {};
+                // Reset all hide flags to false
+                ALL_HIDE_KEYS.forEach(k => { updates[k] = false; });
+                // Apply cinema subset to true
+                CINEMA_HIDE_KEYS.forEach(k => { updates[k] = true; });
+                chromeLike.storage.sync.set(updates);
             }
         } catch { /* ignore */ }
-        // Ensure fresh layout (only once per enable session)
+        // Force a fresh layout (one-time per enable) AFTER applying settings
         try {
             if (!sessionStorage.getItem('optubeCinemaReloaded')) {
                 sessionStorage.setItem('optubeCinemaReloaded', '1');
-                setTimeout(() => location.reload(), 60);
+                setTimeout(() => location.reload(), 120);
             }
         } catch { /* ignore */ }
     } else {
@@ -71,14 +75,15 @@ export function setCinemaMode(on: boolean) {
         document.body.classList.remove('cinematic-home');
         document.body.classList.remove('cinema-spotlight-active');
         document.body.classList.remove('cinema-spotlight-half', 'cinema-spotlight-quarter');
-        // Restore previously modified hide settings
+        // Reset ALL hide flags to false on disable
         try {
             const chromeLike: ChromeRuntimeLike | undefined = (window as unknown as { chrome?: ChromeRuntimeLike }).chrome;
-            if (prevHideState && chromeLike?.storage?.sync) {
-                chromeLike.storage.sync.set(prevHideState);
+            if (chromeLike?.storage?.sync) {
+                const updates: Record<string, boolean> = {};
+                ALL_HIDE_KEYS.forEach(k => { updates[k] = false; });
+                chromeLike.storage.sync.set(updates);
             }
         } catch { /* ignore */ }
-        prevHideState = null;
         try { sessionStorage.removeItem('optubeCinemaReloaded'); } catch { /* ignore */ }
         if (spotlightInterval) window.clearInterval(spotlightInterval);
         spotlightInterval = null;
