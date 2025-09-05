@@ -47,9 +47,9 @@ function App() {
             <Hint>Enable filters to customize your view.</Hint>
             <Panels>
                 <Feeds />
-                <UI />
                 <Layout />
                 <Video />
+                <UI />
             </Panels>
 
             <Footer />

@@ -11,7 +11,8 @@ export default function Footer() {
                     className="reset-btn"
                     onClick={() => {
                         Object.keys(defaultSettings).forEach(key => {
-                            handleToggle(key as keyof Settings)(defaultSettings[key as keyof Settings]);
+                            const value = defaultSettings[key as keyof Settings];
+                            handleToggle(key as keyof Settings)(typeof value === 'boolean' ? value : false);
                         });
                         chrome.storage.sync.remove('_sidebarNestedBackup');
                     }}

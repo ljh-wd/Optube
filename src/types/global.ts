@@ -1,4 +1,5 @@
 export interface Settings {
+    theme?: 'dark' | 'light';
     hideShorts: boolean;
     hideFold: boolean;
     hideComments: boolean;

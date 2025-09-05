@@ -41,16 +41,164 @@ html,
     -webkit-font-smoothing: antialiased;
 }
 
+/* Light theme overrides */
+.app-shell[data-theme='light'] {
+    --bg: #f5f7fa;
+    --bg-alt: #e9eef3;
+    --bg-glass: rgba(0, 0, 0, 0.05);
+    --bg-glass-alt: rgba(0, 0, 0, 0.08);
+    --text-primary: #1d242b;
+    --text-dim: #5a6875;
+    --accent: #2563eb;
+    --accent-glow: #1d4ed8;
+    --border: #d0d7de;
+}
+
+/* Additional light theme specific element tone tweaks */
+.app-shell[data-theme='light'] .settings-group-header {
+    color: var(--text-primary);
+}
+
+.app-shell[data-theme='light'] .group-title {
+    color: var(--text-primary);
+}
+
+.app-shell[data-theme='light'] .hint {
+    color: var(--text-dim);
+}
+
+.app-shell[data-theme='light'] .item-row {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0));
+}
+
+.app-shell[data-theme='light'] .item-row:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.app-shell[data-theme='light'] .theme-icon-btn {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    border-color: rgba(37, 99, 235, 0.65);
+    box-shadow: 0 0 0 1px rgba(29, 78, 216, 0.55), 0 4px 10px -2px rgba(29, 78, 216, 0.45);
+}
+
+.app-shell[data-theme='light'] .theme-icon-btn:hover {
+    filter: brightness(1.06);
+}
+
+/* Light theme glass gradient enhancements */
+.app-shell[data-theme='light'] .app-header {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.70) 38%, rgba(255, 255, 255, 0.55));
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+.app-shell[data-theme='light'] .app-header::before {
+    background: linear-gradient(120deg, rgba(var(--accent-glow)/0.20), rgba(var(--accent-glow)/0.08) 45%, transparent 72%);
+}
+
+.app-shell[data-theme='light'] .settings-group {
+    background: linear-gradient(150deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.88) 45%, rgba(255, 255, 255, 0.80));
+    border-color: rgba(0, 0, 0, 0.09);
+}
+
+.app-shell[data-theme='light'] .settings-group::before {
+    background: linear-gradient(120deg, rgba(var(--accent-glow)/0.14), rgba(var(--accent-glow)/0.05) 55%, transparent 78%);
+}
+
+.app-shell[data-theme='light'] .footer-card {
+    background: linear-gradient(150deg, rgba(255, 255, 255, 0.90), rgba(255, 255, 255, 0.78) 42%, rgba(255, 255, 255, 0.68));
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+.app-shell[data-theme='light'] .item-row {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.035), rgba(0, 0, 0, 0.015));
+}
+
+.app-shell[data-theme='light'] .item-row:hover {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.025));
+}
+
+/* Form field utilities */
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+}
+
+.field-label {
+    font-size: .65rem;
+    font-weight: 600;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    opacity: .85;
+}
+
+.theme-select {
+    background: var(--bg-glass);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: .55rem .65rem;
+    border-radius: 6px;
+    font-size: .85rem;
+}
+
+.theme-select:focus {
+    outline: 2px solid var(--accent-glow);
+    outline-offset: 2px;
+}
+
 /* -------- App Layout -------- */
 .app-shell {
     display: flex;
     flex-direction: column;
-    /* natural height; not driven by panels */
     height: fit-content;
-    padding: 1.25rem;
+    padding: 1.25rem 1.25rem 1.5rem;
     margin: 0 auto;
     gap: 1.25rem;
     background: var(--bg);
+}
+
+.app-shell-top {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100%;
+    padding: 0 0 .25rem;
+}
+
+.theme-icon-btn {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #ff6a84);
+    /* mirror checked switch gradient */
+    border: 1px solid rgba(var(--accent-glow)/0.65);
+    color: #fff;
+    cursor: pointer;
+    transition: background var(--trans-fast), transform var(--trans-fast), box-shadow var(--trans-fast), filter var(--trans-fast);
+    box-shadow: 0 0 0 1px rgba(var(--accent-glow)/0.65), 0 4px 10px -2px rgba(var(--accent-glow)/0.5);
+}
+
+.theme-icon-btn:hover {
+    filter: brightness(1.05);
+    transform: translateY(-2px);
+}
+
+.theme-icon-btn:active {
+    transform: translateY(0);
+    filter: brightness(.97);
+}
+
+.theme-icon-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.theme-icon-btn:focus-visible {
+    outline: 2px solid rgba(var(--accent-glow)/0.8);
+    outline-offset: 2px;
 }
 
 /* Scroll container for variable number of setting categories */
@@ -130,7 +278,6 @@ html,
 .panels {
     display: flex;
     flex-direction: column;
-    gap: 1.1rem;
 }
 
 .app-header {
@@ -169,6 +316,7 @@ html,
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 2px;
+    color: var(--text-primary);
 }
 
 .tagline {
@@ -281,6 +429,7 @@ html,
     display: flex;
     align-items: center;
     gap: .5rem;
+    color: var(--text-primary);
 }
 
 .settings-group-inner {
@@ -562,7 +711,7 @@ html,
 
 .reset-btn {
     background: linear-gradient(135deg, var(--accent), #ff6a84);
-    color: #fff;
+    color: var(--text-primary);
     font-weight: 600;
     font-size: .8rem;
     letter-spacing: .5px;
@@ -590,6 +739,12 @@ html,
 .reset-btn:focus-visible {
     outline: none;
     box-shadow: var(--shadow-focus);
+}
+
+/* Light theme override for reset button for contrast */
+.app-shell[data-theme='light'] .reset-btn {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
 }
 
 .info-text {

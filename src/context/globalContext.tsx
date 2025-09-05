@@ -4,6 +4,7 @@ import type { Settings } from '../types/global';
 
 // TODO: Split these types up for better maintainability and readability
 const defaultSettings: Settings = {
+    theme: 'dark',
     hideShorts: false,
     hideSubscriptions: false,
     hideAiSummary: false,
