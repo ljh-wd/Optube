@@ -19,6 +19,7 @@ export interface Settings {
     hideTitle: boolean;
     hideAiSummary: boolean;
     hideCreator: boolean;
+    cinematicMode: boolean; // new UI: cinematic Netflix-like home experience
     // Layout category
     hideDurationBadges: boolean;
     hidePreviewDetails: boolean; // video preview metadata (feed cards)

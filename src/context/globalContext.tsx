@@ -24,6 +24,7 @@ const defaultSettings: Settings = {
     hideDescription: false,
     hideTitle: false,
     hideCreator: false,
+    cinematicMode: false,
     // Layout
     hideDurationBadges: false,
     hidePreviewDetails: false,

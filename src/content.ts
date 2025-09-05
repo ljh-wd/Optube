@@ -45,6 +45,7 @@ import { applyLayout, injectLayoutCSS, observeLayout } from './utils/layout';
 import { applyNavigation, observeNavigation } from './utils/navigation';
 import { setPostsVisibility, observePosts, injectPostsCSS } from './utils/posts.ts';
 import { applyYouFeedAttributes, observeYouFeed, injectYouFeedCSS } from './utils/you';
+import { applyCinema, injectCinemaCSS, observeCinema } from './utils/cinema';
 
 function cleanYouTube(settings: Settings): void {
     setShortsVisibility(!!settings.hideShorts);
@@ -74,6 +75,7 @@ function cleanYouTube(settings: Settings): void {
         hideWatchedProgress: settings.hideWatchedProgress,
         hideHoverPreview: settings.hideHoverPreview,
     });
+    applyCinema({ cinematicMode: settings.cinematicMode });
     applyNavigation({
         hideExplore: settings.hideExplore,
         hideExploreMusic: settings.hideExploreMusic,
@@ -110,7 +112,7 @@ function cleanYouTube(settings: Settings): void {
 
 function run(): void {
     chrome.storage.sync.get([
-        'hideShorts', 'hideHome', 'hideYouFeed', 'hideSubscriptions', 'hideSubscriptionsSidebar', 'hideMasthead', 'hideSearchbar', 'hideNotifications', 'hideCreateButton', 'hideFold', 'hideComments', 'hideCommentAvatars', 'hideCategoryAndTopic', 'hideRecommended', 'hidePosts', 'hideSidebar', 'hideDescription', 'hideTitle', 'hideCreator',
+        'hideShorts', 'hideHome', 'hideYouFeed', 'cinematicMode', 'hideSubscriptions', 'hideSubscriptionsSidebar', 'hideMasthead', 'hideSearchbar', 'hideNotifications', 'hideCreateButton', 'hideFold', 'hideComments', 'hideCommentAvatars', 'hideCategoryAndTopic', 'hideRecommended', 'hidePosts', 'hideSidebar', 'hideDescription', 'hideTitle', 'hideCreator',
         'hideDurationBadges', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips',
         'hideWatchedProgress', 'hideHoverPreview',
         "hideAiSummary",
@@ -153,6 +155,7 @@ injectCreateButtonCSS();
 injectCommentAvatarCSS();
 injectPostsCSS();
 injectYouFeedCSS();
+injectCinemaCSS();
 
 chrome.storage.onChanged.addListener((changes, area) => {
     if (
@@ -190,6 +193,7 @@ observeLayout();
 observeNavigation();
 observePosts();
 observeYouFeed();
+observeCinema();
 
 // Inject layout CSS last
 injectLayoutCSS();
