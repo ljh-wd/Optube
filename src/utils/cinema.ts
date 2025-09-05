@@ -182,6 +182,8 @@ export function injectCinemaCSS() {
     box-sizing:border-box !important;
     overscroll-behavior-x: contain;
     flex: 1 0 auto !important; /* avoid shrinking */
+    backface-visibility:hidden; /* reduce paint artifacts */
+    transform:translateZ(0); /* promote layer */
   }
   /* Defensive override in case inline style attribute persists after SPA nav */
   html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer[style] {
@@ -200,7 +202,10 @@ export function injectCinemaCSS() {
     flex:0 0 340px !important;
     max-width:340px !important;
     scroll-snap-align:center;
+        transition:opacity .32s ease, transform .32s ease; /* smooth entrance */
+        contain:content; /* isolate layout/paint to reduce reflow */
   }
+    html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer > ytd-rich-item-renderer.cinema-loading { opacity:0 !important; transform:translateY(28px); }
   /* Hide default grid sizing variables influence */
   html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer { --ytd-rich-grid-items-per-row: 1 !important; }
   html[${ATTR}] body.cinematic-home ytd-rich-item-renderer { height:350px!important; aspect-ratio:1!important; margin:0!important; }
@@ -284,6 +289,7 @@ function attachCarouselEnhancements() {
     attached = true;
     // Ensure spotlight starts once we have items
     initSpotlight();
+    observeCarouselNewItems();
 }
 
 function initSpotlight() {
@@ -415,6 +421,39 @@ function observeItemsForSpotlight() {
         }
     });
     itemsObserver.observe(grid, { childList: true, subtree: true });
+}
+
+// Observe new carousel items to apply smooth fade-in instead of flash / jump
+function observeCarouselNewItems() {
+    const grid = carouselContainer;
+    if (!grid) return;
+    const FLAG = '__cinemaObserved';
+    if ((grid as unknown as Record<string, unknown>)[FLAG]) return;
+    const obs = new MutationObserver(muts => {
+        if (!document.documentElement.hasAttribute(ATTR)) return;
+        muts.forEach(m => {
+            m.addedNodes.forEach(n => {
+                if (!(n instanceof HTMLElement)) return;
+                if (n.tagName.toLowerCase() === 'ytd-rich-item-renderer') {
+                    n.classList.add('cinema-loading');
+                    // Defer removal to next frame to allow transition
+                    requestAnimationFrame(() => {
+                        // If thumbnail image exists, wait for it
+                        const img = n.querySelector('img');
+                        if (img && !(img as HTMLImageElement).complete) {
+                            img.addEventListener('load', () => n.classList.remove('cinema-loading'), { once: true });
+                            // Fallback timeout in case load never fires
+                            setTimeout(() => n.classList.remove('cinema-loading'), 1200);
+                        } else {
+                            n.classList.remove('cinema-loading');
+                        }
+                    });
+                }
+            });
+        });
+    });
+    obs.observe(grid, { childList: true });
+    (grid as unknown as Record<string, unknown>)[FLAG] = true;
 }
 
 // Helpers
