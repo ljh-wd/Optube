@@ -3,6 +3,8 @@
  * @param selector - CSS selector for elements to remove.
  * @param text - Text content to match (case-insensitive, trimmed).
  */
+
+// TODO: Remove this, it's not used anymore. Still need to place some other functions in the file so keep the file.
 export function removeElementsByText(selector: string, text: string) {
     document.querySelectorAll(selector).forEach((el) => {
         if (el.textContent?.trim().toLowerCase() === text.toLowerCase()) {

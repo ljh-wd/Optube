@@ -9,6 +9,7 @@ const defaultSettings: Settings = {
     hideAiSummary: false,
     hideSubscriptionsSidebar: false,
     hideHome: false,
+    hideYouFeed: false,
     hideMasthead: false,
     hideSearchbar: false,
     hideNotifications: false,
@@ -110,6 +111,7 @@ export function useGlobalContext() {
                 updated.hideExplorePlayables = false;
                 updated.hideMoreFromYouTube = false;
                 updated.hideYouSection = false;
+                // leave hideYouFeed untouched (independent)
                 updated.hideHistory = false;
                 updated.hidePlaylists = false;
                 updated.hideYourVideos = false;
@@ -141,6 +143,7 @@ export function useGlobalContext() {
                 updated.hideExplorePlayables = true;
                 updated.hideMoreFromYouTube = true;
                 updated.hideYouSection = true;
+                // do not auto-toggle hideYouFeed here
                 updated.hideHistory = true;
                 updated.hidePlaylists = true;
                 updated.hideYourVideos = true;

@@ -2,6 +2,8 @@ interface NavSettings {
     hideExplore: boolean;
     hideMoreFromYouTube: boolean;
     hideYouSection: boolean;
+    // When the user hides the You feed (separate feed toggle), we also hide the sidebar 'You' section implicitly.
+    hideYouFeed?: boolean;
     hideHistory: boolean;
     hidePlaylists: boolean;
     hideYourVideos: boolean;
@@ -110,7 +112,7 @@ export function applyNavigation(settings: Partial<NavSettings>) {
         settings.hideLikedVideos
     ].every(v => v === true);  // Adjusted to check for true, assuming undefined as false
 
-    const effectiveHideYouSection = !!settings.hideYouSection || allYouChildrenHidden;
+    const effectiveHideYouSection = !!settings.hideYouSection || allYouChildrenHidden || !!settings.hideYouFeed;
 
     markMatchingGuideSections(t => t === 'Explore', effectiveHideExplore);
     markMatchingGuideSections(t => t === 'More from YouTube', !!settings.hideMoreFromYouTube);
@@ -160,7 +162,7 @@ export function applyNavigation(settings: Partial<NavSettings>) {
 export function observeNavigation() {
     injectNavigationCSS();  // Inject the static CSS once
 
-    const KEYS: (keyof NavSettings)[] = ['hideExplore', 'hideMoreFromYouTube', 'hideYouSection', 'hideHistory', 'hidePlaylists', 'hideYourVideos', 'hideYourCourses', 'hideWatchLater', 'hideLikedVideos', 'hideExploreMusic', 'hideExploreMovies', 'hideExploreLive', 'hideExploreGaming', 'hideExploreNews', 'hideExploreSport', 'hideExploreLearning', 'hideExploreFashion', 'hideExplorePodcasts', 'hideExplorePlayables'];
+    const KEYS: (keyof NavSettings)[] = ['hideExplore', 'hideMoreFromYouTube', 'hideYouSection', 'hideYouFeed', 'hideHistory', 'hidePlaylists', 'hideYourVideos', 'hideYourCourses', 'hideWatchLater', 'hideLikedVideos', 'hideExploreMusic', 'hideExploreMovies', 'hideExploreLive', 'hideExploreGaming', 'hideExploreNews', 'hideExploreSport', 'hideExploreLearning', 'hideExploreFashion', 'hideExplorePodcasts', 'hideExplorePlayables'];
     chrome.storage.sync.get(KEYS, applyNavigation);
     chrome.storage.onChanged.addListener(ch => {
         if (KEYS.some(k => ch[k])) {

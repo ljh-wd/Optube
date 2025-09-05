@@ -9,6 +9,7 @@ export interface Settings {
     hideMasthead: boolean;
     hideSidebar: boolean;
     hideHome: boolean;
+    hideYouFeed: boolean; // new: hide 'You' page sections independently of sidebar navigation
     hideSubscriptions: boolean;
     hideSubscriptionsSidebar: boolean;
     hideSearchbar: boolean;
