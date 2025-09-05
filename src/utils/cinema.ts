@@ -14,7 +14,30 @@ let arrowLeft: HTMLButtonElement | null = null;
 let arrowRight: HTMLButtonElement | null = null;
 let arrowOverlay: HTMLDivElement | null = null;
 let arrowCheckInterval: number | null = null;
-const INTRO_FLAG = 'optubeShowIntro';
+// One-time intro splash controller (closure) – plays once per explicit enable toggle (not on reload)
+const cinemaIntro = (() => {
+    let shownThisActivation = false;
+    function render() {
+        if (!document.documentElement.hasAttribute(ATTR)) return;
+        if (document.getElementById('optube-cinema-intro')) return;
+        const wrap = document.createElement('div');
+        wrap.id = 'optube-cinema-intro';
+        wrap.innerHTML = `<div class="intro-stage"><span class="intro-bar"></span><span class="intro-text">OPTUBE</span></div>`;
+        document.body.appendChild(wrap);
+        // Minimal animation (leverages existing CSS rules already injected)
+        setTimeout(() => { wrap.classList.add('fade-out'); }, 2000);
+        setTimeout(() => { wrap.remove(); }, 2600);
+    }
+    return {
+        maybeShow(firstActivation: boolean) {
+            if (!firstActivation) return;
+            if (shownThisActivation) return;
+            shownThisActivation = true;
+            render();
+        },
+        reset() { shownThisActivation = false; }
+    };
+})();
 // Preserve user hide settings we temporarily modify while cinema mode is active
 // We no longer preserve individual user hide settings when cinema toggles.
 // Per updated requirement: toggling cinema ON resets all filters and applies a fixed set;
@@ -50,33 +73,81 @@ const CINEMA_HIDE_KEYS = [
     'hideShorts', 'hidePosts', 'hideHoverPreview', 'hideSidebar', 'hideBadgesChips', 'hideCreateButton', 'hideNotifications', 'hideSearchbar'
 ];
 
+// Debounced diff-writing to chrome.storage.sync to avoid quota errors.
+let lastAppliedHideState: Record<string, boolean> | null = null;
+let writeTimer: number | null = null;
+let pendingState: Record<string, boolean> | null = null;
+const WRITE_DEBOUNCE_MS = 150; // collapse rapid successive toggles
+
+function scheduleHideStateWrite(state: Record<string, boolean>) {
+    pendingState = state;
+    if (writeTimer) return; // already scheduled
+    writeTimer = window.setTimeout(() => {
+        writeTimer = null;
+        if (!pendingState) return;
+        try {
+            const chromeLike: ChromeRuntimeLike | undefined = (window as unknown as { chrome?: ChromeRuntimeLike }).chrome;
+            const sync = chromeLike?.storage?.sync;
+            if (!sync) { lastAppliedHideState = pendingState; pendingState = null; return; }
+            // If we don't yet have a baseline, fetch once then diff
+            const apply = (baseline: Record<string, boolean> | null) => {
+                const currentBaseline = baseline || lastAppliedHideState || {};
+                const diff: Record<string, boolean> = {};
+                let changed = false;
+                for (const k of Object.keys(pendingState!)) {
+                    const desired = pendingState![k];
+                    if (currentBaseline[k] !== desired) {
+                        diff[k] = desired;
+                        changed = true;
+                    }
+                }
+                if (changed) {
+                    try { sync.set(diff); } catch { /* ignore */ }
+                    lastAppliedHideState = { ...currentBaseline, ...diff };
+                }
+                pendingState = null;
+            };
+            if (!lastAppliedHideState) {
+                // One-time get
+                try {
+                    sync.get(ALL_HIDE_KEYS, (data) => { apply(data || {}); });
+                } catch { apply(null); }
+            } else {
+                apply(null);
+            }
+        } catch { /* ignore */ }
+    }, WRITE_DEBOUNCE_MS);
+}
+
+function buildCinemaState(): Record<string, boolean> {
+    const s: Record<string, boolean> = {};
+    ALL_HIDE_KEYS.forEach(k => { s[k] = false; });
+    CINEMA_HIDE_KEYS.forEach(k => { s[k] = true; });
+    return s;
+}
+
+function buildResetState(): Record<string, boolean> {
+    const s: Record<string, boolean> = {};
+    ALL_HIDE_KEYS.forEach(k => { s[k] = false; });
+    return s;
+}
+
 export function setCinemaMode(on: boolean) {
     if (on) {
         document.documentElement.setAttribute(ATTR, 'true');
         if (isHome()) document.body.classList.add('cinematic-home');
         // Remove #frosted-glass if present
         document.getElementById('frosted-glass')?.remove();
-        // Deterministic reset then apply cinema subset
+        // Diffed + debounced write of cinema state to avoid quota excess
+        scheduleHideStateWrite(buildCinemaState());
+        // One-time per activation splash (do NOT reload page)
+        let firstActivation = false;
         try {
-            const chromeLike: ChromeRuntimeLike | undefined = (window as unknown as { chrome?: ChromeRuntimeLike }).chrome;
-            if (chromeLike?.storage?.sync) {
-                const updates: Record<string, boolean> = {};
-                // Reset all hide flags to false
-                ALL_HIDE_KEYS.forEach(k => { updates[k] = false; });
-                // Apply cinema subset to true
-                CINEMA_HIDE_KEYS.forEach(k => { updates[k] = true; });
-                chromeLike.storage.sync.set(updates);
-            }
+            const wasActive = localStorage.getItem('optube_cinema_active') === '1';
+            if (!wasActive) firstActivation = true;
+            localStorage.setItem('optube_cinema_active', '1');
         } catch { /* ignore */ }
-        // Force a fresh layout (one-time per enable) AFTER applying settings
-        try {
-            if (!sessionStorage.getItem('optubeCinemaReloaded')) {
-                // Set intro splash flag so post-reload we show Netflix-style intro
-                sessionStorage.setItem(INTRO_FLAG, '1');
-                sessionStorage.setItem('optubeCinemaReloaded', '1');
-                setTimeout(() => location.reload(), 120);
-            }
-        } catch { /* ignore */ }
+        setTimeout(() => cinemaIntro.maybeShow(firstActivation), 80);
     } else {
         document.documentElement.removeAttribute(ATTR);
         document.body.classList.remove('cinematic-home');
@@ -85,21 +156,17 @@ export function setCinemaMode(on: boolean) {
         // Cleanup arrows interval
         if (arrowCheckInterval) { clearInterval(arrowCheckInterval); arrowCheckInterval = null; }
         arrowOverlay?.remove(); arrowOverlay = null; arrowLeft = null; arrowRight = null;
-        try { sessionStorage.removeItem(INTRO_FLAG); } catch { /* ignore */ }
-        // Reset ALL hide flags to false on disable
-        try {
-            const chromeLike: ChromeRuntimeLike | undefined = (window as unknown as { chrome?: ChromeRuntimeLike }).chrome;
-            if (chromeLike?.storage?.sync) {
-                const updates: Record<string, boolean> = {};
-                ALL_HIDE_KEYS.forEach(k => { updates[k] = false; });
-                chromeLike.storage.sync.set(updates);
-            }
-        } catch { /* ignore */ }
-        try { sessionStorage.removeItem('optubeCinemaReloaded'); } catch { /* ignore */ }
+        cinemaIntro.reset();
+        // Reset all hide flags (diffed & debounced)
+        scheduleHideStateWrite(buildResetState());
+        try { localStorage.removeItem('optube_cinema_active'); } catch { /* ignore */ }
         if (spotlightInterval) window.clearInterval(spotlightInterval);
         spotlightInterval = null;
         spotlightEl?.remove();
         spotlightEl = null;
+        itemsObserver?.disconnect(); itemsObserver = null;
+        window.removeEventListener('wheel', globalWheelRedirect);
+        attached = false;
     }
 }
 
@@ -298,7 +365,7 @@ export function observeCinema() {
     // Initial attempt
     attachCarouselEnhancements();
     initSpotlight();
-    maybeShowCinemaIntro();
+    // Splash now handled inside setCinemaMode via closure; no-op here
     return observer;
 }
 
@@ -396,69 +463,7 @@ function initSpotlight() {
     window.optubeForceSpotlight = runSpotlightCycle;
 }
 
-function maybeShowCinemaIntro() {
-    try {
-        if (!sessionStorage.getItem(INTRO_FLAG)) return; // nothing queued
-
-        const launchIntro = () => {
-            // Guard if already shown
-            if (!sessionStorage.getItem(INTRO_FLAG)) return;
-            sessionStorage.removeItem(INTRO_FLAG);
-            const existing = document.getElementById('optube-cinema-intro');
-            if (existing) existing.remove();
-            const wrap = document.createElement('div');
-            wrap.id = 'optube-cinema-intro';
-            // Inline fallback styles so it still displays even if attribute CSS not yet applied for a split second
-            wrap.style.cssText = 'position:fixed;inset:0;background:#000;z-index:999999;display:flex;align-items:center;justify-content:center;font-family:Inter,system-ui,sans-serif;pointer-events:none;';
-            wrap.innerHTML = `<div class="intro-stage" style="position:relative;width:420px;height:260px;display:flex;align-items:center;justify-content:center;">
-                <span class="intro-bar" style="position:absolute;width:40px;height:100%;background:linear-gradient(180deg,#e50914,#b00710);filter:drop-shadow(0 0 22px rgba(229,9,20,.55));transform:scaleX(.07);transform-origin:center;"></span>
-                <span class="intro-text" style="position:relative;font-size:4rem;font-weight:800;letter-spacing:.85rem;color:#fff;text-shadow:0 0 18px rgba(229,9,20,.4),0 0 4px rgba(255,255,255,.35);opacity:0;">OPTUBE</span>
-            </div>`;
-            document.body.appendChild(wrap);
-            // Kick off animations slightly delayed to allow CSS selector (html[ATTR]) cascade if present
-            requestAnimationFrame(() => {
-                // If our attribute CSS is active, add a class to allow keyframes; otherwise manually animate via JS fallback
-                if (document.documentElement.hasAttribute(ATTR)) {
-                    // Add classes to trigger existing keyframes (CSS already injected)
-                    wrap.querySelector('.intro-bar')?.animate([
-                        { transform: 'scaleX(.07)' },
-                        { transform: 'scaleX(.25)', offset: .3 },
-                        { transform: 'scaleX(.9)', offset: .55 },
-                        { transform: 'scaleX(.78)', offset: .72 },
-                        { transform: 'scaleX(1)' }
-                    ], { duration: 1450, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' });
-                    const textEl = wrap.querySelector('.intro-text');
-                    textEl?.animate([
-                        { opacity: 0, transform: 'translateY(22px) scale(1.08)', letterSpacing: '.85rem' },
-                        { opacity: .25, offset: .45 },
-                        { opacity: .75, letterSpacing: '.35rem', offset: .7 },
-                        { opacity: 1, transform: 'translateY(0) scale(1)', letterSpacing: '.15rem' }
-                    ], { duration: 1600, easing: 'ease', delay: 350, fill: 'forwards' });
-                }
-            });
-            // Fade out & remove
-            setTimeout(() => { wrap.classList.add('fade-out'); wrap.style.transition = 'opacity .62s ease'; wrap.style.opacity = '0'; }, 2150);
-            setTimeout(() => { wrap.remove(); }, 2800);
-        };
-
-        if (document.documentElement.hasAttribute(ATTR)) {
-            launchIntro();
-        } else {
-            // Observe for attribute addition for up to 4s
-            const obs = new MutationObserver(() => {
-                if (document.documentElement.hasAttribute(ATTR)) {
-                    obs.disconnect();
-                    launchIntro();
-                }
-            });
-            obs.observe(document.documentElement, { attributes: true, attributeFilter: [ATTR] });
-            // Fallback timeout: show anyway after 1600ms even if attribute not yet applied
-            setTimeout(() => { if (sessionStorage.getItem(INTRO_FLAG)) { obs.disconnect(); launchIntro(); } }, 1600);
-            // Hard stop after 4s
-            setTimeout(() => { obs.disconnect(); sessionStorage.removeItem(INTRO_FLAG); }, 4000);
-        }
-    } catch { /* ignore */ }
-}
+// (Legacy maybeShowCinemaIntro removed – now handled inline in setCinemaMode with closure)
 
 function pickRandomVideo(): HTMLElement | null {
     // Prefer the carousel container if available; otherwise query document-wide
