@@ -10,9 +10,6 @@ import TopBar from "../Toggles/Layout/TopBar";
 export default function Layout() {
     const { settings, handleToggle } = useGlobalContext();
 
-
-
-
     return (
         <SettingsGroup title="Layout">
             <SettingsGrid>
