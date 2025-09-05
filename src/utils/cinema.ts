@@ -14,6 +14,7 @@ let arrowLeft: HTMLButtonElement | null = null;
 let arrowRight: HTMLButtonElement | null = null;
 let arrowOverlay: HTMLDivElement | null = null;
 let arrowCheckInterval: number | null = null;
+const INTRO_FLAG = 'optubeShowIntro';
 // Preserve user hide settings we temporarily modify while cinema mode is active
 // We no longer preserve individual user hide settings when cinema toggles.
 // Per updated requirement: toggling cinema ON resets all filters and applies a fixed set;
@@ -70,6 +71,8 @@ export function setCinemaMode(on: boolean) {
         // Force a fresh layout (one-time per enable) AFTER applying settings
         try {
             if (!sessionStorage.getItem('optubeCinemaReloaded')) {
+                // Set intro splash flag so post-reload we show Netflix-style intro
+                sessionStorage.setItem(INTRO_FLAG, '1');
                 sessionStorage.setItem('optubeCinemaReloaded', '1');
                 setTimeout(() => location.reload(), 120);
             }
@@ -82,6 +85,7 @@ export function setCinemaMode(on: boolean) {
         // Cleanup arrows interval
         if (arrowCheckInterval) { clearInterval(arrowCheckInterval); arrowCheckInterval = null; }
         arrowOverlay?.remove(); arrowOverlay = null; arrowLeft = null; arrowRight = null;
+        try { sessionStorage.removeItem(INTRO_FLAG); } catch { /* ignore */ }
         // Reset ALL hide flags to false on disable
         try {
             const chromeLike: ChromeRuntimeLike | undefined = (window as unknown as { chrome?: ChromeRuntimeLike }).chrome;
@@ -262,6 +266,20 @@ export function injectCinemaCSS() {
 
   /* Reduce potential layout conflicts: ensure watch page unaffected */
   html[${ATTR}] body:not(.cinematic-home) { /* no-op placeholder */ }
+
+    /* Intro splash (Netflix-style inspired) */
+    html[${ATTR}] #optube-cinema-intro { position:fixed; inset:0; background:#000; z-index:999999; display:flex; align-items:center; justify-content:center; font-family:'Inter', system-ui, sans-serif; overflow:hidden; pointer-events:none; }
+    html[${ATTR}] #optube-cinema-intro .intro-stage { position:relative; width:420px; height:260px; display:flex; align-items:center; justify-content:center; }
+    html[${ATTR}] #optube-cinema-intro .intro-bar { position:absolute; width:40px; height:100%; background:linear-gradient(180deg,#e50914,#b00710); filter:drop-shadow(0 0 22px rgba(229,9,20,.55)); transform:scaleX(.07); transform-origin:center; animation:optubeIntroBar 1450ms cubic-bezier(.4,0,.2,1) forwards; }
+    html[${ATTR}] #optube-cinema-intro.done .intro-bar { animation-play-state:paused; }
+    html[${ATTR}] #optube-cinema-intro .intro-text { position:relative; font-size:4rem; font-weight:800; letter-spacing:.85rem; color:#fff; text-shadow:0 0 18px rgba(229,9,20,.4), 0 0 4px rgba(255,255,255,.35); opacity:0; animation:optubeIntroText 1600ms 350ms ease forwards; }
+    html[${ATTR}] #optube-cinema-intro .intro-rings { position:absolute; inset:0; pointer-events:none; }
+    html[${ATTR}] #optube-cinema-intro::after { content:""; position:absolute; inset:0; background:radial-gradient(circle at 50% 50%, rgba(229,9,20,.15), transparent 60%); opacity:0; animation:optubeIntroGlow 1400ms 200ms ease forwards; }
+    html[${ATTR}] #optube-cinema-intro.fade-out { animation:optubeIntroFade 620ms ease forwards; }
+    @keyframes optubeIntroBar { 0%{transform:scaleX(.07);} 30%{transform:scaleX(.25);} 55%{transform:scaleX(.9);} 72%{transform:scaleX(.78);} 100%{transform:scaleX(1);} }
+    @keyframes optubeIntroText { 0%{opacity:0; transform:translateY(22px) scale(1.08);} 45%{opacity:.25;} 70%{opacity:.75; letter-spacing:.35rem;} 100%{opacity:1; transform:translateY(0) scale(1); letter-spacing:.15rem;} }
+    @keyframes optubeIntroGlow { 0%{opacity:0;} 50%{opacity:1;} 100%{opacity:.55;} }
+    @keyframes optubeIntroFade { 0%{opacity:1;} 100%{opacity:0;} }
   `;
     document.head.appendChild(style);
 }
@@ -280,6 +298,7 @@ export function observeCinema() {
     // Initial attempt
     attachCarouselEnhancements();
     initSpotlight();
+    maybeShowCinemaIntro();
     return observer;
 }
 
@@ -375,6 +394,70 @@ function initSpotlight() {
     observeItemsForSpotlight();
     // Expose manual debug trigger
     window.optubeForceSpotlight = runSpotlightCycle;
+}
+
+function maybeShowCinemaIntro() {
+    try {
+        if (!sessionStorage.getItem(INTRO_FLAG)) return; // nothing queued
+
+        const launchIntro = () => {
+            // Guard if already shown
+            if (!sessionStorage.getItem(INTRO_FLAG)) return;
+            sessionStorage.removeItem(INTRO_FLAG);
+            const existing = document.getElementById('optube-cinema-intro');
+            if (existing) existing.remove();
+            const wrap = document.createElement('div');
+            wrap.id = 'optube-cinema-intro';
+            // Inline fallback styles so it still displays even if attribute CSS not yet applied for a split second
+            wrap.style.cssText = 'position:fixed;inset:0;background:#000;z-index:999999;display:flex;align-items:center;justify-content:center;font-family:Inter,system-ui,sans-serif;pointer-events:none;';
+            wrap.innerHTML = `<div class="intro-stage" style="position:relative;width:420px;height:260px;display:flex;align-items:center;justify-content:center;">
+                <span class="intro-bar" style="position:absolute;width:40px;height:100%;background:linear-gradient(180deg,#e50914,#b00710);filter:drop-shadow(0 0 22px rgba(229,9,20,.55));transform:scaleX(.07);transform-origin:center;"></span>
+                <span class="intro-text" style="position:relative;font-size:4rem;font-weight:800;letter-spacing:.85rem;color:#fff;text-shadow:0 0 18px rgba(229,9,20,.4),0 0 4px rgba(255,255,255,.35);opacity:0;">OPTUBE</span>
+            </div>`;
+            document.body.appendChild(wrap);
+            // Kick off animations slightly delayed to allow CSS selector (html[ATTR]) cascade if present
+            requestAnimationFrame(() => {
+                // If our attribute CSS is active, add a class to allow keyframes; otherwise manually animate via JS fallback
+                if (document.documentElement.hasAttribute(ATTR)) {
+                    // Add classes to trigger existing keyframes (CSS already injected)
+                    wrap.querySelector('.intro-bar')?.animate([
+                        { transform: 'scaleX(.07)' },
+                        { transform: 'scaleX(.25)', offset: .3 },
+                        { transform: 'scaleX(.9)', offset: .55 },
+                        { transform: 'scaleX(.78)', offset: .72 },
+                        { transform: 'scaleX(1)' }
+                    ], { duration: 1450, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' });
+                    const textEl = wrap.querySelector('.intro-text');
+                    textEl?.animate([
+                        { opacity: 0, transform: 'translateY(22px) scale(1.08)', letterSpacing: '.85rem' },
+                        { opacity: .25, offset: .45 },
+                        { opacity: .75, letterSpacing: '.35rem', offset: .7 },
+                        { opacity: 1, transform: 'translateY(0) scale(1)', letterSpacing: '.15rem' }
+                    ], { duration: 1600, easing: 'ease', delay: 350, fill: 'forwards' });
+                }
+            });
+            // Fade out & remove
+            setTimeout(() => { wrap.classList.add('fade-out'); wrap.style.transition = 'opacity .62s ease'; wrap.style.opacity = '0'; }, 2150);
+            setTimeout(() => { wrap.remove(); }, 2800);
+        };
+
+        if (document.documentElement.hasAttribute(ATTR)) {
+            launchIntro();
+        } else {
+            // Observe for attribute addition for up to 4s
+            const obs = new MutationObserver(() => {
+                if (document.documentElement.hasAttribute(ATTR)) {
+                    obs.disconnect();
+                    launchIntro();
+                }
+            });
+            obs.observe(document.documentElement, { attributes: true, attributeFilter: [ATTR] });
+            // Fallback timeout: show anyway after 1600ms even if attribute not yet applied
+            setTimeout(() => { if (sessionStorage.getItem(INTRO_FLAG)) { obs.disconnect(); launchIntro(); } }, 1600);
+            // Hard stop after 4s
+            setTimeout(() => { obs.disconnect(); sessionStorage.removeItem(INTRO_FLAG); }, 4000);
+        }
+    } catch { /* ignore */ }
 }
 
 function pickRandomVideo(): HTMLElement | null {
