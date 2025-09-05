@@ -10,6 +10,10 @@ let spotlightInterval: number | null = null;
 let spotlightEl: HTMLElement | null = null;
 let lastSpotlightIndex = -1; // track last used index to avoid immediate repeats
 let itemsObserver: MutationObserver | null = null;
+let arrowLeft: HTMLButtonElement | null = null;
+let arrowRight: HTMLButtonElement | null = null;
+let arrowOverlay: HTMLDivElement | null = null;
+let arrowCheckInterval: number | null = null;
 // Preserve user hide settings we temporarily modify while cinema mode is active
 // We no longer preserve individual user hide settings when cinema toggles.
 // Per updated requirement: toggling cinema ON resets all filters and applies a fixed set;
@@ -75,6 +79,9 @@ export function setCinemaMode(on: boolean) {
         document.body.classList.remove('cinematic-home');
         document.body.classList.remove('cinema-spotlight-active');
         document.body.classList.remove('cinema-spotlight-half', 'cinema-spotlight-quarter');
+        // Cleanup arrows interval
+        if (arrowCheckInterval) { clearInterval(arrowCheckInterval); arrowCheckInterval = null; }
+        arrowOverlay?.remove(); arrowOverlay = null; arrowLeft = null; arrowRight = null;
         // Reset ALL hide flags to false on disable
         try {
             const chromeLike: ChromeRuntimeLike | undefined = (window as unknown as { chrome?: ChromeRuntimeLike }).chrome;
@@ -184,6 +191,7 @@ export function injectCinemaCSS() {
     flex: 1 0 auto !important; /* avoid shrinking */
     backface-visibility:hidden; /* reduce paint artifacts */
     transform:translateZ(0); /* promote layer */
+    position:relative !important; /* allow absolutely positioned arrows */
   }
   /* Defensive override in case inline style attribute persists after SPA nav */
   html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer[style] {
@@ -234,6 +242,23 @@ export function injectCinemaCSS() {
   html[${ATTR}] body.cinematic-home #contents:has(ytd-rich-item-renderer)::after { content:''; position:absolute; top:0; width:150px; height:100%; z-index:1; pointer-events:none; }
   html[${ATTR}] body.cinematic-home #contents:has(ytd-rich-item-renderer)::before { left:0; background:linear-gradient(to right,#0f0f0f,transparent); }
   html[${ATTR}] body.cinematic-home #contents:has(ytd-rich-item-renderer)::after { right:0; background:linear-gradient(to left,#0f0f0f,transparent); }
+
+    /* Carousel arrow controls (for non-trackpad users) */
+            html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay { position:absolute; inset:0; z-index:15; }
+                html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay .cinema-scroll-arrow { position:absolute; top:42%; transform:translateY(-50%); width:54px; height:54px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(0,0,0,0.52); backdrop-filter:blur(10px) saturate(180%); -webkit-backdrop-filter:blur(10px) saturate(180%); border:1px solid rgba(255,255,255,.25); color:#fff; cursor:pointer; opacity:.92; transition:opacity .25s ease, background .25s ease, transform .25s ease; box-shadow:0 6px 24px -6px rgba(0,0,0,.7); }
+    html[${ATTR}] body.cinematic-home .cinema-scroll-arrow { cursor:pointer !important; }
+        html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay .cinema-scroll-arrow:hover { background:rgba(0,0,0,0.66); opacity:1; }
+            html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay .cinema-scroll-arrow:active { transform:translateY(-50%) scale(.94); }
+            html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay .cinema-scroll-arrow:hover { cursor:pointer; }
+                /* Force pointer cursor even if site overrides */
+                html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay .cinema-scroll-arrow,
+                html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay .cinema-scroll-arrow:hover,
+                html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay .cinema-scroll-arrow:focus { cursor:pointer !important; }
+        html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay .cinema-scroll-arrow svg { width:28px; height:28px; pointer-events:none; }
+        html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay .cinema-scroll-arrow.left { left:18px; }
+        html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay .cinema-scroll-arrow.right { right:18px; }
+        html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay .cinema-scroll-arrow[disabled] { opacity:.3 !important; cursor:default; }
+    @media (pointer:coarse) { html[${ATTR}] body.cinematic-home #contents .cinema-scroll-arrow { opacity:.85; } }
 
   /* Reduce potential layout conflicts: ensure watch page unaffected */
   html[${ATTR}] body:not(.cinematic-home) { /* no-op placeholder */ }
@@ -290,6 +315,7 @@ function attachCarouselEnhancements() {
     // Ensure spotlight starts once we have items
     initSpotlight();
     observeCarouselNewItems();
+    addCarouselArrows();
 }
 
 function initSpotlight() {
@@ -447,6 +473,8 @@ function observeCarouselNewItems() {
                         } else {
                             n.classList.remove('cinema-loading');
                         }
+                        // After new item integration, update arrow enabled state
+                        updateCarouselArrows();
                     });
                 }
             });
@@ -570,4 +598,101 @@ function triggerContinuationLoad() {
         window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' as ScrollBehavior });
         window.scrollTo({ top: prevY });
     }
+}
+
+// Add left/right arrows for carousel horizontal scrolling
+function addCarouselArrows() {
+    if (!carouselContainer) return;
+    // Create overlay if absent or was removed
+    if (!arrowOverlay || !carouselContainer.contains(arrowOverlay)) {
+        arrowOverlay?.remove();
+        arrowOverlay = document.createElement('div');
+        arrowOverlay.className = 'cinema-arrow-overlay';
+        carouselContainer.appendChild(arrowOverlay);
+        arrowLeft = null; arrowRight = null; // force recreate
+    }
+    if (!arrowLeft || !arrowRight) {
+        const mkBtn = (dir: 'left' | 'right') => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `cinema-scroll-arrow ${dir}`;
+            btn.setAttribute('aria-label', dir === 'left' ? 'Scroll left' : 'Scroll right');
+            btn.innerHTML = dir === 'left'
+                ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>'
+                : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
+            btn.style.cursor = 'pointer';
+            btn.addEventListener('click', () => {
+                const delta = Math.round(carouselContainer!.clientWidth * 0.8) * (dir === 'left' ? -1 : 1);
+                carouselContainer!.scrollBy({ left: delta, behavior: 'smooth' });
+                maybeLoadMore();
+                setTimeout(updateCarouselArrows, 420);
+            });
+            // Long-press incremental scroll
+            let holdTimer: number | null = null;
+            let repeater: number | null = null;
+            btn.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return;
+                holdTimer = window.setTimeout(() => {
+                    repeater = window.setInterval(() => {
+                        const step = 32 * (dir === 'left' ? -1 : 1);
+                        carouselContainer!.scrollLeft += step;
+                        maybeLoadMore();
+                        updateCarouselArrows();
+                    }, 16);
+                }, 300);
+            });
+            const clearTimers = () => {
+                if (holdTimer) { window.clearTimeout(holdTimer); holdTimer = null; }
+                if (repeater) { window.clearInterval(repeater); repeater = null; }
+            };
+            ['mouseup', 'mouseleave', 'blur'].forEach(ev => btn.addEventListener(ev, clearTimers));
+            return btn;
+        };
+        arrowLeft = mkBtn('left');
+        arrowRight = mkBtn('right');
+        if (arrowLeft) arrowOverlay!.appendChild(arrowLeft);
+        if (arrowRight) arrowOverlay!.appendChild(arrowRight);
+        carouselContainer.addEventListener('scroll', updateCarouselArrows, { passive: true });
+        window.addEventListener('resize', updateCarouselArrows);
+    }
+    // Start interval to ensure persistence
+    if (!arrowCheckInterval) {
+        arrowCheckInterval = window.setInterval(() => {
+            if (!document.documentElement.hasAttribute(ATTR) || !isHome()) return;
+            if (!carouselContainer || !carouselContainer.isConnected) return;
+            if (!arrowOverlay || !carouselContainer.contains(arrowOverlay)) {
+                addCarouselArrows();
+            } else if (!arrowLeft || !arrowRight || !arrowOverlay.contains(arrowLeft) || !arrowOverlay.contains(arrowRight)) {
+                arrowLeft?.remove(); arrowRight?.remove();
+                arrowLeft = null; arrowRight = null;
+                addCarouselArrows();
+            }
+            updateCarouselArrows();
+        }, 1500);
+    }
+    setTimeout(updateCarouselArrows, 120);
+}
+
+function updateCarouselArrows() {
+    if (!carouselContainer || !arrowLeft || !arrowRight) return;
+    const scrollable = (carouselContainer.scrollWidth - carouselContainer.clientWidth) > 40;
+    if (!scrollable) {
+        arrowLeft.setAttribute('disabled', 'true');
+        arrowRight.setAttribute('disabled', 'true');
+    } else {
+        const sl = carouselContainer.scrollLeft;
+        const max = carouselContainer.scrollWidth - carouselContainer.clientWidth - 4;
+        if (sl <= 4) arrowLeft.setAttribute('disabled', 'true'); else arrowLeft.removeAttribute('disabled');
+        if (sl >= max) arrowRight.setAttribute('disabled', 'true'); else arrowRight.removeAttribute('disabled');
+    }
+    // Dynamic positioning to simulate fixed overlay within scrolling area
+    try {
+        const pad = 18; // visual gutter
+        const w = arrowLeft.offsetWidth || 54;
+        const sl = carouselContainer.scrollLeft;
+        arrowLeft.style.left = (sl + pad) + 'px';
+        arrowRight.style.left = (sl + carouselContainer.clientWidth - pad - w) + 'px';
+        arrowLeft.style.top = '25%';
+        arrowRight.style.top = '25%';
+    } catch { /* ignore */ }
 }
