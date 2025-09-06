@@ -79,7 +79,8 @@ function applyEphemeralAttrs() {
         'cinema-hide-posts',
         'cinema-hide-badges-chips',
         'cinema-hide-hover-preview',
-        'cinema-hide-masthead'
+        'cinema-hide-masthead',
+        'cinema-hide-spinners'
     );
     ensureCinemaHoverPreviewBlocker();
 }
@@ -94,7 +95,8 @@ function removeEphemeralAttrs() {
         'cinema-hide-posts',
         'cinema-hide-badges-chips',
         'cinema-hide-hover-preview',
-        'cinema-hide-masthead'
+        'cinema-hide-masthead',
+        'cinema-hide-spinners'
     );
     teardownCinemaHoverPreviewBlocker();
 }
@@ -298,10 +300,18 @@ export function injectCinemaCSS() {
     z-index:1500 !important; /* above spotlight */
   }
     /* Depth overlap: shift contents upward when spotlight active */
-    html[${ATTR}] body.cinematic-home.cinema-spotlight-active ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer {
-        margin-top: calc(var(--cinema-carousel-overlap) * -1) !important;
-        padding-top: calc(var(--ytd-masthead-height, 56px) + 12px) !important;
-    }
+            /* Depth overlap using negative margin (restored) + stabilized layout to prevent jump */
+            html[${ATTR}] body.cinematic-home.cinema-spotlight-active ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer {
+                transform:none !important;
+                padding-top: calc(var(--ytd-masthead-height, 56px) + 12px) !important;
+                margin-top: calc(var(--cinema-carousel-overlap) * -1) !important;
+                transition: none !important; /* prevent visual snapping */
+            }
+            /* Reserve the overlap space so subsequent lazy loads don't cause upward shift */
+            html[${ATTR}] body.cinematic-home.cinema-spotlight-active #optube-cinema-spotlight { contain:layout paint style; }
+            html[${ATTR}] body.cinematic-home.cinema-spotlight-active ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer::after { content:''; display:block; height:0; }
+            /* Prevent continuation item temporary height collapse from shifting container */
+            html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer ytd-continuation-item-renderer { min-height:90px !important; }
         html[${ATTR}] body.cinematic-home.cinema-spotlight-active ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer::before { content:none !important; }
         html[${ATTR}] body.cinematic-home #contents.ytd-rich-grid-renderer::after { content:none !important; background:none !important; }
         /* Lift spotlight meta to avoid overlap clipping */
@@ -375,6 +385,17 @@ export function injectCinemaCSS() {
     html[${ATTR}] body.cinematic-home.cinema-hide-masthead ytd-masthead { display:none !important; }
         /* Also aggressively neutralize preview container */
         html[${ATTR}] body.cinematic-home.cinema-hide-hover-preview #video-preview-container.ytd-video-preview { display:none !important; visibility:hidden !important; }
+    /* Spinner visual fade (do NOT hide skeleton loaders or continuation element to keep lazy load working) */
+    html[${ATTR}] body.cinematic-home.cinema-hide-spinners ytd-continuation-item-renderer { display:block !important; opacity:1 !important; }
+    html[${ATTR}] body.cinematic-home.cinema-hide-spinners ytd-continuation-item-renderer tp-yt-paper-spinner,
+    html[${ATTR}] body.cinematic-home.cinema-hide-spinners ytd-continuation-item-renderer #spinner,
+    html[${ATTR}] body.cinematic-home.cinema-hide-spinners yt-page-navigation-progress,
+    html[${ATTR}] body.cinematic-home.cinema-hide-spinners .yt-core-spinner,
+    html[${ATTR}] body.cinematic-home.cinema-hide-spinners .ytp-spinner { opacity:0 !important; visibility:hidden !important; pointer-events:none !important; animation:none !important; }
+    /* Preserve skeleton loaders (allowing thumbnails to compute size); optionally reduce contrast */
+    html[${ATTR}] body.cinematic-home.cinema-hide-spinners .yt-core-skeleton-loader { opacity:.35 !important; filter:grayscale(1) brightness(.55); transition:opacity .3s ease; }
+    /* Reserve vertical space for continuation loader so carousel baseline doesn't jump */
+    html[${ATTR}] body.cinematic-home ytd-continuation-item-renderer { min-height:90px !important; box-sizing:border-box; }
 
   /* Scrollbar minimal styling */
   html[${ATTR}] body.cinematic-home #contents::-webkit-scrollbar { height:8px; background:transparent; }
@@ -652,13 +673,30 @@ function observeCarouselNewItems() {
                         }
                         // After new item integration, update arrow enabled state
                         updateCarouselArrows();
+                        // Recreate arrows if they were removed by DOM recycling
+                        if (!arrowOverlay || !carouselContainer?.contains(arrowOverlay) || !arrowLeft || !arrowRight) {
+                            addCarouselArrows();
+                        }
                     });
                 }
             });
         });
+        // Post-mutation integrity check (covers non video nodes e.g. continuation spinner replacement)
+        ensureCarouselArrows(true);
     });
     obs.observe(grid, { childList: true });
     (grid as unknown as Record<string, unknown>)[FLAG] = true;
+}
+
+function ensureCarouselArrows(forceUpdate = false) {
+    if (!document.documentElement.hasAttribute(ATTR) || !isHome()) return;
+    if (!carouselContainer) return;
+    if (!arrowOverlay || !carouselContainer.contains(arrowOverlay) || !arrowLeft || !arrowRight) {
+        addCarouselArrows();
+    } else if (forceUpdate) {
+        // Double rAF to let layout settle after large DOM injections
+        requestAnimationFrame(() => requestAnimationFrame(() => updateCarouselArrows()));
+    }
 }
 
 // Helpers
@@ -786,6 +824,8 @@ function triggerContinuationLoad() {
         window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' as ScrollBehavior });
         window.scrollTo({ top: prevY });
     }
+    // After requesting more content, proactively ensure arrows remain (or are recreated soon)
+    ensureCarouselArrows(true);
 }
 
 // Add left/right arrows for carousel horizontal scrolling
@@ -854,17 +894,8 @@ function addCarouselArrows() {
     // Start interval to ensure persistence
     if (!arrowCheckInterval) {
         arrowCheckInterval = window.setInterval(() => {
-            if (!document.documentElement.hasAttribute(ATTR) || !isHome()) return;
-            if (!carouselContainer || !carouselContainer.isConnected) return;
-            if (!arrowOverlay || !carouselContainer.contains(arrowOverlay)) {
-                addCarouselArrows();
-            } else if (!arrowLeft || !arrowRight || !arrowOverlay.contains(arrowLeft) || !arrowOverlay.contains(arrowRight)) {
-                arrowLeft?.remove(); arrowRight?.remove();
-                arrowLeft = null; arrowRight = null;
-                addCarouselArrows();
-            }
-            updateCarouselArrows();
-        }, 1500);
+            ensureCarouselArrows(true);
+        }, 600); // faster recovery cadence
     }
     setTimeout(updateCarouselArrows, 120);
 }
