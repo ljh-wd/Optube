@@ -697,6 +697,11 @@ function addCarouselArrows() {
         arrowOverlay = document.createElement('div');
         arrowOverlay.className = 'cinema-arrow-overlay';
         carouselContainer.appendChild(arrowOverlay);
+        // BUGFIX: Original full-screen overlay intercepted clicks preventing video item interaction.
+        // Use display:contents so the wrapper does not create a blocking layer while
+        // preserving the existing CSS selector structure for arrows.
+        // (We avoid pointer-events:none because that would also disable arrows.)
+        arrowOverlay.style.display = 'contents';
         arrowLeft = null; arrowRight = null; // force recreate
     }
     if (!arrowLeft || !arrowRight) {
@@ -709,6 +714,8 @@ function addCarouselArrows() {
                 ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>'
                 : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
             btn.style.cursor = 'pointer';
+            // Ensure arrows are above grid items now that wrapper no longer supplies z-index stacking context
+            btn.style.zIndex = '15';
             btn.addEventListener('click', () => {
                 const delta = Math.round(carouselContainer!.clientWidth * 0.8) * (dir === 'left' ? -1 : 1);
                 carouselContainer!.scrollBy({ left: delta, behavior: 'smooth' });
@@ -738,6 +745,7 @@ function addCarouselArrows() {
         };
         arrowLeft = mkBtn('left');
         arrowRight = mkBtn('right');
+        // Append arrows (wrapper is display:contents so children behave as if direct descendants of container)
         if (arrowLeft) arrowOverlay!.appendChild(arrowLeft);
         if (arrowRight) arrowOverlay!.appendChild(arrowRight);
         carouselContainer.addEventListener('scroll', updateCarouselArrows, { passive: true });
