@@ -23,7 +23,7 @@ const cinemaIntro = (() => {
         if (document.getElementById('optube-cinema-intro')) return;
         const wrap = document.createElement('div');
         wrap.id = 'optube-cinema-intro';
-        wrap.innerHTML = `<div class="intro-stage"><span class="intro-bar"></span><span class="intro-text">OPTUBE</span></div>`;
+        wrap.innerHTML = `<div class="intro-stage"><span class="intro-bar"></span><span class="intro-text">YOUTUBE</span></div>`;
         document.body.appendChild(wrap);
         // Minimal animation (leverages existing CSS rules already injected)
         setTimeout(() => { wrap.classList.add('fade-out'); }, 2000);
@@ -311,14 +311,15 @@ export function injectCinemaCSS() {
 
     /* Intro splash (Netflix-style inspired) */
     html[${ATTR}] #optube-cinema-intro { position:fixed; inset:0; background:#000; z-index:999999; display:flex; align-items:center; justify-content:center; font-family:'Inter', system-ui, sans-serif; overflow:hidden; pointer-events:none; }
-    html[${ATTR}] #optube-cinema-intro .intro-stage { position:relative; width:420px; height:260px; display:flex; align-items:center; justify-content:center; }
-    html[${ATTR}] #optube-cinema-intro .intro-bar { position:absolute; width:40px; height:100%; background:linear-gradient(180deg,#e50914,#b00710); filter:drop-shadow(0 0 22px rgba(229,9,20,.55)); transform:scaleX(.07); transform-origin:center; animation:optubeIntroBar 1450ms cubic-bezier(.4,0,.2,1) forwards; }
+    html[${ATTR}] #optube-cinema-intro .intro-stage { position:relative; width:640px; height:220px; display:flex; align-items:center; justify-content:center; }
+    /* Slim horizontal bar behind text (less vertical weight) */
+    html[${ATTR}] #optube-cinema-intro .intro-bar { position:absolute; left:50%; top:50%; width:520px; height:120px; background:linear-gradient(180deg,#e50914,#b00710); border-radius:6px; filter:drop-shadow(0 0 46px rgba(229,9,20,.55)); transform:translate(-50%, -50%) scaleX(.05); transform-origin:center; animation:optubeIntroBar 1450ms cubic-bezier(.4,0,.2,1) forwards; }
     html[${ATTR}] #optube-cinema-intro.done .intro-bar { animation-play-state:paused; }
-    html[${ATTR}] #optube-cinema-intro .intro-text { position:relative; font-size:4rem; font-weight:800; letter-spacing:.85rem; color:#fff; text-shadow:0 0 18px rgba(229,9,20,.4), 0 0 4px rgba(255,255,255,.35); opacity:0; animation:optubeIntroText 1600ms 350ms ease forwards; }
+    html[${ATTR}] #optube-cinema-intro .intro-text { position:relative; font-size:4rem; font-weight:800; letter-spacing:.75rem; color:#fff; text-shadow:0 0 24px rgba(229,9,20,.55), 0 0 6px rgba(255,255,255,.4); opacity:0; animation:optubeIntroText 1600ms 350ms ease forwards; }
     html[${ATTR}] #optube-cinema-intro .intro-rings { position:absolute; inset:0; pointer-events:none; }
     html[${ATTR}] #optube-cinema-intro::after { content:""; position:absolute; inset:0; background:radial-gradient(circle at 50% 50%, rgba(229,9,20,.15), transparent 60%); opacity:0; animation:optubeIntroGlow 1400ms 200ms ease forwards; }
     html[${ATTR}] #optube-cinema-intro.fade-out { animation:optubeIntroFade 620ms ease forwards; }
-    @keyframes optubeIntroBar { 0%{transform:scaleX(.07);} 30%{transform:scaleX(.25);} 55%{transform:scaleX(.9);} 72%{transform:scaleX(.78);} 100%{transform:scaleX(1);} }
+    @keyframes optubeIntroBar { 0%{transform:translate(-50%, -50%) scaleX(.05);} 30%{transform:translate(-50%, -50%) scaleX(.35);} 55%{transform:translate(-50%, -50%) scaleX(1.04);} 72%{transform:translate(-50%, -50%) scaleX(.97);} 100%{transform:translate(-50%, -50%) scaleX(1);} }
     @keyframes optubeIntroText { 0%{opacity:0; transform:translateY(22px) scale(1.08);} 45%{opacity:.25;} 70%{opacity:.75; letter-spacing:.35rem;} 100%{opacity:1; transform:translateY(0) scale(1); letter-spacing:.15rem;} }
     @keyframes optubeIntroGlow { 0%{opacity:0;} 50%{opacity:1;} 100%{opacity:.55;} }
     @keyframes optubeIntroFade { 0%{opacity:1;} 100%{opacity:0;} }
