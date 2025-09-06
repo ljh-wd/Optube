@@ -2,7 +2,7 @@ import { useGlobalContext } from "../context/globalContext";
 import type { Settings } from "../types/global";
 
 export default function Footer() {
-    const { handleToggle, defaultSettings } = useGlobalContext();
+    const { defaultSettings, setSettings } = useGlobalContext();
 
     return (
         <footer className="app-footer">
@@ -10,11 +10,17 @@ export default function Footer() {
                 <button
                     className="reset-btn"
                     onClick={() => {
-                        Object.keys(defaultSettings).forEach(key => {
-                            const value = defaultSettings[key as keyof Settings];
-                            handleToggle(key as keyof Settings)(typeof value === 'boolean' ? value : false);
+                        const reset: Partial<Settings> = {};
+                        (Object.keys(defaultSettings) as (keyof Settings)[]).forEach(k => {
+                            if (typeof defaultSettings[k] === 'boolean') {
+                                (reset as Record<string, boolean>)[k] = false;
+                            }
                         });
+                        reset.cinematicMode = false; // ensure off
+                        reset.cinemaPreviewMuted = false; // ensure unmuted per request
+                        chrome.storage.sync.set(reset as Settings);
                         chrome.storage.sync.remove('_sidebarNestedBackup');
+                        setSettings(prev => ({ ...prev, ...reset } as Settings));
                     }}
                     type='button'
                 >
