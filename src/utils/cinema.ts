@@ -49,10 +49,6 @@ const cinemaIntro = (() => {
 declare global {
     interface Window { optubeForceSpotlight?: () => void }
 }
-// Minimal chrome storage typing to avoid 'any'
-interface ChromeRuntimeLike {
-    storage?: { sync?: { get(keys: string[] | Record<string, unknown>, cb: (data: Record<string, boolean>) => void): void; set(items: Record<string, boolean>): void } };
-}
 
 function isHome(): boolean {
     // Restrict cinematic mode to root home feed only
@@ -70,36 +66,43 @@ function ensureCinemaHomeState() {
     }
 }
 
-const ALL_HIDE_KEYS = [
-    'hideShorts', 'hideFold', 'hideComments', 'hideCommentAvatars', 'hideCategoryAndTopic', 'hideRecommended', 'hidePosts', 'hideMasthead', 'hideSidebar', 'hideHome', 'hideYouFeed', 'hideSubscriptions', 'hideSubscriptionsSidebar', 'hideSearchbar', 'hideNotifications', 'hideCreateButton', 'hideDescription', 'hideTitle', 'hideAiSummary', 'hideCreator', 'hideDurationBadges', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips', 'hideWatchedProgress', 'hideHoverPreview', 'hideExplore', 'hideMoreFromYouTube', 'hideYouSection', 'hidePlaylists', 'hideYourVideos', 'hideYourCourses', 'hideWatchLater', 'hideLikedVideos', 'hideHistory', 'hideExploreMusic', 'hideExploreMovies', 'hideExploreLive', 'hideExploreGaming', 'hideExploreNews', 'hideExploreSport', 'hideExploreLearning', 'hideExploreFashion', 'hideExplorePodcasts', 'hideExplorePlayables'
-];
-// Subset to force-enable during cinema mode for immersion
-const CINEMA_HIDE_KEYS = [
-    'hideShorts', 'hidePosts', 'hideHoverPreview', 'hideSidebar', 'hideBadgesChips', 'hideCreateButton', 'hideNotifications', 'hideSearchbar'
+// Ephemeral attributes/classes applied only during cinema mode (NO storage mutation):
+// Use only custom body classes so we don't override user-selected attribute flags.
+const CINEMA_EPHEMERAL_ATTRS: string[] = [
+    'hide_hover_preview', // safe (visual only)
+    'hide_badges_chips'
 ];
 
-// Simple atomic write helper (full state) to avoid partial / race conditions with other UI writes.
-function writeFullHideState(state: Record<string, boolean>) {
-    try {
-        const chromeLike: ChromeRuntimeLike | undefined = (window as unknown as { chrome?: ChromeRuntimeLike }).chrome;
-        const sync = chromeLike?.storage?.sync;
-        if (!sync) return;
-        // Write all keys at once to ensure consistency with UI panel state.
-        sync.set(state);
-    } catch { /* ignore */ }
+function applyEphemeralAttrs() {
+    const root = document.documentElement;
+    CINEMA_EPHEMERAL_ATTRS.forEach(a => {
+        // Don't set if user already explicitly enabled opposite (root already has attribute => fine)
+        if (!root.hasAttribute(a)) root.setAttribute(a, 'true');
+    });
+    document.body.classList.add(
+        'cinema-hide-sidebar',
+        'cinema-hide-shorts',
+        'cinema-hide-create-btn',
+        'cinema-hide-notifications',
+        'cinema-hide-searchbar',
+        'cinema-hide-posts'
+    );
 }
 
-function buildCinemaState(): Record<string, boolean> {
-    const s: Record<string, boolean> = {};
-    ALL_HIDE_KEYS.forEach(k => { s[k] = false; });
-    CINEMA_HIDE_KEYS.forEach(k => { s[k] = true; });
-    return s;
-}
-
-function buildResetState(): Record<string, boolean> {
-    const s: Record<string, boolean> = {};
-    ALL_HIDE_KEYS.forEach(k => { s[k] = false; });
-    return s;
+function removeEphemeralAttrs() {
+    const root = document.documentElement;
+    // Only remove attributes we added if user hadn't set them (heuristic: if storage later sets they'll still be present)
+    CINEMA_EPHEMERAL_ATTRS.forEach(a => {
+        if (root.hasAttribute(a)) root.removeAttribute(a);
+    });
+    document.body.classList.remove(
+        'cinema-hide-sidebar',
+        'cinema-hide-shorts',
+        'cinema-hide-create-btn',
+        'cinema-hide-notifications',
+        'cinema-hide-searchbar',
+        'cinema-hide-posts'
+    );
 }
 
 export function setCinemaMode(on: boolean) {
@@ -112,8 +115,8 @@ export function setCinemaMode(on: boolean) {
         if (isHome()) document.body.classList.add('cinematic-home');
         document.getElementById('frosted-glass')?.remove();
         if (stateChanged) {
-            // Only on first enable transition do we force cinema hide state
-            writeFullHideState(buildCinemaState());
+            // Only on first enable transition apply ephemeral attributes (no storage mutation)
+            applyEphemeralAttrs();
             let firstActivation = false;
             try {
                 const wasActive = localStorage.getItem('optube_cinema_active') === '1';
@@ -132,8 +135,8 @@ export function setCinemaMode(on: boolean) {
         arrowOverlay?.remove(); arrowOverlay = null; arrowLeft = null; arrowRight = null;
         cinemaIntro.reset();
         if (stateChanged) {
-            // Only perform blanket reset once when user actually turns cinema off
-            writeFullHideState(buildResetState());
+            // Remove ephemeral attributes; underlying user selections remain intact
+            removeEphemeralAttrs();
             try { localStorage.removeItem('optube_cinema_active'); } catch { /* ignore */ }
         }
         if (spotlightInterval) window.clearInterval(spotlightInterval);
@@ -287,6 +290,22 @@ export function injectCinemaCSS() {
   html[${ATTR}] body.cinematic-home ytd-rich-shelf-renderer:has(ytd-statement-banner-renderer),
   html[${ATTR}] body.cinematic-home #rich-shelf-header { display:none!important; }
     html[${ATTR}] body.cinematic-home #frosted-glass { display:none !important; }
+
+    /* Ephemeral cinema hides via body classes (do not reflect user setting state) */
+    html[${ATTR}] body.cinematic-home.cinema-hide-sidebar ytd-mini-guide-renderer,
+    html[${ATTR}] body.cinematic-home.cinema-hide-sidebar ytd-guide-renderer,
+    html[${ATTR}] body.cinematic-home.cinema-hide-sidebar #guide-button,
+    html[${ATTR}] body.cinematic-home.cinema-hide-sidebar ytd-app #guide { display:none !important; }
+    html[${ATTR}] body.cinematic-home.cinema-hide-shorts ytd-rich-shelf-renderer[is-shorts],
+    html[${ATTR}] body.cinematic-home.cinema-hide-shorts ytd-reel-shelf-renderer { display:none !important; }
+    html[${ATTR}] body.cinematic-home.cinema-hide-create-btn ytd-topbar-menu-button-renderer:has(a[href*='studio.youtube.com']),
+    html[${ATTR}] body.cinematic-home.cinema-hide-create-btn ytd-button-renderer:has(path[d*='M10 8v6l5-3-5-3z']) { display:none !important; }
+    html[${ATTR}] body.cinematic-home.cinema-hide-notifications ytd-notification-topbar-button-renderer { display:none !important; }
+    html[${ATTR}] body.cinematic-home.cinema-hide-searchbar ytd-masthead #center,
+    html[${ATTR}] body.cinematic-home.cinema-hide-searchbar ytd-masthead #search-icon-legacy { display:none !important; }
+    html[${ATTR}] body.cinematic-home.cinema-hide-posts ytd-rich-shelf-renderer:has(ytd-post-renderer),
+    html[${ATTR}] body.cinematic-home.cinema-hide-posts ytd-post-renderer,
+    html[${ATTR}] body.cinematic-home.cinema-hide-posts ytd-rich-item-renderer:has(> #content > ytd-post-renderer) { display:none !important; }
 
   /* Scrollbar minimal styling */
   html[${ATTR}] body.cinematic-home #contents::-webkit-scrollbar { height:8px; background:transparent; }
