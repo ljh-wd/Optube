@@ -74,50 +74,15 @@ const CINEMA_HIDE_KEYS = [
     'hideShorts', 'hidePosts', 'hideHoverPreview', 'hideSidebar', 'hideBadgesChips', 'hideCreateButton', 'hideNotifications', 'hideSearchbar'
 ];
 
-// Debounced diff-writing to chrome.storage.sync to avoid quota errors.
-let lastAppliedHideState: Record<string, boolean> | null = null;
-let writeTimer: number | null = null;
-let pendingState: Record<string, boolean> | null = null;
-const WRITE_DEBOUNCE_MS = 150; // collapse rapid successive toggles
-
-function scheduleHideStateWrite(state: Record<string, boolean>) {
-    pendingState = state;
-    if (writeTimer) return; // already scheduled
-    writeTimer = window.setTimeout(() => {
-        writeTimer = null;
-        if (!pendingState) return;
-        try {
-            const chromeLike: ChromeRuntimeLike | undefined = (window as unknown as { chrome?: ChromeRuntimeLike }).chrome;
-            const sync = chromeLike?.storage?.sync;
-            if (!sync) { lastAppliedHideState = pendingState; pendingState = null; return; }
-            // If we don't yet have a baseline, fetch once then diff
-            const apply = (baseline: Record<string, boolean> | null) => {
-                const currentBaseline = baseline || lastAppliedHideState || {};
-                const diff: Record<string, boolean> = {};
-                let changed = false;
-                for (const k of Object.keys(pendingState!)) {
-                    const desired = pendingState![k];
-                    if (currentBaseline[k] !== desired) {
-                        diff[k] = desired;
-                        changed = true;
-                    }
-                }
-                if (changed) {
-                    try { sync.set(diff); } catch { /* ignore */ }
-                    lastAppliedHideState = { ...currentBaseline, ...diff };
-                }
-                pendingState = null;
-            };
-            if (!lastAppliedHideState) {
-                // One-time get
-                try {
-                    sync.get(ALL_HIDE_KEYS, (data) => { apply(data || {}); });
-                } catch { apply(null); }
-            } else {
-                apply(null);
-            }
-        } catch { /* ignore */ }
-    }, WRITE_DEBOUNCE_MS);
+// Simple atomic write helper (full state) to avoid partial / race conditions with other UI writes.
+function writeFullHideState(state: Record<string, boolean>) {
+    try {
+        const chromeLike: ChromeRuntimeLike | undefined = (window as unknown as { chrome?: ChromeRuntimeLike }).chrome;
+        const sync = chromeLike?.storage?.sync;
+        if (!sync) return;
+        // Write all keys at once to ensure consistency with UI panel state.
+        sync.set(state);
+    } catch { /* ignore */ }
 }
 
 function buildCinemaState(): Record<string, boolean> {
@@ -139,8 +104,8 @@ export function setCinemaMode(on: boolean) {
         if (isHome()) document.body.classList.add('cinematic-home');
         // Remove #frosted-glass if present
         document.getElementById('frosted-glass')?.remove();
-        // Diffed + debounced write of cinema state to avoid quota excess
-        scheduleHideStateWrite(buildCinemaState());
+        // Full atomic write of cinema forced state
+        writeFullHideState(buildCinemaState());
         // One-time per activation splash (do NOT reload page)
         let firstActivation = false;
         try {
@@ -158,8 +123,8 @@ export function setCinemaMode(on: boolean) {
         if (arrowCheckInterval) { clearInterval(arrowCheckInterval); arrowCheckInterval = null; }
         arrowOverlay?.remove(); arrowOverlay = null; arrowLeft = null; arrowRight = null;
         cinemaIntro.reset();
-        // Reset all hide flags (diffed & debounced)
-        scheduleHideStateWrite(buildResetState());
+        // Reset all hide flags (atomic)
+        writeFullHideState(buildResetState());
         try { localStorage.removeItem('optube_cinema_active'); } catch { /* ignore */ }
         if (spotlightInterval) window.clearInterval(spotlightInterval);
         spotlightInterval = null;
