@@ -213,7 +213,7 @@ export function injectCinemaCSS() {
     style.textContent = `
   /* Root variable definitions */
     /* Attach variables directly to the html element when cinematic attribute present */
-    html[${ATTR}] { --netflix-red:#e50914; --netflix-black:#141414; --netflix-dark-gray:#181818; --netflix-light-gray:#e5e5e5; --cinema-spotlight-height: clamp(340px, 50vh, 780px); }
+    html[${ATTR}] { --netflix-red:#e50914; --netflix-black:#141414; --netflix-dark-gray:#181818; --netflix-light-gray:#e5e5e5; --cinema-spotlight-height: clamp(340px, 50vh, 780px); --cinema-carousel-overlap: 80px; }
         html[${ATTR}] body.cinematic-home.cinema-spotlight-quarter { --cinema-spotlight-height: clamp(220px, 25vh, 520px); }
         html[${ATTR}] body.cinematic-home.cinema-spotlight-half { --cinema-spotlight-height: clamp(340px, 50vh, 780px); }
   html[${ATTR}] body.cinematic-home { overflow:hidden !important; background:var(--netflix-black)!important; }
@@ -245,13 +245,13 @@ export function injectCinemaCSS() {
 
     /* Spotlight container now in normal flow (not fixed) */
     html[${ATTR}] body.cinematic-home #optube-cinema-spotlight {
-        position:relative; 
-        width:100vw; height:var(--cinema-spotlight-height);
-        padding:0; box-sizing:border-box;
-        display:flex; align-items:flex-end; justify-content:flex-start;
-        font-family: 'Roboto', Arial, sans-serif; gap:0;
-        overflow:hidden; pointer-events:none; z-index:1500;
-        background:#000; background-size:cover; background-position:center center; background-repeat:no-repeat;
+    position:relative; 
+    width:100vw; height:var(--cinema-spotlight-height);
+    padding:0; box-sizing:border-box;
+    display:flex; align-items:flex-end; justify-content:flex-start;
+    font-family: 'Roboto', Arial, sans-serif; gap:0;
+    overflow:hidden; pointer-events:none; z-index:1200; /* lowered so carousel can overlap edge */
+    background:#000; background-size:cover; background-position:center center; background-repeat:no-repeat;
     }
     html[${ATTR}] body.cinematic-home #optube-cinema-spotlight::after { content:''; position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,.78) 0%, rgba(0,0,0,.3) 60%, rgba(0,0,0,0) 100%); pointer-events:none; }
     html[${ATTR}] body.cinematic-home #optube-cinema-spotlight .optube-spotlight-video { position:absolute; inset:0; width:100%; height:100%; overflow:hidden; }
@@ -275,7 +275,7 @@ export function injectCinemaCSS() {
     /* (Removed reliance on YouTube hover preview; using embedded iframe instead) */
   
     /* Horizontal carousel of rich items (force flex row on grid container) */
-  html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer {
+        html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer {
     display:flex !important;
     flex-direction:row !important;
     flex-wrap:nowrap !important;
@@ -283,8 +283,8 @@ export function injectCinemaCSS() {
     overflow-x:auto !important;
     overflow-y:hidden !important;
     position:relative !important;
-    /* Top padding now only accounts for masthead (spotlight is in-flow above) */
-    padding: calc(var(--ytd-masthead-height, 56px) + 32px) 48px 48px 88px !important;
+        /* Overlap the spotlight by pulling carousel upward */
+        padding: calc(var(--ytd-masthead-height, 56px) + 12px) 48px 48px 88px !important;
     scroll-snap-type:x proximity;
     width:100vw !important; /* ensure full viewport width */
     max-width:100vw !important; /* override inline max-width from YT */
@@ -295,7 +295,19 @@ export function injectCinemaCSS() {
     backface-visibility:hidden; /* reduce paint artifacts */
     transform:translateZ(0); /* promote layer */
     position:relative !important; /* allow absolutely positioned arrows */
+    z-index:1500 !important; /* above spotlight */
   }
+    /* Depth overlap: shift contents upward when spotlight active */
+    html[${ATTR}] body.cinematic-home.cinema-spotlight-active ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer {
+        margin-top: calc(var(--cinema-carousel-overlap) * -1) !important;
+        padding-top: calc(var(--ytd-masthead-height, 56px) + 12px) !important;
+    }
+        html[${ATTR}] body.cinematic-home.cinema-spotlight-active ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer::before { content:none !important; }
+        html[${ATTR}] body.cinematic-home #contents.ytd-rich-grid-renderer::after { content:none !important; background:none !important; }
+        /* Lift spotlight meta to avoid overlap clipping */
+        html[${ATTR}] body.cinematic-home.cinema-spotlight-active #optube-cinema-spotlight .optube-spotlight-meta { transform:translateY(-14px); transition:transform .4s ease; }
+        /* Ensure items render above gradient but still above spotlight */
+        html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer > ytd-rich-item-renderer { position:relative !important; z-index:3 !important; }
   /* Defensive override in case inline style attribute persists after SPA nav */
   html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer[style] {
     width:100vw !important;
