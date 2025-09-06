@@ -17,6 +17,8 @@ let arrowCheckInterval: number | null = null;
 let spotlightMuted = true; // default mute previews; user toggle persisted in localStorage
 // Track last applied cinema mode to avoid repeatedly overwriting user settings
 let lastCinemaMode: boolean | null = null;
+let cinemaHoverPreviewBlockerAttached = false;
+const cinemaHoverPreviewHandlers: Array<{ evt: string; fn: (e: Event) => void }> = [];
 // One-time intro splash controller (closure) – plays once per explicit enable toggle (not on reload)
 const cinemaIntro = (() => {
     let shownThisActivation = false;
@@ -47,7 +49,7 @@ const cinemaIntro = (() => {
 // toggling cinema OFF resets (clears) all filters to default (false).
 
 declare global {
-    interface Window { optubeForceSpotlight?: () => void }
+    interface Window { optubeForceSpotlight?: () => void; __optubeCinemaHoverMO?: MutationObserver }
 }
 
 function isHome(): boolean {
@@ -66,43 +68,85 @@ function ensureCinemaHomeState() {
     }
 }
 
-// Ephemeral attributes/classes applied only during cinema mode (NO storage mutation):
-// Use only custom body classes so we don't override user-selected attribute flags.
-const CINEMA_EPHEMERAL_ATTRS: string[] = [
-    'hide_hover_preview', // safe (visual only)
-    'hide_badges_chips'
-];
-
+// Ephemeral cinema-only visual hides (never touching storage / existing root attributes)
 function applyEphemeralAttrs() {
-    const root = document.documentElement;
-    CINEMA_EPHEMERAL_ATTRS.forEach(a => {
-        // Don't set if user already explicitly enabled opposite (root already has attribute => fine)
-        if (!root.hasAttribute(a)) root.setAttribute(a, 'true');
-    });
     document.body.classList.add(
         'cinema-hide-sidebar',
         'cinema-hide-shorts',
         'cinema-hide-create-btn',
         'cinema-hide-notifications',
         'cinema-hide-searchbar',
-        'cinema-hide-posts'
+        'cinema-hide-posts',
+        'cinema-hide-badges-chips',
+        'cinema-hide-hover-preview',
+        'cinema-hide-masthead'
     );
+    ensureCinemaHoverPreviewBlocker();
 }
 
 function removeEphemeralAttrs() {
-    const root = document.documentElement;
-    // Only remove attributes we added if user hadn't set them (heuristic: if storage later sets they'll still be present)
-    CINEMA_EPHEMERAL_ATTRS.forEach(a => {
-        if (root.hasAttribute(a)) root.removeAttribute(a);
-    });
     document.body.classList.remove(
         'cinema-hide-sidebar',
         'cinema-hide-shorts',
         'cinema-hide-create-btn',
         'cinema-hide-notifications',
         'cinema-hide-searchbar',
-        'cinema-hide-posts'
+        'cinema-hide-posts',
+        'cinema-hide-badges-chips',
+        'cinema-hide-hover-preview',
+        'cinema-hide-masthead'
     );
+    teardownCinemaHoverPreviewBlocker();
+}
+
+// Block hover preview events while cinema mode active so spotlight is the only motion source.
+function ensureCinemaHoverPreviewBlocker() {
+    if (cinemaHoverPreviewBlockerAttached) return;
+    const evts = ['mouseover', 'mouseenter', 'mousemove'];
+    evts.forEach(evt => {
+        const fn = (e: Event) => {
+            if (!document.documentElement.hasAttribute(ATTR)) return; // only while cinema attribute set
+            if (!document.body.classList.contains('cinematic-home')) return;
+            if (!document.body.classList.contains('cinema-hide-hover-preview')) return;
+            const t = (e.target as HTMLElement | null);
+            if (!t) return;
+            if (t.closest('ytd-rich-item-renderer, ytd-rich-grid-media, yt-lockup-view-model')) {
+                e.stopImmediatePropagation();
+            }
+        };
+        document.addEventListener(evt, fn, true);
+        cinemaHoverPreviewHandlers.push({ evt, fn });
+    });
+    // Mutation observer to remove any injected preview videos quickly
+    const mo = new MutationObserver(muts => {
+        if (!document.documentElement.hasAttribute(ATTR) || !document.body.classList.contains('cinema-hide-hover-preview')) return;
+        for (const m of muts) {
+            m.addedNodes.forEach(n => {
+                if (!(n instanceof HTMLElement)) return;
+                if (n.tagName === 'VIDEO' && n.closest('ytd-rich-item-renderer, ytd-rich-grid-media, yt-lockup-view-model')) {
+                    n.remove();
+                } else {
+                    n.querySelectorAll?.('video').forEach(v => {
+                        if (v.closest('ytd-rich-item-renderer, ytd-rich-grid-media, yt-lockup-view-model')) v.remove();
+                    });
+                }
+            });
+        }
+    });
+    mo.observe(document.documentElement, { childList: true, subtree: true });
+    // Store teardown hook on window for debugging (optional)
+    window.__optubeCinemaHoverMO = mo;
+    cinemaHoverPreviewBlockerAttached = true;
+}
+
+function teardownCinemaHoverPreviewBlocker() {
+    if (!cinemaHoverPreviewBlockerAttached) return;
+    cinemaHoverPreviewHandlers.forEach(h => document.removeEventListener(h.evt, h.fn, true));
+    const mo: MutationObserver | undefined = window.__optubeCinemaHoverMO;
+    if (mo) { try { mo.disconnect(); } catch { /* ignore */ } }
+    delete window.__optubeCinemaHoverMO;
+    cinemaHoverPreviewHandlers.splice(0, cinemaHoverPreviewHandlers.length);
+    cinemaHoverPreviewBlockerAttached = false;
 }
 
 export function setCinemaMode(on: boolean) {
@@ -295,17 +339,30 @@ export function injectCinemaCSS() {
     html[${ATTR}] body.cinematic-home.cinema-hide-sidebar ytd-mini-guide-renderer,
     html[${ATTR}] body.cinematic-home.cinema-hide-sidebar ytd-guide-renderer,
     html[${ATTR}] body.cinematic-home.cinema-hide-sidebar #guide-button,
-    html[${ATTR}] body.cinematic-home.cinema-hide-sidebar ytd-app #guide { display:none !important; }
+        html[${ATTR}] body.cinematic-home.cinema-hide-sidebar ytd-app #guide { display:none !important; }
     html[${ATTR}] body.cinematic-home.cinema-hide-shorts ytd-rich-shelf-renderer[is-shorts],
     html[${ATTR}] body.cinematic-home.cinema-hide-shorts ytd-reel-shelf-renderer { display:none !important; }
     html[${ATTR}] body.cinematic-home.cinema-hide-create-btn ytd-topbar-menu-button-renderer:has(a[href*='studio.youtube.com']),
-    html[${ATTR}] body.cinematic-home.cinema-hide-create-btn ytd-button-renderer:has(path[d*='M10 8v6l5-3-5-3z']) { display:none !important; }
-    html[${ATTR}] body.cinematic-home.cinema-hide-notifications ytd-notification-topbar-button-renderer { display:none !important; }
+        html[${ATTR}] body.cinematic-home.cinema-hide-create-btn ytd-button-renderer:has(path[d*='M10 8v6l5-3-5-3z']) { display:none !important; }
+        /* notification bell */
+        html[${ATTR}] body.cinematic-home.cinema-hide-notifications ytd-notification-topbar-button-renderer { display:none !important; }
     html[${ATTR}] body.cinematic-home.cinema-hide-searchbar ytd-masthead #center,
-    html[${ATTR}] body.cinematic-home.cinema-hide-searchbar ytd-masthead #search-icon-legacy { display:none !important; }
+        html[${ATTR}] body.cinematic-home.cinema-hide-searchbar ytd-masthead #search-icon-legacy,
+        html[${ATTR}] body.cinematic-home.cinema-hide-searchbar ytd-masthead #search-input,
+        html[${ATTR}] body.cinematic-home.cinema-hide-searchbar ytd-masthead form { display:none !important; }
     html[${ATTR}] body.cinematic-home.cinema-hide-posts ytd-rich-shelf-renderer:has(ytd-post-renderer),
     html[${ATTR}] body.cinematic-home.cinema-hide-posts ytd-post-renderer,
     html[${ATTR}] body.cinematic-home.cinema-hide-posts ytd-rich-item-renderer:has(> #content > ytd-post-renderer) { display:none !important; }
+    html[${ATTR}] body.cinematic-home.cinema-hide-badges-chips #chips-wrapper,
+    html[${ATTR}] body.cinematic-home.cinema-hide-badges-chips ytd-feed-filter-chip-bar-renderer { display:none !important; }
+    html[${ATTR}] body.cinematic-home.cinema-hide-hover-preview ytd-rich-item-renderer:hover video,
+    html[${ATTR}] body.cinematic-home.cinema-hide-hover-preview ytd-rich-grid-media:hover video,
+    html[${ATTR}] body.cinematic-home.cinema-hide-hover-preview yt-lockup-view-model:hover video { display:none !important; }
+    html[${ATTR}] body.cinematic-home.cinema-hide-hover-preview ytd-rich-item-renderer [class*='inline-preview'],
+    html[${ATTR}] body.cinematic-home.cinema-hide-hover-preview ytd-rich-item-renderer [class*='InlinePreview'] { display:none !important; }
+    html[${ATTR}] body.cinematic-home.cinema-hide-masthead ytd-masthead { display:none !important; }
+        /* Also aggressively neutralize preview container */
+        html[${ATTR}] body.cinematic-home.cinema-hide-hover-preview #video-preview-container.ytd-video-preview { display:none !important; visibility:hidden !important; }
 
   /* Scrollbar minimal styling */
   html[${ATTR}] body.cinematic-home #contents::-webkit-scrollbar { height:8px; background:transparent; }
