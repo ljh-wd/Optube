@@ -15,6 +15,8 @@ let arrowRight: HTMLButtonElement | null = null;
 let arrowOverlay: HTMLDivElement | null = null;
 let arrowCheckInterval: number | null = null;
 let spotlightMuted = true; // default mute previews; user toggle persisted in localStorage
+// Track last applied cinema mode to avoid repeatedly overwriting user settings
+let lastCinemaMode: boolean | null = null;
 // One-time intro splash controller (closure) – plays once per explicit enable toggle (not on reload)
 const cinemaIntro = (() => {
     let shownThisActivation = false;
@@ -63,6 +65,8 @@ function ensureCinemaHomeState() {
         document.body.classList.add('cinematic-home');
     } else {
         document.body.classList.remove('cinematic-home');
+        // If we navigated away, fully tear down spotlight so playback stops
+        teardownSpotlight();
     }
 }
 
@@ -99,33 +103,39 @@ function buildResetState(): Record<string, boolean> {
 }
 
 export function setCinemaMode(on: boolean) {
+    const stateChanged = lastCinemaMode !== on; // only treat as transition when value actually changes
+    lastCinemaMode = on;
+
     if (on) {
+        // Ensure attribute/class present every call (SPA navigations) but only rewrite storage on transition
         document.documentElement.setAttribute(ATTR, 'true');
         if (isHome()) document.body.classList.add('cinematic-home');
-        // Remove #frosted-glass if present
         document.getElementById('frosted-glass')?.remove();
-        // Full atomic write of cinema forced state
-        writeFullHideState(buildCinemaState());
-        // One-time per activation splash (do NOT reload page)
-        let firstActivation = false;
-        try {
-            const wasActive = localStorage.getItem('optube_cinema_active') === '1';
-            if (!wasActive) firstActivation = true;
-            localStorage.setItem('optube_cinema_active', '1');
-        } catch { /* ignore */ }
-        setTimeout(() => cinemaIntro.maybeShow(firstActivation), 80);
+        if (stateChanged) {
+            // Only on first enable transition do we force cinema hide state
+            writeFullHideState(buildCinemaState());
+            let firstActivation = false;
+            try {
+                const wasActive = localStorage.getItem('optube_cinema_active') === '1';
+                if (!wasActive) firstActivation = true;
+                localStorage.setItem('optube_cinema_active', '1');
+            } catch { /* ignore */ }
+            setTimeout(() => cinemaIntro.maybeShow(firstActivation), 80);
+        }
     } else {
+        // Always remove visual artifacts/classes, but only reset user hide flags on actual OFF transition
         document.documentElement.removeAttribute(ATTR);
         document.body.classList.remove('cinematic-home');
         document.body.classList.remove('cinema-spotlight-active');
         document.body.classList.remove('cinema-spotlight-half', 'cinema-spotlight-quarter');
-        // Cleanup arrows interval
         if (arrowCheckInterval) { clearInterval(arrowCheckInterval); arrowCheckInterval = null; }
         arrowOverlay?.remove(); arrowOverlay = null; arrowLeft = null; arrowRight = null;
         cinemaIntro.reset();
-        // Reset all hide flags (atomic)
-        writeFullHideState(buildResetState());
-        try { localStorage.removeItem('optube_cinema_active'); } catch { /* ignore */ }
+        if (stateChanged) {
+            // Only perform blanket reset once when user actually turns cinema off
+            writeFullHideState(buildResetState());
+            try { localStorage.removeItem('optube_cinema_active'); } catch { /* ignore */ }
+        }
         if (spotlightInterval) window.clearInterval(spotlightInterval);
         spotlightInterval = null;
         spotlightEl?.remove();
@@ -438,6 +448,20 @@ function initSpotlight() {
     observeItemsForSpotlight();
     // Expose manual debug trigger
     window.optubeForceSpotlight = runSpotlightCycle;
+}
+
+// Explicit teardown when leaving home (while cinema mode remains enabled)
+function teardownSpotlight() {
+    if (!spotlightEl) return; // nothing to do
+    if (spotlightInterval) { window.clearInterval(spotlightInterval); spotlightInterval = null; }
+    // Stop any existing iframe playback by blanking sources
+    try {
+        spotlightEl.querySelectorAll('iframe').forEach(f => { f.src = 'about:blank'; });
+    } catch { /* ignore */ }
+    spotlightEl.remove();
+    spotlightEl = null;
+    itemsObserver?.disconnect(); itemsObserver = null;
+    document.body.classList.remove('cinema-spotlight-active', 'cinema-spotlight-half', 'cinema-spotlight-quarter');
 }
 
 // (Legacy maybeShowCinemaIntro removed – now handled inline in setCinemaMode with closure)
