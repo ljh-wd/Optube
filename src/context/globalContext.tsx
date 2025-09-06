@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, type Dispatch, type PropsWithChildren, type SetStateAction } from 'react';
+import { createContext, useContext, useState, useEffect, type Dispatch, type PropsWithChildren, type SetStateAction } from 'react';
 import type { Settings } from '../types/global';
 
 // TODO: Split these types up for better maintainability and readability
@@ -26,6 +26,7 @@ const defaultSettings: Settings = {
     hideTitle: false,
     hideCreator: false,
     cinematicMode: false,
+    cinemaPreviewMuted: true,
     // Layout
     hideDurationBadges: false,
     hidePreviewDetails: false,
@@ -66,6 +67,18 @@ export const GlobalContext = createContext<Props | undefined>(undefined);
 
 export const GlobalProvider = ({ children }: PropsWithChildren) => {
     const [settings, setSettings] = useState<Settings>(defaultSettings);
+
+    // One-time load of persisted settings (merge into defaults)
+    useEffect(() => {
+        try {
+            const keys = Object.keys(defaultSettings);
+            chrome.storage.sync.get(keys, (stored) => {
+                if (stored && typeof stored === 'object') {
+                    setSettings(prev => ({ ...prev, ...stored }));
+                }
+            });
+        } catch { /* ignore */ }
+    }, []);
 
     const value: Props = {
         settings,

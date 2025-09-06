@@ -14,6 +14,7 @@ let arrowLeft: HTMLButtonElement | null = null;
 let arrowRight: HTMLButtonElement | null = null;
 let arrowOverlay: HTMLDivElement | null = null;
 let arrowCheckInterval: number | null = null;
+let spotlightMuted = true; // default mute previews; user toggle persisted in localStorage
 // One-time intro splash controller (closure) – plays once per explicit enable toggle (not on reload)
 const cinemaIntro = (() => {
     let shownThisActivation = false;
@@ -170,8 +171,17 @@ export function setCinemaMode(on: boolean) {
     }
 }
 
-export function applyCinema(settings: { cinematicMode?: boolean }) {
+export function applyCinema(settings: { cinematicMode?: boolean; cinemaPreviewMuted?: boolean }) {
+    // Apply parent mode first
     setCinemaMode(!!settings.cinematicMode);
+    // Apply mute preference only if mode is active
+    if (settings.cinematicMode !== undefined) {
+        if (typeof settings.cinemaPreviewMuted === 'boolean') {
+            spotlightMuted = !!settings.cinemaPreviewMuted;
+            // Update existing frames if spotlight already mounted
+            applySpotlightMuteToFrames();
+        }
+    }
 }
 
 export function injectCinemaCSS() {
@@ -441,6 +451,7 @@ function initSpotlight() {
                 document.body.prepend(spotlightEl);
             }
         }
+        // spotlightMuted now driven externally by settings (cinemaPreviewMuted)
     }
     if (spotlightInterval) return; // already running
 
@@ -457,7 +468,7 @@ function initSpotlight() {
         document.body.classList.add('cinema-spotlight-half');
     }
     runSpotlightCycle();
-    spotlightInterval = window.setInterval(runSpotlightCycle, 11000); // 10s preview + 1s buffer
+    spotlightInterval = window.setInterval(runSpotlightCycle, 16000); // 10s preview + 1s buffer
     observeItemsForSpotlight();
     // Expose manual debug trigger
     window.optubeForceSpotlight = runSpotlightCycle;
@@ -626,7 +637,8 @@ function switchSpotlightVideo(videoId: string) {
     if (!frames.length) return;
     const active = Array.from(frames).find(f => f.classList.contains('active')) || frames[0];
     const next = frames.length > 1 ? (frames[0] === active ? frames[1] : frames[0]) : active;
-    const autoplaySrc = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&playsinline=1&rel=0&modestbranding=1&loop=1&playlist=${videoId}`;
+    const muteParam = spotlightMuted ? 1 : 0;
+    const autoplaySrc = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=${muteParam}&controls=0&playsinline=1&rel=0&modestbranding=1&loop=1&playlist=${videoId}&enablejsapi=1`;
     if (next === active) {
         // Single frame fallback: fade out then in
         active.classList.remove('active');
@@ -644,6 +656,16 @@ function switchSpotlightVideo(videoId: string) {
         setTimeout(() => { if (active !== next) { active.classList.remove('active'); active.src = 'about:blank'; } }, 700);
     };
     if (next.src !== autoplaySrc) next.src = autoplaySrc; else next.onload?.(new Event('load'));
+}
+
+function applySpotlightMuteToFrames() {
+    if (!spotlightEl) return;
+    const frames = spotlightEl.querySelectorAll<HTMLIFrameElement>('.optube-spotlight-video iframe');
+    frames.forEach(f => {
+        try {
+            f.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: spotlightMuted ? 'mute' : 'unMute', args: [] }), '*');
+        } catch { /* ignore */ }
+    });
 }
 
 function globalWheelRedirect(e: WheelEvent) {

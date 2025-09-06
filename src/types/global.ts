@@ -21,6 +21,7 @@ export interface Settings {
     hideAiSummary: boolean;
     hideCreator: boolean;
     cinematicMode: boolean; // new UI: cinematic Netflix-like home experience
+    cinemaPreviewMuted: boolean; // sub-setting: mute spotlight preview audio (default true, not auto-changed by parent)
     // Layout category
     hideDurationBadges: boolean;
     hidePreviewDetails: boolean; // video preview metadata (feed cards)
