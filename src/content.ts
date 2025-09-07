@@ -32,7 +32,7 @@ import {
 } from './utils/video';
 import { observeSidebar, setSidebarVisibility } from './utils/sidebar';
 import type { Settings } from './types/global';
-import { observeShorts, setShortsVisibility, injectShortsCSS } from './utils/shorts';
+import { observeShorts, setShortsVisibility, injectShortsCSS } from './utils/shorts.ts';
 import { observeHome, setHomeVisibility, injectHomeCSS } from './utils/home';
 import {
     observeSubscriptions,

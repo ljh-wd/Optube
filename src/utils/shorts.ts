@@ -19,7 +19,7 @@ export function setShortsVisibility(hide: boolean) {
     }
 }
 
-function cleanupShortsShelves() {
+export function cleanupShortsShelves() {
     // Dedicated shelf components – safe to hide directly
     document.querySelectorAll('ytd-reel-shelf-renderer, ytd-shorts-shelf-renderer').forEach(el => (el as HTMLElement).style.display = 'none');
 
@@ -72,41 +72,36 @@ function hideShortsFilterChip() {
 }
 
 export function observeShorts() {
-    // Initial setup
+    // Guard for non-extension / test environments
+    if (typeof chrome === 'undefined' || !chrome?.storage?.sync) return undefined;
+
     chrome.storage.sync.get(['hideShorts'], (settings) => {
         setShortsVisibility(!!settings.hideShorts);
     });
 
-    // Listen for storage changes
     chrome.storage.onChanged.addListener((changes) => {
         if (changes.hideShorts) {
             setShortsVisibility(!!changes.hideShorts.newValue);
         }
     });
 
-    // Add a lightweight observer for dynamically loaded content
-    let timeoutId: number | null = null;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
     const observer = new MutationObserver(() => {
-        // Debounce the cleanup to avoid excessive calls
         if (timeoutId) clearTimeout(timeoutId);
-        timeoutId = window.setTimeout(() => {
+        timeoutId = setTimeout(() => {
             chrome.storage.sync.get(['hideShorts'], (settings) => {
-                if (settings.hideShorts) {
-                    cleanupShortsShelves();
-                }
+                if (settings.hideShorts) cleanupShortsShelves();
             });
         }, 500);
     });
 
-    // Only observe if shorts hiding is enabled
     chrome.storage.sync.get(['hideShorts'], (settings) => {
         if (settings.hideShorts) {
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
+            observer.observe(document.body, { childList: true, subtree: true });
         }
     });
+
+    return observer;
 }
 
 export function injectShortsCSS() {
