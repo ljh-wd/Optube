@@ -112,70 +112,73 @@ export function observeShorts() {
 export function injectShortsCSS() {
     const style = document.createElement('style');
     style.textContent = `
+        /* Shorts hiding applies either when the persistent attribute is set or cinema mode body class is present */
+        /* Using :is() keeps selectors concise */
+
         /* Hide Shorts in sidebar navigation */
-        html[hide_shorts="true"] ytd-guide-entry-renderer:has([title="Shorts"]) {
-            display: none !important;
-        }
-        
-        /* Dedicated shorts shelf components */
-        html[hide_shorts="true"] ytd-reel-shelf-renderer,
-        html[hide_shorts="true"] ytd-shorts-shelf-renderer,
-        html[hide_shorts="true"] ytd-rich-item-renderer:has(> ytd-reel-shelf-renderer),
-        html[hide_shorts="true"] ytd-rich-item-renderer:has(> ytd-shorts-shelf-renderer),
-        html[hide_shorts="true"] grid-shelf-view-model:has(ytm-shorts-lockup-view-model),
-        html[hide_shorts="true"] grid-shelf-view-model:has(ytm-shorts-lockup-view-model-v2),
-    html[hide_shorts="true"] ytd-rich-shelf-renderer:has(ytm-shorts-lockup-view-model),
-    html[hide_shorts="true"] ytd-rich-shelf-renderer:has(ytm-shorts-lockup-view-model-v2),
-    html[hide_shorts="true"] ytd-rich-shelf-renderer:has(a[href*="/shorts/"]),
-        html[hide_shorts="true"] ytm-shorts-lockup-view-model,
-        html[hide_shorts="true"] ytm-shorts-lockup-view-model-v2 {
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-guide-entry-renderer:has([title="Shorts"]) {
             display: none !important;
         }
 
-        /* Hide "Shorts" filter chips in search chip clouds */
-        html[hide_shorts="true"] yt-chip-cloud-chip-renderer:has(#chip-shape-container button div:only-child),
-        html[hide_shorts="true"] yt-chip-cloud-chip-renderer:has(button .ytChipShapeChip):has(:scope span),
-        html[hide_shorts="true"] yt-chip-cloud-chip-renderer:has(button):has(> *:not(:has(*))){
+        /* Dedicated shorts shelf components */
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-reel-shelf-renderer,
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-shorts-shelf-renderer,
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-rich-item-renderer:has(> ytd-reel-shelf-renderer),
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-rich-item-renderer:has(> ytd-shorts-shelf-renderer),
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) grid-shelf-view-model:has(ytm-shorts-lockup-view-model),
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) grid-shelf-view-model:has(ytm-shorts-lockup-view-model-v2),
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-rich-shelf-renderer:has(ytm-shorts-lockup-view-model),
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-rich-shelf-renderer:has(ytm-shorts-lockup-view-model-v2),
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-rich-shelf-renderer:has(a[href*="/shorts/"]),
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytm-shorts-lockup-view-model,
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytm-shorts-lockup-view-model-v2 {
+            display: none !important;
+        }
+
+        /* Hide "Shorts" filter chips in search chip clouds (JS also does cleanup) */
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) yt-chip-cloud-chip-renderer:has(#chip-shape-container button div:only-child),
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) yt-chip-cloud-chip-renderer:has(button .ytChipShapeChip):has(:scope span),
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) yt-chip-cloud-chip-renderer:has(button):has(> *:not(:has(*))){
             /* fallback generic hide when text evaluated by JS */
         }
-        
+
         /* Remove individual shorts tiles (search / mixed lists) */
-        html[hide_shorts="true"] ytd-video-renderer:has(a[href*="/shorts/"]),
-        html[hide_shorts="true"] ytd-grid-video-renderer:has(a[href*="/shorts/"]),
-        html[hide_shorts="true"] ytd-compact-video-renderer:has(a[href*="/shorts/"]) {
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-video-renderer:has(a[href*="/shorts/"]),
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-grid-video-renderer:has(a[href*="/shorts/"]),
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-compact-video-renderer:has(a[href*="/shorts/"]) {
             display: none !important;
         }
-        
+
         /* Hide Shorts in home feed */
-        html[hide_shorts="true"] ytd-rich-section-renderer:has([aria-label*="Short" i]),
-        html[hide_shorts="true"] ytd-rich-section-renderer:has([title*="Short" i]) {
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-rich-section-renderer:has([aria-label*="Short" i]),
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-rich-section-renderer:has([title*="Short" i]) {
             display: none !important;
         }
-        
+
         /* Hide Shorts in search results */
-        html[hide_shorts="true"] ytd-video-renderer:has(.badge-shape-wiz[aria-label*="Short" i]),
-        html[hide_shorts="true"] ytd-search-refinement-card-renderer:has([aria-label*="Short" i]) {
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-video-renderer:has(.badge-shape-wiz[aria-label*="Short" i]),
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-search-refinement-card-renderer:has([aria-label*="Short" i]) {
             display: none !important;
         }
-        
+
         /* Hide Shorts tab in channel pages */
-        html[hide_shorts="true"] tp-yt-paper-tab:has([tab-title="Shorts"]),
-        html[hide_shorts="true"] yt-tab-shape:has([tab-title="Shorts"]) {
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) tp-yt-paper-tab:has([tab-title="Shorts"]),
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) yt-tab-shape:has([tab-title="Shorts"]) {
             display: none !important;
         }
-        
+
         /* Hide any element with shorts in the URL */
-        html[hide_shorts="true"] [href*="/shorts/"] {
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) [href*="/shorts/"] {
             display: none !important;
         }
-        
+
         /* Hide Shorts with specific badges */
-        html[hide_shorts="true"] ytd-rich-item-renderer:has(.badge-shape-wiz[aria-label*="Short" i]),
-        html[hide_shorts="true"] ytd-video-renderer:has(.badge-shape-wiz[aria-label*="Short" i]) {
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-rich-item-renderer:has(.badge-shape-wiz[aria-label*="Short" i]),
+        :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-video-renderer:has(.badge-shape-wiz[aria-label*="Short" i]) {
             display: none !important;
         }
-        
-    /* Intentionally NOT hiding: ytd-rich-grid-renderer, ytd-item-section-renderer */
+
+        /* Intentionally NOT hiding: ytd-rich-grid-renderer, ytd-item-section-renderer */
     `;
     document.head.appendChild(style);
 }
