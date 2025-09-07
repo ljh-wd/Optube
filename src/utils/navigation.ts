@@ -172,9 +172,12 @@ export function observeNavigation() {
 
     // Mutation observer to re-run when sidebar re-renders.
     const observer = new MutationObserver(() => {
+        // Guard against jsdom teardown between tests where document becomes undefined
+        if (typeof document === 'undefined' || !document.body) return;
         chrome.storage.sync.get(KEYS, applyNavigation);
     });
     if (document.body) {
         observer.observe(document.body, { childList: true, subtree: true });
     }
+    return observer;
 }

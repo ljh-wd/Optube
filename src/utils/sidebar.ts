@@ -109,10 +109,12 @@ export function observeSidebar() {
         setSidebarVisibility(hide);
     });
     const observer = new MutationObserver(() => {
+        if (typeof document === 'undefined' || !document.body) return;
         chrome.storage.sync.get(['hideSidebar'], (settings) => {
             const hide = !!settings.hideSidebar;
             setSidebarVisibility(hide);
         });
     });
     observer.observe(document.body, { childList: true, subtree: true });
+    return observer;
 }
