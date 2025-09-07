@@ -575,6 +575,38 @@ function teardownSpotlight() {
 
 // (Legacy maybeShowCinemaIntro removed – now handled inline in setCinemaMode with closure)
 
+// Lightweight ad / promoted content detection so spotlight skips adverts.
+// This is heuristic-based; YouTube frequently changes DOM. Adjust selectors as needed.
+function isAdOrPromoted(el: HTMLElement): boolean {
+    // Direct ad / promoted renderers inside or wrapping the item
+    const AD_SELECTORS = [
+        'ytd-ad-slot-renderer',
+        'ytd-display-ad-renderer',
+        'ytd-promoted-sparkles-web-renderer',
+        'ytd-in-feed-ad-layout-renderer',
+        'ytd-in-feed-player-ad-renderer',
+        'ytd-action-companion-ad-renderer',
+        'ytd-statement-banner-renderer',
+        'ytd-inline-survey-renderer'
+    ].join(',');
+    if (el.matches(AD_SELECTORS) || el.querySelector(AD_SELECTORS)) return true;
+    // Many ads live inside rich-item-renderer children
+    if (el.querySelector('[id="ad-badge"], #ad-badge')) return true;
+    // Badge containers showing 'Ad' / 'Sponsored'
+    const badgeText = Array.from(el.querySelectorAll('ytd-badge-supported-renderer, .badge-shape-wiz, .badge, .yt-badge'))
+        .map(b => b.textContent?.trim().toLowerCase() || '')
+        .join(' ');
+    if (/(^|\s)(ad|sponsored|promoted)(\s|$)/.test(badgeText)) return true;
+    // Anchor aria-label starting with Ad (common on some layouts)
+    const a = el.querySelector('a#thumbnail, a.yt-simple-endpoint');
+    const aria = (a?.getAttribute('aria-label') || '').toLowerCase();
+    if (/^ad[\s:.-]/.test(aria)) return true;
+    // Some promoted videos include a simple text node 'Ad •' near the start
+    const textSample = (el.textContent || '').slice(0, 160).toLowerCase();
+    if (textSample.includes('ad •') || textSample.includes('ad ·')) return true;
+    return false;
+}
+
 function pickRandomVideo(): HTMLElement | null {
     // Prefer the carousel container if available; otherwise query document-wide
     const scope: ParentNode = carouselContainer || document;
@@ -586,7 +618,11 @@ function pickRandomVideo(): HTMLElement | null {
     ].join(',');
     const raw = Array.from(scope.querySelectorAll<HTMLElement>(selector));
     // Filter out shelves / ads / statements and ensure at least a thumbnail or title exists
-    const items = raw.filter(el => !el.closest('ytd-rich-shelf-renderer') && (el.querySelector('ytd-thumbnail,img,#video-title')));
+    const items = raw.filter(el =>
+        !el.closest('ytd-rich-shelf-renderer') &&
+        (el.querySelector('ytd-thumbnail,img,#video-title')) &&
+        !isAdOrPromoted(el)
+    );
     if (!items.length) return null;
     let idx = Math.floor(Math.random() * items.length);
     if (items.length > 1 && idx === lastSpotlightIndex) idx = (idx + 1) % items.length;
