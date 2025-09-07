@@ -86,7 +86,7 @@ function restoreFullSidebar() {
         // Only clear if we set it (best effort)
         if (el.style.paddingLeft === FEED_LEFT_PADDING) el.style.paddingLeft = '';
         if (el.style.boxSizing === 'border-box') el.style.boxSizing = '';
-    }); 
+    });
     if (app) {
         app.style.removeProperty('--ytd-guide-width');
         app.style.removeProperty('--ytd-mini-guide-width');
