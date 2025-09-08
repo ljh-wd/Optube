@@ -61,10 +61,26 @@ function ensureCinemaHomeState() {
     if (!document.documentElement.hasAttribute(ATTR)) return;
     if (isHome()) {
         document.body.classList.add('cinematic-home');
+        // If we re-enter the home feed while cinema mode is still enabled (SPA navigation back from
+        // a watch page, etc.), the ephemeral hide classes may have been removed when we left.
+        // Re-apply them here so the UI stays consistently minimal without requiring a full
+        // mode toggle (setCinemaMode(true) only applies them on the initial ON transition).
+        ensureEphemeralCinemaHides();
     } else {
         document.body.classList.remove('cinematic-home');
         // If we navigated away, fully tear down spotlight so playback stops
         teardownSpotlight();
+    }
+}
+
+// Re-apply ephemeral hide classes if missing when on home with cinema attribute present.
+function ensureEphemeralCinemaHides() {
+    if (!document.documentElement.hasAttribute(ATTR)) return;
+    if (!isHome()) return;
+    if (!document.body.classList.contains('cinematic-home')) return;
+    // Use one representative class to decide if the set is missing; if it's gone they all are.
+    if (!document.body.classList.contains('cinema-hide-sidebar')) {
+        applyEphemeralAttrs();
     }
 }
 
@@ -215,7 +231,7 @@ export function injectCinemaCSS() {
     style.textContent = `
   /* Root variable definitions */
     /* Attach variables directly to the html element when cinematic attribute present */
-    html[${ATTR}] { --netflix-red:#e50914; --netflix-black:#141414; --netflix-dark-gray:#181818; --netflix-light-gray:#e5e5e5; --cinema-spotlight-height: clamp(340px, 50vh, 780px); --cinema-carousel-overlap: 80px; }
+    html[${ATTR}] { --netflix-red:#e50914; --netflix-black:#141414; --netflix-dark-gray:#181818; --netflix-light-gray:#e5e5e5; --cinema-spotlight-height: clamp(340px, 50vh, 780px); --cinema-carousel-height: 350px; }
         html[${ATTR}] body.cinematic-home.cinema-spotlight-quarter { --cinema-spotlight-height: clamp(220px, 25vh, 520px); }
         html[${ATTR}] body.cinematic-home.cinema-spotlight-half { --cinema-spotlight-height: clamp(340px, 50vh, 780px); }
   html[${ATTR}] body.cinematic-home { overflow:hidden !important; background:var(--netflix-black)!important; }
@@ -245,9 +261,10 @@ export function injectCinemaCSS() {
   html[${ATTR}] body.cinematic-home ytd-masthead #logo-icon { fill:var(--netflix-red)!important; }
   html[${ATTR}] body.cinematic-home html[dark] { background:var(--netflix-black)!important; }
 
-    /* Spotlight container now in normal flow (not fixed) */
+    /* Spotlight container now fixed to body */
     html[${ATTR}] body.cinematic-home #optube-cinema-spotlight {
-    position:relative; 
+    position:fixed; 
+    top:0; left:0;
     width:100vw; height:var(--cinema-spotlight-height);
     padding:0; box-sizing:border-box;
     display:flex; align-items:flex-end; justify-content:flex-start;
@@ -284,38 +301,42 @@ export function injectCinemaCSS() {
     gap:20px !important;
     overflow-x:auto !important;
     overflow-y:hidden !important;
-    position:relative !important;
-        /* Overlap the spotlight by pulling carousel upward */
-        padding: calc(var(--ytd-masthead-height, 56px) + 12px) 48px 48px 88px !important;
-    scroll-snap-type:x proximity;
+    position:fixed !important;
+    top: var(--cinema-spotlight-height) !important;
+    left:0 !important;
     width:100vw !important; /* ensure full viewport width */
+    height: var(--cinema-carousel-height) !important;
     max-width:100vw !important; /* override inline max-width from YT */
     margin:0 !important; /* remove auto-centering */
+    padding: 12px 48px 12px 88px !important;
     box-sizing:border-box !important;
     overscroll-behavior-x: contain;
-    flex: 1 0 auto !important; /* avoid shrinking */
     backface-visibility:hidden; /* reduce paint artifacts */
     transform:translateZ(0); /* promote layer */
-    position:relative !important; /* allow absolutely positioned arrows */
     z-index:1500 !important; /* above spotlight */
+    contain:layout paint style; /* strict containment to prevent reflow */
   }
-    /* Depth overlap: shift contents upward when spotlight active */
-            /* Depth overlap using negative margin (restored) + stabilized layout to prevent jump */
+    /* Ensure carousel stays below spotlight without overlapping meta content */
             html[${ATTR}] body.cinematic-home.cinema-spotlight-active ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer {
                 transform:none !important;
-                padding-top: calc(var(--ytd-masthead-height, 56px) + 12px) !important;
-                margin-top: calc(var(--cinema-carousel-overlap) * -1) !important;
+                margin-top: 0 !important; /* remove negative margin to prevent overlap */
+                padding-top: 12px !important;
+                top: calc(var(--cinema-spotlight-height) + 12px) !important; /* ensure clear separation */
                 transition: none !important; /* prevent visual snapping */
             }
-            /* Reserve the overlap space so subsequent lazy loads don't cause upward shift */
+            /* Reserve space for spotlight meta to prevent occlusion */
+            html[${ATTR}] body.cinematic-home.cinema-spotlight-active #optube-cinema-spotlight .optube-spotlight-meta { 
+                padding-bottom: 48px !important; /* extra padding to keep Watch button clear */
+                z-index: 1300 !important; /* ensure meta is above carousel */
+            }
             html[${ATTR}] body.cinematic-home.cinema-spotlight-active #optube-cinema-spotlight { contain:layout paint style; }
             html[${ATTR}] body.cinematic-home.cinema-spotlight-active ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer::after { content:''; display:block; height:0; }
             /* Prevent continuation item temporary height collapse from shifting container */
-            html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer ytd-continuation-item-renderer { min-height:90px !important; }
+            html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer ytd-continuation-item-renderer { min-height: var(--cinema-carousel-height) !important; }
         html[${ATTR}] body.cinematic-home.cinema-spotlight-active ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer::before { content:none !important; }
         html[${ATTR}] body.cinematic-home #contents.ytd-rich-grid-renderer::after { content:none !important; background:none !important; }
-        /* Lift spotlight meta to avoid overlap clipping */
-        html[${ATTR}] body.cinematic-home.cinema-spotlight-active #optube-cinema-spotlight .optube-spotlight-meta { transform:translateY(-14px); transition:transform .4s ease; }
+        /* Lift spotlight meta slightly to avoid clipping, but not overlap */
+        html[${ATTR}] body.cinematic-home.cinema-spotlight-active #optube-cinema-spotlight .optube-spotlight-meta { transform:translateY(-8px); transition:transform .4s ease; }
         /* Ensure items render above gradient but still above spotlight */
         html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer > ytd-rich-item-renderer { position:relative !important; z-index:3 !important; }
   /* Defensive override in case inline style attribute persists after SPA nav */
@@ -324,6 +345,7 @@ export function injectCinemaCSS() {
     max-width:100vw !important;
     margin-left:0 !important;
     margin-right:0 !important;
+    top: calc(var(--cinema-spotlight-height) + 12px) !important;
   }
   /* Ensure rich grid itself doesn't constrain internal content */
   html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer {
@@ -335,13 +357,13 @@ export function injectCinemaCSS() {
     flex:0 0 340px !important;
     max-width:340px !important;
     scroll-snap-align:center;
-        transition:opacity .32s ease, transform .32s ease; /* smooth entrance */
-        contain:content; /* isolate layout/paint to reduce reflow */
+    transition:opacity .32s ease, transform .32s ease; /* smooth entrance */
+    contain:content; /* isolate layout/paint to reduce reflow */
   }
     html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer > ytd-rich-item-renderer.cinema-loading { opacity:0 !important; transform:translateY(28px); }
   /* Hide default grid sizing variables influence */
   html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer { --ytd-rich-grid-items-per-row: 1 !important; }
-  html[${ATTR}] body.cinematic-home ytd-rich-item-renderer { height:350px!important; aspect-ratio:1!important; margin:0!important; }
+  html[${ATTR}] body.cinematic-home ytd-rich-item-renderer { height:var(--cinema-carousel-height)!important; aspect-ratio:1!important; margin:0!important; }
   html[${ATTR}] body.cinematic-home ytd-rich-item-renderer ytd-thumbnail { border:2px solid transparent; transition:top .2s, scale .2s, opacity .2s; scale:.95!important; position:relative!important; top:0!important; }
   html[${ATTR}] body.cinematic-home ytd-rich-item-renderer:hover ytd-thumbnail { scale:.85!important; top:-20px!important; opacity:.6!important; }
   html[${ATTR}] body.cinematic-home ytd-rich-grid-media #details { padding:1rem!important; background:var(--netflix-dark-gray)!important; border-radius:4px!important; margin-top:-4px!important; transition:all .2s!important; opacity:0!important; top:-50px!important; position:relative; }
@@ -393,9 +415,9 @@ export function injectCinemaCSS() {
     html[${ATTR}] body.cinematic-home.cinema-hide-spinners .yt-core-spinner,
     html[${ATTR}] body.cinematic-home.cinema-hide-spinners .ytp-spinner { opacity:0 !important; visibility:hidden !important; pointer-events:none !important; animation:none !important; }
     /* Preserve skeleton loaders (allowing thumbnails to compute size); optionally reduce contrast */
-    html[${ATTR}] body.cinematic-home.cinema-hide-spinners .yt-core-skeleton-loader { opacity:.35 !important; filter:grayscale(1) brightness(.55); transition:opacity .3s ease; }
+    html[${ATTR}] body.cinematic-home.cinema-hide-spinners .yt-core-skeleton-loader { opacity:.35 !important; filter:grayscale(1) brightness(.55); transition:opacity .3s ease; height: var(--cinema-carousel-height) !important; }
     /* Reserve vertical space for continuation loader so carousel baseline doesn't jump */
-    html[${ATTR}] body.cinematic-home ytd-continuation-item-renderer { min-height:90px !important; box-sizing:border-box; }
+    html[${ATTR}] body.cinematic-home ytd-continuation-item-renderer { min-height: var(--cinema-carousel-height) !important; box-sizing:border-box; }
 
   /* Scrollbar minimal styling */
   html[${ATTR}] body.cinematic-home #contents::-webkit-scrollbar { height:8px; background:transparent; }
@@ -408,7 +430,7 @@ export function injectCinemaCSS() {
   html[${ATTR}] body.cinematic-home #contents:has(ytd-rich-item-renderer)::before { left:0; background:linear-gradient(to right,#0f0f0f,transparent); }
   html[${ATTR}] body.cinematic-home #contents:has(ytd-rich-item-renderer)::after { right:0; background:linear-gradient(to left,#0f0f0f,transparent); }
 
-    /* Carousel arrow controls (for non-trackpad users) */
+  /* Carousel arrow controls (for non-trackpad users) */
             html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay { position:absolute; inset:0; z-index:15; }
                 html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay .cinema-scroll-arrow { position:absolute; top:42%; transform:translateY(-50%); width:54px; height:54px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(0,0,0,0.52); backdrop-filter:blur(10px) saturate(180%); -webkit-backdrop-filter:blur(10px) saturate(180%); border:1px solid rgba(255,255,255,.25); color:#fff; cursor:pointer; opacity:.92; transition:opacity .25s ease, background .25s ease, transform .25s ease; box-shadow:0 6px 24px -6px rgba(0,0,0,.7); }
     html[${ATTR}] body.cinematic-home .cinema-scroll-arrow { cursor:pointer !important; }
@@ -448,18 +470,37 @@ export function injectCinemaCSS() {
 
 export function observeCinema() {
     // Re-apply body class on navigation mutations (SPA transitions)
-    const observer = new MutationObserver(() => {
+    const observer = new MutationObserver(debounce(() => {
         if (document.documentElement.hasAttribute(ATTR)) {
             ensureCinemaHomeState();
             if (document.body.classList.contains('cinematic-home')) {
                 attachCarouselEnhancements();
+            } else {
+                teardownSpotlight();
+                removeEphemeralAttrs();
             }
         }
-    });
+    }, 50));
     if (document.body) observer.observe(document.body, { childList: true, subtree: true });
+    // Hook into YouTube events for better timing
+    document.addEventListener('yt-navigate-finish', debounce(() => {
+        ensureCinemaHomeState();
+        if (isHome() && document.body.classList.contains('cinematic-home')) {
+            attachCarouselEnhancements();
+            initSpotlight();
+        } else {
+            teardownSpotlight();
+            removeEphemeralAttrs();
+        }
+    }, 50));
+    document.addEventListener('yt-page-data-updated', debounce(() => {
+        if (isHome()) initSpotlight();
+    }, 50));
     // Initial attempt
-    attachCarouselEnhancements();
-    initSpotlight();
+    if (isHome()) {
+        attachCarouselEnhancements();
+        initSpotlight();
+    }
     // Splash now handled inside setCinemaMode via closure; no-op here
     return observer;
 }
@@ -477,6 +518,8 @@ function attachCarouselEnhancements() {
         attached = false; // reattach listeners if container changed
     }
     if (attached || !carouselContainer) return;
+    // Flatten existing rows to prevent multiple rows
+    flattenCarouselRows();
     // Wheel -> horizontal translate
     carouselContainer.addEventListener('wheel', (e) => {
         if (!document.documentElement.hasAttribute(ATTR)) return;
@@ -497,6 +540,16 @@ function attachCarouselEnhancements() {
     initSpotlight();
     observeCarouselNewItems();
     addCarouselArrows();
+}
+
+function flattenCarouselRows() {
+    if (!carouselContainer) return;
+    const rows = carouselContainer.querySelectorAll('ytd-rich-grid-row');
+    rows.forEach(row => {
+        const items = row.querySelectorAll('ytd-rich-item-renderer');
+        items.forEach(item => carouselContainer!.appendChild(item));
+        row.remove();
+    });
 }
 
 function initSpotlight() {
@@ -521,21 +574,8 @@ function initSpotlight() {
                 </div>`;
         spotlightEl.appendChild(vidWrap);
         spotlightEl.appendChild(meta);
-        // Prefer inserting before the entire rich grid renderer to avoid internal layout conflicts
-        const richGrid = document.querySelector('ytd-rich-grid-renderer');
-        if (richGrid && richGrid.parentElement) {
-            richGrid.parentElement.insertBefore(spotlightEl, richGrid);
-        } else {
-            // Fallback: previous strategy inside browse container
-            const browse = document.querySelector('ytd-browse[page-subtype="home"]');
-            const chips = browse?.querySelector('#chips-wrapper.ytd-feed-filter-chip-bar-renderer');
-            if (browse) {
-                if (chips) browse.insertBefore(spotlightEl, chips);
-                else browse.prepend(spotlightEl);
-            } else {
-                document.body.prepend(spotlightEl);
-            }
-        }
+        // Attach to body as fixed
+        document.body.prepend(spotlightEl);
         // spotlightMuted now driven externally by settings (cinemaPreviewMuted)
     }
     if (spotlightInterval) return; // already running
@@ -667,7 +707,8 @@ function observeItemsForSpotlight() {
     if (itemsObserver) return;
     const grid = document.querySelector('ytd-rich-grid-renderer #contents, ytd-browse[page-subtype="home"] #contents');
     if (!grid) return; // will be retried on next init
-    itemsObserver = new MutationObserver((muts) => {
+    itemsObserver = new MutationObserver(debounce((mutsUnknown: unknown) => {
+        const muts = mutsUnknown as MutationRecord[];
         if (!document.documentElement.hasAttribute(ATTR)) return;
         for (const m of muts) {
             if (m.addedNodes.length) {
@@ -679,7 +720,7 @@ function observeItemsForSpotlight() {
                 break;
             }
         }
-    });
+    }, 50));
     itemsObserver.observe(grid, { childList: true, subtree: true });
 }
 
@@ -689,12 +730,18 @@ function observeCarouselNewItems() {
     if (!grid) return;
     const FLAG = '__cinemaObserved';
     if ((grid as unknown as Record<string, unknown>)[FLAG]) return;
-    const obs = new MutationObserver(muts => {
+    const obs = new MutationObserver(debounce((mutsUnknown: unknown) => {
+        const muts = mutsUnknown as MutationRecord[];
         if (!document.documentElement.hasAttribute(ATTR)) return;
-        muts.forEach(m => {
-            m.addedNodes.forEach(n => {
+        muts.forEach((m: MutationRecord) => {
+            m.addedNodes.forEach((n: Node) => {
                 if (!(n instanceof HTMLElement)) return;
-                if (n.tagName.toLowerCase() === 'ytd-rich-item-renderer') {
+                if (n.tagName.toLowerCase() === 'ytd-rich-grid-row') {
+                    // Flatten new row
+                    const items = n.querySelectorAll('ytd-rich-item-renderer');
+                    items.forEach(item => carouselContainer!.appendChild(item));
+                    n.remove();
+                } else if (n.tagName.toLowerCase() === 'ytd-rich-item-renderer') {
                     n.classList.add('cinema-loading');
                     // Defer removal to next frame to allow transition
                     requestAnimationFrame(() => {
@@ -719,8 +766,8 @@ function observeCarouselNewItems() {
         });
         // Post-mutation integrity check (covers non video nodes e.g. continuation spinner replacement)
         ensureCarouselArrows(true);
-    });
-    obs.observe(grid, { childList: true });
+    }, 50));
+    obs.observe(grid, { childList: true, subtree: true });
     (grid as unknown as Record<string, unknown>)[FLAG] = true;
 }
 
@@ -749,8 +796,6 @@ function extractText(titleEl: Element | null, anchor: HTMLAnchorElement | null):
     if (anchor) return (anchor.getAttribute('title') || anchor.textContent || '').trim();
     return '';
 }
-
-// (simulateHover removed – no longer needed with iframe embed)
 
 function extractVideoId(href: string): string | null {
     try {
@@ -839,7 +884,7 @@ function maybeLoadMore() {
     const nearEnd = (carouselContainer.scrollLeft + carouselContainer.clientWidth) > (carouselContainer.scrollWidth - 800);
     if (!nearEnd) return;
     if (loadDebounce) window.clearTimeout(loadDebounce);
-    loadDebounce = window.setTimeout(() => triggerContinuationLoad(), 120);
+    loadDebounce = window.setTimeout(() => triggerContinuationLoad(), 50);
 }
 
 function triggerContinuationLoad() {
@@ -958,4 +1003,13 @@ function updateCarouselArrows() {
         arrowLeft.style.top = '25%';
         arrowRight.style.top = '25%';
     } catch { /* ignore */ }
+}
+
+// Debounce helper
+function debounce<T extends (...p: unknown[]) => void>(fn: T, ms: number) {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    return (...args: Parameters<T>) => {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), ms);
+    };
 }
