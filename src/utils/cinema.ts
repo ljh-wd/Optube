@@ -175,7 +175,6 @@ export function setCinemaMode(on: boolean) {
         // Ensure attribute/class present every call (SPA navigations) but only rewrite storage on transition
         document.documentElement.setAttribute(ATTR, 'true');
         if (isHome()) document.body.classList.add('cinematic-home');
-        document.getElementById('frosted-glass')?.remove();
         if (stateChanged) {
             // Only on first enable transition apply ephemeral attributes (no storage mutation)
             applyEphemeralAttrs();
