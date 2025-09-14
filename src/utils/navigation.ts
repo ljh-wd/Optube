@@ -41,6 +41,7 @@ export function injectNavigationCSS() {
     document.head.appendChild(style);
 }
 
+// Set data-optube-hidden on entire guide sections matching a title predicate
 function markMatchingGuideSections(predicate: (title: string) => boolean, hide: boolean) {
     // Standard sections
     document.querySelectorAll('ytd-guide-section-renderer').forEach(sec => {
@@ -69,6 +70,7 @@ function markMatchingGuideSections(predicate: (title: string) => boolean, hide: 
     }
 }
 
+// Toggle individual entries inside the guide; avoids touching whole sections when not needed
 function markIndividualEntries(matchers: { title: string, hide: boolean }[]) {
     // Entries inside all guide sections including collapsible
     document.querySelectorAll('ytd-guide-entry-renderer').forEach(entry => {
@@ -86,7 +88,7 @@ function markIndividualEntries(matchers: { title: string, hide: boolean }[]) {
 }
 
 export function applyNavigation(settings: Partial<NavSettings>) {
-    // Compute effective hideExplore if all children hidden
+    // If all Explore sub-items are hidden, treat the whole Explore section as hidden
     const allExploreChildrenHidden = [
         settings.hideExploreMusic,
         settings.hideExploreMovies,
@@ -102,7 +104,7 @@ export function applyNavigation(settings: Partial<NavSettings>) {
 
     const effectiveHideExplore = !!settings.hideExplore || allExploreChildrenHidden;
 
-    // Compute effective hideYouSection if all children hidden
+    // If all You sub-items are hidden (or You feed hidden), hide the whole You section
     const allYouChildrenHidden = [
         settings.hideHistory,
         settings.hidePlaylists,
@@ -146,7 +148,7 @@ export function applyNavigation(settings: Partial<NavSettings>) {
         ]);
     }
 
-    // Mini guide (collapsed) entry for "You" – hide when the full You section is hidden
+    // Mini guide (collapsed) entry for "You" – keep in sync with the full section state
     document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
         const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
         if (label === 'You') {

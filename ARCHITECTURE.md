@@ -48,14 +48,22 @@ The goal: prefer declarative CSS hides keyed off attributes/classes, and only fa
   - Call the utility function.
   - Assert style/attribute changes.
 
-## Shorts (example pattern)
+# Architecture
 
-- Attribute-driven CSS: `html[hide_shorts="true"] …` hides most cases.
-- Conservative JS cleanup hides a few stray widgets and tags them with `data-optube-hidden-shorts="1"`.
-- When the setting is turned off, we remove the attribute and restore anything we hid inline.
 
-## Gotchas
+## Modules
 
-- YouTube’s DOM is dynamic and A/B tested. Always guard selectors and avoid hard assumptions.
-- Don’t hide parent containers that YouTube uses for virtualization/lazy load. Hide only leaf or safely-removable components.
-- When using `:has()`, test both performance and correctness on search, home, channel, and watch pages.
+- `src/content.ts`: orchestration (settings → apply → observe → inject CSS).
+- `src/utils/*`: one file per area (shorts, home, subscriptions, video, layout, navigation…). Typical trio: `setXVisibility`, `observeX`, `injectXCSS`.
+- `src/components/*`: React popup that writes `chrome.storage.sync`.
+
+## CSS and observers
+
+- Keep selectors narrow; avoid hiding structural containers (`ytd-rich-grid-renderer`, etc.).
+- Use `:has()` only when needed and keep it specific.
+- Observers are scoped and debounced. Only observe when the related setting is enabled.
+
+## Tests
+
+- Vitest + jsdom under `src/utils/_tests/`.
+- Test the smallest DOM you can; assert both hide and restore paths where relevant.

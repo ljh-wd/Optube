@@ -12,6 +12,7 @@ export function setHomeVisibility(hide: boolean) {
     }
 }
 
+// Conservative inline hides only within the actual Home surface
 function cleanupHomeFeed() {
     // Hide the main home feed content
     document.querySelectorAll('ytd-browse[page-subtype="home"]').forEach(el => {
@@ -49,6 +50,7 @@ function cleanupHomeFeed() {
     });
 }
 
+// Reverse inline hides applied during cleanup
 function restoreHomeFeed() {
     // Restore the main home feed content
     document.querySelectorAll('ytd-browse[page-subtype="home"]').forEach(el => {

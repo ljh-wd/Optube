@@ -26,6 +26,7 @@ export function setSubscriptionsSidebarVisibility(hide: boolean) {
     }
 }
 
+// Conservative inline hides within the Subscriptions surface only
 function cleanupSubscriptionsFeed() {
     // Hide the main subscription feed content
     document.querySelectorAll('ytd-browse[page-subtype="subscriptions"]').forEach(el => {
@@ -63,6 +64,7 @@ function cleanupSubscriptionsFeed() {
     });
 }
 
+// Reverse inline hides applied during cleanup
 function restoreSubscriptionsFeed() {
     // Restore the main subscriptions feed content
     document.querySelectorAll('ytd-browse[page-subtype="subscriptions"]').forEach(el => {
@@ -100,6 +102,7 @@ function restoreSubscriptionsFeed() {
     });
 }
 
+// Hide the Subscriptions section in the sidebar only when we match its header text
 function cleanupSubscriptionsSidebar() {
     // Hide the subscription section in the sidebar, accounting for collapsible structure
     document.querySelectorAll('ytd-guide-section-renderer').forEach(sec => {
@@ -121,6 +124,7 @@ function cleanupSubscriptionsSidebar() {
     });
 }
 
+// Reverse inline hides for the Subscriptions sidebar
 function restoreSubscriptionsSidebar() {
     // Restore the subscription section in the sidebar, accounting for collapsible structure
     document.querySelectorAll('ytd-guide-section-renderer').forEach(sec => {

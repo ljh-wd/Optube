@@ -20,7 +20,7 @@ export function observeFold() {
             setFoldVisibility(hide);
         });
     });
-    observer.observe(document.body, {childList: true, subtree: true});
+    observer.observe(document.body, { childList: true, subtree: true });
 }
 
 
@@ -48,7 +48,7 @@ export function observeAiSummary() {
             setAiSummaryVisibility(!!settings.hideAiSummary);
         });
     });
-    observer.observe(document.body, {childList: true, subtree: true});
+    observer.observe(document.body, { childList: true, subtree: true });
 }
 
 
@@ -140,7 +140,7 @@ export function observeCommentAvatars() {
     const observer = new MutationObserver(() => {
         chrome.storage.sync.get(['hideCommentAvatars'], (settings) => setCommentAvatarsVisibility(!!settings.hideCommentAvatars));
     });
-    observer.observe(document.body, {childList: true, subtree: true});
+    observer.observe(document.body, { childList: true, subtree: true });
 }
 
 
@@ -175,7 +175,7 @@ export function observeComments() {
             setCommentsVisibility(hide);
         });
     });
-    observer.observe(document.body, {childList: true, subtree: true});
+    observer.observe(document.body, { childList: true, subtree: true });
 }
 
 export function setCategoryAndTopicVisibility(hide: boolean) {
@@ -199,23 +199,25 @@ export function observeCategoryAndTopic() {
         });
     });
 
-    observer.observe(document.body, {childList: true, subtree: true});
+    observer.observe(document.body, { childList: true, subtree: true });
 }
 
 
+// Tracks whether we currently have the recommended sidebar adjustments applied
 let recommendedApplied = false;
 
+// Reverse any style overrides applied by setRecommendedVisibility()
 function cleanupRecommendedStyles() {
     const recommendedInner = document.getElementById('secondary-inner');
     const secondary = recommendedInner ? (recommendedInner.closest('#secondary') as HTMLElement | null) : document.getElementById('secondary') as HTMLElement | null;
-    // Prefer #columns that actually contain the #secondary (scoped to the watch layout).
+    // Prefer a #columns container that actually contains #secondary (SPA transitions sometimes leave stale nodes around)
     let columns = document.getElementById('columns') as HTMLElement | null;
     if (secondary && columns && !columns.contains(secondary)) {
-        // try finding a column element relative to the secondary
+        // Try finding a #columns element relative to the current secondary
         const candidate = secondary.closest('#columns') as HTMLElement | null;
         if (candidate) columns = candidate;
     }
-    // If columns are scoped, try to find the primary inside it; fallback to global lookup.
+    // If columns are scoped, resolve #primary within that scope; fallback to global lookup.
     const primary = columns ? columns.querySelector('#primary') as HTMLElement | null : document.getElementById('primary') as HTMLElement | null;
     if (secondary) {
         secondary.style.width = '';
@@ -244,7 +246,7 @@ function cleanupRecommendedStyles() {
 }
 
 export function setRecommendedVisibility(hide: boolean) {
-    // Only apply on canonical watch pages (/watch + v param) OR if ytd-watch-flexy is present.
+    // Only touch the layout on canonical watch pages (/watch?v=…) OR when the watch app shell is present.
     const params = new URLSearchParams(location.search);
     const isWatchPage = (location.pathname === '/watch' && params.has('v')) || !!document.querySelector('ytd-watch-flexy');
     if (!isWatchPage) {
@@ -257,7 +259,7 @@ export function setRecommendedVisibility(hide: boolean) {
 
     const recommendedInner = document.getElementById('secondary-inner');
     const secondary = recommendedInner ? (recommendedInner.closest('#secondary') as HTMLElement | null) : null;
-    if (!recommendedInner || !secondary) return;
+    if (!recommendedInner || !secondary) return; // DOM not ready yet (watch shell not mounted)
 
     // Prefer #columns that actually contain the #secondary (scoped to the watch layout).
     let columns = document.getElementById('columns') as HTMLElement | null;
@@ -306,7 +308,7 @@ export function observeRecommended() {
             setRecommendedVisibility(hide);
         });
     });
-    observer.observe(document.body, {childList: true, subtree: true});
+    observer.observe(document.body, { childList: true, subtree: true });
 }
 
 export function setDescriptionVisibility(hide: boolean) {
@@ -326,7 +328,7 @@ export function observeDescription() {
             setDescriptionVisibility(hide);
         });
     });
-    observer.observe(document.body, {childList: true, subtree: true});
+    observer.observe(document.body, { childList: true, subtree: true });
 }
 
 export function setTitleVisibility(hide: boolean) {
@@ -346,7 +348,7 @@ export function observeTitle() {
             setTitleVisibility(hide);
         });
     });
-    observer.observe(document.body, {childList: true, subtree: true});
+    observer.observe(document.body, { childList: true, subtree: true });
 }
 
 export function setCreatorVisibility(hide: boolean) {
@@ -366,5 +368,5 @@ export function observeCreator() {
             setCreatorVisibility(hide);
         });
     });
-    observer.observe(document.body, {childList: true, subtree: true});
+    observer.observe(document.body, { childList: true, subtree: true });
 }

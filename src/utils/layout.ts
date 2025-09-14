@@ -12,7 +12,7 @@ interface LayoutToggles {
 
 const STYLE_ID = 'optube-layout-css';
 
-// Mutation observer to keep hiding duration badges on dynamically loaded content
+// Keeps duration badges hidden when new cards stream in (home/search/watch)
 let durationObserver: MutationObserver | null = null;
 let durationObserverActive = false;
 let durationDebounce: number | null = null;
@@ -23,6 +23,7 @@ let hoverDelegationAttached = false;
 const hoverProgressObservers = new WeakMap<HTMLElement, MutationObserver>();
 let previewBlockerAttached = false;
 
+// Start/stop the duration observer based on the toggle state
 function ensureDurationObserver(active: boolean) {
     if (active && !durationObserverActive) {
         durationObserver = new MutationObserver(() => {
@@ -31,7 +32,7 @@ function ensureDurationObserver(active: boolean) {
                 if (document.documentElement.hasAttribute('hide_duration_badges')) hideDurationBadges();
             }, 100);
         });
-        durationObserver.observe(document.body, {childList: true, subtree: true});
+        durationObserver.observe(document.body, { childList: true, subtree: true });
         durationObserverActive = true;
     } else if (!active && durationObserverActive && durationObserver) {
         durationObserver.disconnect();
@@ -63,6 +64,7 @@ function toggleAttr(el: HTMLElement, name: string, enabled?: boolean) {
 
 export function injectLayoutCSS() {
     let style = document.getElementById(STYLE_ID) as HTMLStyleElement | null;
+    // Replace previously injected style to keep rules up to date across navigations
     if (style) style.remove();
     style = document.createElement('style');
     style.id = STYLE_ID;
@@ -312,7 +314,7 @@ function attachPreviewBlocker() {
             });
         }
     });
-    mo.observe(document.documentElement, {childList: true, subtree: true});
+    mo.observe(document.documentElement, { childList: true, subtree: true });
     previewBlockerAttached = true;
 }
 
@@ -360,7 +362,7 @@ function ensureProgressObserver(card: HTMLElement) {
         }
         if (added) hideWatchedProgressWithin(card);
     });
-    obs.observe(card, {childList: true, subtree: true});
+    obs.observe(card, { childList: true, subtree: true });
     hoverProgressObservers.set(card, obs);
     // Auto-clean after 6 seconds to avoid lingering observers
     setTimeout(() => {
