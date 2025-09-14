@@ -1,37 +1,59 @@
-# Optube — A YouTube UI customizer (developer README)
+# Optube — YouTube UI customizer
 
-Optube is a browser extension that customizes the YouTube web UI by hiding or changing parts of the page (recommended sidebar, shorts, description, comments, etc.). The extension injects a content script (`content.js`) into YouTube pages and provides a small React-based settings UI bundled with Vite.
+Optube is a Chrome extension that lets you trim YouTube’s UI to just what you care about. Hide Shorts, comments, recommendations, sidebars, and more. Under the hood, a content script runs on YouTube pages and applies a mix of attribute-driven CSS and small, reversible DOM tweaks.
 
-Key files:
-- `public/manifest.json` — extension manifest (content script matches `https://www.youtube.com/*`).
-- `src/utils/video.ts` — logic that shows/hides video-page elements (recommended, description, title, creator, etc.).
-- `src/content.ts` — wiring that applies settings and registers observers.
+## What’s here
 
-Developer setup
-1. Install dependencies:
+- `public/manifest.json` — Extension manifest (injects `content.js` on `https://www.youtube.com/*`).
+- `src/content.ts` — Orchestrates settings application, observers, and CSS injection.
+- `src/utils/*` — Per-area logic (shorts, home, subscriptions, video, layout, navigation…).
+- `src/components/*` — React settings UI.
+
+If you want the deeper dive, see ARCHITECTURE and TOGGLES below.
+
+## Developer setup
 
 ```zsh
 npm install
+npm run dev
 ```
 
-2 Load the extension into Chrome for development:
-- Open chrome://extensions
-- Enable "Developer mode"
-- Click "Load unpacked" and select the project `dist`/`public` output folder. (When developing with Vite you may want to build or copy the generated assets into a folder Chrome can load — see "Build for production" below.)
+Load in Chrome for development:
+1) Open chrome://extensions
+2) Enable "Developer mode"
+3) Click "Load unpacked" and select the built output folder (see Build)
 
-Build for production
+## Build
 
 ```zsh
 npm run build
 ```
 
-This runs TypeScript build and Vite build. The final assets (including `content.js`) will be emitted to the project's `dist` folder. Load that folder in Chrome via "Load unpacked".
+This lints, type-checks, and builds with Vite. Artifacts are emitted to `dist/`. Load `dist/` via "Load unpacked".
 
-How to test the content script quickly
-- After building, open a YouTube video page and verify that the content script is active (it runs on match `https://www.youtube.com/*`).
-- Toggle settings in the extension popup (index.html) to see UI-driven changes to the page.
+## Test
 
-Notes and troubleshooting
-- The extension uses `chrome.storage.sync` for settings. When changing settings in dev, the content script watches storage changes and re-applies styling.
-- If you see layout changes on non-video routes, ensure the content script's logic runs only on watch pages — the code already checks for `/watch?v=` and the presence of `ytd-watch-flexy` before applying video-only layout changes.
-- If the popup/settings UI doesn't reflect changes, open DevTools for the extension popup (from chrome://extensions) to inspect any console errors.
+```zsh
+npm test
+npm run test:coverage
+```
+
+Tests live under `src/utils/_tests/` and run on jsdom using Vitest.
+
+## How it works (short version)
+
+- We store user preferences in `chrome.storage.sync` (e.g., `hideShorts`).
+- `src/content.ts` reads those settings, applies visibility toggles, injects CSS, and wires observers.
+- CSS does most of the heavy lifting (keyed off attributes like `html[hide_shorts="true"]`).
+- For stray cases, utilities do a conservative inline hide and tag elements so we can restore them when the toggle is turned off.
+
+## Docs
+
+- ARCHITECTURE: `ARCHITECTURE.md`
+- Feature toggles: `FEATURE_TOGGLES.md`
+- Contributing: `CONTRIBUTING.md`
+
+## Troubleshooting
+
+- Settings not applying? Check chrome://extensions → Inspect views → your content script console.
+- UI not reappearing after a toggle? Most utilities now tag inline-hidden nodes with a `data-optube-hidden-*` attribute and restore them on toggle off. If something sticks, it’s likely a new DOM variant—file an issue with a minimal repro.
