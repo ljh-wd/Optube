@@ -9,6 +9,7 @@ export function setShortsVisibility(hide: boolean) {
         cleanupShortsShelves();
     } else {
         document.documentElement.removeAttribute('hide_shorts');
+        restoreShortsShelves();
         // Restore mini guide Shorts entry
         document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
             const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
@@ -21,12 +22,16 @@ export function setShortsVisibility(hide: boolean) {
 
 export function cleanupShortsShelves() {
     // Dedicated shelf components – safe to hide directly
-    document.querySelectorAll('ytd-reel-shelf-renderer, ytd-shorts-shelf-renderer').forEach(el => (el as HTMLElement).style.display = 'none');
+    document.querySelectorAll('ytd-reel-shelf-renderer, ytd-shorts-shelf-renderer').forEach(el => {
+        (el as HTMLElement).style.display = 'none';
+        (el as HTMLElement).setAttribute('data-optube-hidden-shorts', '1');
+    });
 
     // Grid shelf view model (experimental / new layout)
     document.querySelectorAll('grid-shelf-view-model').forEach(el => {
         if (el.querySelector('ytm-shorts-lockup-view-model, ytm-shorts-lockup-view-model-v2')) {
             (el as HTMLElement).style.display = 'none';
+            (el as HTMLElement).setAttribute('data-optube-hidden-shorts', '1');
         }
     });
 
@@ -36,6 +41,7 @@ export function cleanupShortsShelves() {
         const headerText = (el.querySelector('#title')?.textContent || '').trim().toLowerCase();
         if (hasShorts && (headerText === 'shorts' || el.querySelector('ytm-shorts-lockup-view-model, ytm-shorts-lockup-view-model-v2'))) {
             (el as HTMLElement).style.display = 'none';
+            (el as HTMLElement).setAttribute('data-optube-hidden-shorts', '1');
         }
     });
 
@@ -43,11 +49,15 @@ export function cleanupShortsShelves() {
     document.querySelectorAll('ytd-rich-item-renderer').forEach(item => {
         if (item.querySelector('ytd-reel-shelf-renderer, ytd-shorts-shelf-renderer')) {
             (item as HTMLElement).style.display = 'none';
+            (item as HTMLElement).setAttribute('data-optube-hidden-shorts', '1');
         }
     });
 
     // Individual lockups (mobile / experimental) not already hidden
-    document.querySelectorAll('ytm-shorts-lockup-view-model, ytm-shorts-lockup-view-model-v2').forEach(el => (el as HTMLElement).style.display = 'none');
+    document.querySelectorAll('ytm-shorts-lockup-view-model, ytm-shorts-lockup-view-model-v2').forEach(el => {
+        (el as HTMLElement).style.display = 'none';
+        (el as HTMLElement).setAttribute('data-optube-hidden-shorts', '1');
+    });
 
     hideShortsFilterChip();
 
@@ -56,6 +66,7 @@ export function cleanupShortsShelves() {
         const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
         if (label === 'Shorts') {
             (entry as HTMLElement).style.display = 'none';
+            (entry as HTMLElement).setAttribute('data-optube-hidden-shorts', '1');
         }
     });
 }
@@ -67,7 +78,15 @@ function hideShortsFilterChip() {
         const text = chip.textContent?.trim().toLowerCase();
         if (text === 'shorts') {
             (chip as HTMLElement).style.display = 'none';
+            (chip as HTMLElement).setAttribute('data-optube-hidden-shorts', '1');
         }
+    });
+}
+
+function restoreShortsShelves() {
+    document.querySelectorAll('[data-optube-hidden-shorts="1"]').forEach(el => {
+        (el as HTMLElement).style.display = '';
+        (el as HTMLElement).removeAttribute('data-optube-hidden-shorts');
     });
 }
 

@@ -133,6 +133,24 @@ test('setShortsVisibility adds attribute, performs cleanup and restores mini-gui
     expect(miniGuide.style.display).toBe('')
 })
 
+test('setShortsVisibility restores inline-hidden shelves on disable', () => {
+    const dedicatedShelf = document.createElement('ytd-reel-shelf-renderer') as HTMLElement
+    const gridShelf = document.createElement('grid-shelf-view-model') as HTMLElement
+    const lockup = document.createElement('ytm-shorts-lockup-view-model')
+    gridShelf.appendChild(lockup)
+    document.body.append(dedicatedShelf, gridShelf)
+
+    // Hide
+    setShortsVisibility(true)
+    expect(dedicatedShelf.style.display).toBe('none')
+    expect(gridShelf.style.display).toBe('none')
+
+    // Show again
+    setShortsVisibility(false)
+    expect(dedicatedShelf.style.display).toBe('')
+    expect(gridShelf.style.display).toBe('')
+})
+
 // ? injectShortsCSS -----------------------------------------------------------
 test('injectShortsCSS injects style only once', () => {
     injectShortsCSS()
