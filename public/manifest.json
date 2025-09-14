@@ -1,33 +1,36 @@
 {
-    "manifest_version": 3,
-    "name": "Optube",
-    "version": "1.0",
-    "description": "Focus your YouTube experience. Block distracting elements and enhance productivity.",
-    "action": {
-        "default_popup": "index.html"
-    },
-    "icons": {
-        "128": "./icons/icon128.png"
-    },
-    "content_scripts": [
-        {
-            "matches": [
-                "https://www.youtube.com/*"
-            ],
-            "js": [
-                "content.js"
-            ]
-        }
-    ],
-    "background": {
-        "type": "module"
-    },
-    "optional_permissions": [
-        "tabs"
-    ],
-    "permissions": [
-        "activeTab",
-        "scripting",
-        "storage"
-    ]
+  "manifest_version": 3,
+  "name": "Optube",
+  "version": "1.0",
+  "description": "Focus your YouTube experience. Block distracting elements and enhance productivity.",
+  "action": {
+    "default_popup": "index.html"
+  },
+  "icons": {
+    "128": "./icons/icon-128.png",
+    "48": "./icons/icon-48.png",
+    "32": "./icons/icon-32.png",
+    "16": "./icons/icon-16.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.youtube.com/*"
+      ],
+      "js": [
+        "content.js"
+      ]
+    }
+  ],
+  "background": {
+    "type": "module"
+  },
+  "optional_permissions": [
+    "tabs"
+  ],
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ]
 }
