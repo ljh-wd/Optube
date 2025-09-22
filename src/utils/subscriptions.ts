@@ -26,6 +26,11 @@ export function setChannelSubscriberCount(hide: boolean) {
         if (delimiter) {
             (delimiter as HTMLElement).style.display = hide ? 'none' : '';
         }
+
+        const ownerSubCount = document.getElementById('owner-sub-count');
+        if (ownerSubCount) {
+            ownerSubCount.style.display = hide ? 'none' : '';
+        }
     }
 }
 
