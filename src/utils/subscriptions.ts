@@ -20,7 +20,6 @@ export function setChannelSubscriberCount(hide: boolean) {
         if (subscriberSpan) {
             (subscriberSpan as HTMLElement).style.display = hide ? 'none' : '';
         }
-        // Optionally hide the delimiter after the subscribers count
         const delimiter = subscriberSpan?.nextElementSibling?.classList.contains('yt-content-metadata-view-model__delimiter')
             ? subscriberSpan.nextElementSibling
             : null;
