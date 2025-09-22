@@ -17,6 +17,7 @@ export default function Layout() {
                 <CardWithInput label="Duration watched" checked={settings.hideWatchedProgress} onChange={handleToggle('hideWatchedProgress')} />
                 <CardWithInput label="Hover preview" checked={settings.hideHoverPreview} onChange={handleToggle('hideHoverPreview')} />
                 <CardWithInput label="Filter chips (badges)" checked={settings.hideBadgesChips} onChange={handleToggle('hideBadgesChips')} />
+                <CardWithInput label="Channel subscriber count" checked={settings.hideChannelSubscriberCount} onChange={handleToggle('hideChannelSubscriberCount')} />
                 <Sidebar />
                 <Preview />
                 <TopBar />

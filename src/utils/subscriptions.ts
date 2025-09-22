@@ -12,6 +12,24 @@ export function setSubscriptionsVisibility(hide: boolean) {
     }
 }
 
+export function setChannelSubscriberCount(hide: boolean) {
+    const parent = document.querySelector('yt-content-metadata-view-model');
+    if (parent) {
+        const spans = parent.querySelectorAll('span.yt-core-attributed-string.yt-content-metadata-view-model__metadata-text');
+        const subscriberSpan = Array.from(spans).find(span => (span.textContent?.trim().toLowerCase() ?? '').includes('subscribers'));
+        if (subscriberSpan) {
+            (subscriberSpan as HTMLElement).style.display = hide ? 'none' : '';
+        }
+        // Optionally hide the delimiter after the subscribers count
+        const delimiter = subscriberSpan?.nextElementSibling?.classList.contains('yt-content-metadata-view-model__delimiter')
+            ? subscriberSpan.nextElementSibling
+            : null;
+        if (delimiter) {
+            (delimiter as HTMLElement).style.display = hide ? 'none' : '';
+        }
+    }
+}
+
 /**
  * Toggle Subscriptions sidebar visibility using CSS injection.
  * This hides the subscription section in the sidebar.

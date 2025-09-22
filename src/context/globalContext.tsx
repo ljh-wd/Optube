@@ -9,6 +9,7 @@ const defaultSettings: Settings = {
     hideSubscriptions: false,
     hideAiSummary: false,
     hideSubscriptionsSidebar: false,
+    hideChannelSubscriberCount: false,
     hideHome: false,
     hideYouFeed: false,
     hideMasthead: false,

@@ -39,7 +39,8 @@ import {
     observeSubscriptionsSidebar,
     setSubscriptionsVisibility,
     setSubscriptionsSidebarVisibility,
-    injectSubscriptionsCSS
+    injectSubscriptionsCSS,
+    setChannelSubscriberCount
 } from './utils/subscriptions';
 import { applyLayout, injectLayoutCSS, observeLayout } from './utils/layout';
 import { applyNavigation, observeNavigation } from './utils/navigation';
@@ -52,6 +53,7 @@ function cleanYouTube(settings: Settings): void {
     setHomeVisibility(!!settings.hideHome);
     setSubscriptionsVisibility(!!settings.hideSubscriptions);
     setSubscriptionsSidebarVisibility(!!settings.hideSubscriptionsSidebar);
+    setChannelSubscriberCount(!!settings.hideChannelSubscriberCount);
     setMastheadVisibility(!!settings.hideMasthead);
     setSearchbarVisibility(!!settings.hideSearchbar);
     setNotificationsVisibility(!!settings.hideNotifications);
@@ -116,7 +118,7 @@ function run(): void {
         'hideDurationBadges', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips',
         'hideWatchedProgress', 'hideHoverPreview',
         "hideAiSummary",
-        'hideExplore', 'hideExploreMovies', 'hideExploreMusic', 'hideExploreLive', 'hideExploreGaming', 'hideExploreNews', 'hideExploreSport', 'hideExploreLearning', 'hideExploreFashion', 'hideExplorePodcasts', 'hideExplorePlayables', 'hideMoreFromYouTube', 'hideYouSection', 'hideYouFeed', 'hideHistory', 'hidePlaylists', 'hideYourVideos', 'hideYourCourses', 'hideWatchLater', 'hideLikedVideos'
+        'hideExplore', 'hideExploreMovies', 'hideExploreMusic', 'hideExploreLive', 'hideExploreGaming', 'hideExploreNews', 'hideExploreSport', 'hideExploreLearning', 'hideExploreFashion', 'hideExplorePodcasts', 'hideExplorePlayables', 'hideMoreFromYouTube', 'hideYouSection', 'hideYouFeed', 'hideHistory', 'hidePlaylists', 'hideYourVideos', 'hideYourCourses', 'hideWatchLater', 'hideLikedVideos', 'hideChannelSubscriberCount'
     ], cleanYouTube);
 }
 
@@ -160,7 +162,7 @@ injectCinemaCSS();
 chrome.storage.onChanged.addListener((changes, area) => {
     if (
         area === 'sync' &&
-        (changes.hideShorts || changes.hideHome || changes.hideSubscriptions || changes.hideSubscriptionsSidebar || changes.hideMasthead || changes.hideSearchbar || changes.hideNotifications || changes.hideCreateButton || changes.hideFold || changes.hideComments || changes.hideCommentAvatars || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hidePosts || changes.hideSidebar || changes.hideDescription || changes.hideTitle || changes.hideCreator ||
+        (changes.hideShorts || changes.hideHome || changes.hideSubscriptions || changes.hideChannelSubscriberCount || changes.hideSubscriptionsSidebar || changes.hideMasthead || changes.hideSearchbar || changes.hideNotifications || changes.hideCreateButton || changes.hideFold || changes.hideComments || changes.hideCommentAvatars || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hidePosts || changes.hideSidebar || changes.hideDescription || changes.hideTitle || changes.hideCreator ||
             changes.hideDurationBadges || changes.hidePreviewDetails || changes.hidePreviewAvatars || changes.hideBadgesChips || changes.hideWatchedProgress ||
             changes.hideHoverPreview || changes.hideAiSummary ||
             changes.hideExplore || changes.hideExploreMovies || changes.hideExploreLive || changes.hideExploreGaming || changes.hideExploreNews || changes.hideExploreSport || changes.hideExploreLearning || changes.hideExploreFashion || changes.hideExplorePodcasts || changes.hideExplorePlayables || changes.hideMoreFromYouTube || changes.hideYouSection || changes.hideYouFeed || changes.hideHistory || changes.hidePlaylists || changes.hideYourVideos || changes.hideYourCourses || changes.hideWatchLater || changes.hideLikedVideos || changes.cinematicMode || changes.cinemaPreviewMuted)
