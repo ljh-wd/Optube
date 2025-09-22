@@ -13,25 +13,12 @@ export function setSubscriptionsVisibility(hide: boolean) {
 }
 
 export function setChannelSubscriberCount(hide: boolean) {
-    const parent = document.querySelector('yt-content-metadata-view-model');
-    if (parent) {
-        const spans = parent.querySelectorAll('span.yt-core-attributed-string.yt-content-metadata-view-model__metadata-text');
-        const subscriberSpan = Array.from(spans).find(span => (span.textContent?.trim().toLowerCase() ?? '').includes('subscribers'));
-        if (subscriberSpan) {
-            (subscriberSpan as HTMLElement).style.display = hide ? 'none' : '';
-        }
-        const delimiter = subscriberSpan?.nextElementSibling?.classList.contains('yt-content-metadata-view-model__delimiter')
-            ? subscriberSpan.nextElementSibling
-            : null;
-        if (delimiter) {
-            (delimiter as HTMLElement).style.display = hide ? 'none' : '';
-        }
-
-        const ownerSubCount = document.getElementById('owner-sub-count');
-        if (ownerSubCount) {
-            ownerSubCount.style.display = hide ? 'none' : '';
-        }
+    if (hide) {
+        document.documentElement.setAttribute('hide_subscriber_count', 'true');
+    } else {
+        document.documentElement.removeAttribute('hide_subscriber_count');
     }
+    injectSubscriptionsCSS(); // Update CSS to apply changes
 }
 
 /**
@@ -285,6 +272,37 @@ export function injectSubscriptionsCSS() {
         
         /* Also hide mini-guide entry for consistency with sidebar hide */
         html[hide_subscriptions_sidebar] ytd-mini-guide-entry-renderer[aria-label="Subscriptions"] {
+            display: none !important;
+        }
+
+        /* Hide channel subscriber counts across surfaces when toggle is on */
+        /* Watch page under channel name */
+        html[hide_subscriber_count] #owner-sub-count,
+        html[hide_subscriber_count] ytd-video-owner-renderer #owner-sub-count,
+        /* Channel header (classic) */
+        html[hide_subscriber_count] #subscriber-count,
+        html[hide_subscriber_count] ytd-c4-tabbed-header-renderer #subscriber-count,
+        /* Channel tiles in search/sidebars/etc. */
+        html[hide_subscriber_count] ytd-channel-renderer #subscribers,
+        html[hide_subscriber_count] ytd-mini-channel-renderer #subscribers,
+        html[hide_subscriber_count] ytd-compact-channel-renderer #subscribers,
+        html[hide_subscriber_count] ytd-grid-channel-renderer #subscribers,
+        html[hide_subscriber_count] ytd-rich-grid-channel-renderer #subscribers {
+            display: none !important;
+        }
+
+        /* New channel header view-model: hide only the subscriber count piece */
+        /* Pattern: first row is handle, then a standalone delimiter, then a row with: [subscribers] [delimiter] [videos] */
+        /* Hide the subscriber text (first metadata text span) in the second row */
+        html[hide_subscriber_count] yt-content-metadata-view-model > .yt-content-metadata-view-model__metadata-row + .yt-content-metadata-view-model__delimiter + .yt-content-metadata-view-model__metadata-row > .yt-content-metadata-view-model__metadata-text:first-of-type {
+            display: none !important;
+        }
+        /* Hide the first intra-row delimiter that would otherwise precede the videos count */
+        html[hide_subscriber_count] yt-content-metadata-view-model > .yt-content-metadata-view-model__metadata-row + .yt-content-metadata-view-model__delimiter + .yt-content-metadata-view-model__metadata-row > .yt-content-metadata-view-model__delimiter:first-of-type {
+            display: none !important;
+        }
+        /* Hide the standalone delimiter between the handle row and the subscribers/videos row */
+        html[hide_subscriber_count] yt-content-metadata-view-model > .yt-content-metadata-view-model__delimiter--standalone {
             display: none !important;
         }
     `;
