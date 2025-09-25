@@ -14,6 +14,7 @@ export interface Settings {
     hideSubscriptions: boolean;
     hideSubscriptionsSidebar: boolean;
     hideChannelSubscriberCount: boolean; // new: hide subscriber count on channel pages and videos
+    hideYoutubePlayables: boolean;
     hideSearchbar: boolean;
     hideNotifications: boolean;
     hideCreateButton: boolean; // new create button in top bar

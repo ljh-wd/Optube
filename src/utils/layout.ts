@@ -8,6 +8,8 @@ interface LayoutToggles {
     hideBadgesChips: boolean;
     hideWatchedProgress: boolean;
     hideHoverPreview: boolean;
+    hideChannelSubscriberCount: boolean;
+    hideYoutubePlayables: boolean;
 }
 
 const STYLE_ID = 'optube-layout-css';
@@ -22,6 +24,7 @@ let durationDebounce: number | null = null;
 let hoverDelegationAttached = false;
 const hoverProgressObservers = new WeakMap<HTMLElement, MutationObserver>();
 let previewBlockerAttached = false;
+let playablesObserver: MutationObserver | null = null;
 
 // Start/stop the duration observer based on the toggle state
 function ensureDurationObserver(active: boolean) {
@@ -40,8 +43,43 @@ function ensureDurationObserver(active: boolean) {
     }
 }
 
+// Tag Playables shelves so CSS can hide them reliably (locale‑agnostic except for the word root)
+function tagPlayablesShelves() {
+    // Only bother if the root attribute is set (avoid extra work when feature off)
+    if (!document.documentElement.hasAttribute('hide_youtube_playables')) return;
+
+    document.querySelectorAll<HTMLElement>('ytd-rich-section-renderer:not([data-optube-playables])').forEach(sec => {
+        // Header title span inside rich shelf renderer
+        const titleEl = sec.querySelector<HTMLElement>('ytd-rich-shelf-renderer #title');
+        if (!titleEl) return;
+        const title = titleEl.textContent?.trim() || '';
+        // Match “Playables” (case-insensitive); adjust if YouTube localizes differently for you
+        if (/playables/i.test(title)) {
+            sec.setAttribute('data-optube-playables', '');
+        }
+    });
+}
+
+function ensurePlayablesObserver(active: boolean) {
+    if (active) {
+        if (playablesObserver) return;
+        playablesObserver = new MutationObserver(muts => {
+            let need = false;
+            for (const m of muts) {
+                if (m.addedNodes.length) { need = true; break; }
+            }
+            if (need) tagPlayablesShelves();
+        });
+        playablesObserver.observe(document.body, { childList: true, subtree: true });
+        // Initial pass
+        tagPlayablesShelves();
+    } else if (playablesObserver) {
+        playablesObserver.disconnect();
+        playablesObserver = null;
+    }
+}
+
 export function applyLayout(settings: Partial<LayoutToggles>) {
-    // We set attributes for easier pure-CSS hiding where necessary
     const root = document.documentElement;
     toggleAttr(root, 'hide_duration_badges', settings.hideDurationBadges);
     toggleAttr(root, 'hide_preview_details', settings.hidePreviewDetails);
@@ -49,12 +87,15 @@ export function applyLayout(settings: Partial<LayoutToggles>) {
     toggleAttr(root, 'hide_badges_chips', settings.hideBadgesChips);
     toggleAttr(root, 'hide_watched_progress', settings.hideWatchedProgress);
     toggleAttr(root, 'hide_hover_preview', settings.hideHoverPreview);
+    toggleAttr(root, 'hide_channel_subscriber_count', settings.hideChannelSubscriberCount);
+    toggleAttr(root, 'hide_youtube_playables', settings.hideYoutubePlayables);
 
-    // Manage duration badges (JS and observer)
     ensureDurationObserver(!!settings.hideDurationBadges);
     if (settings.hideDurationBadges) hideDurationBadges(); else showDurationBadges();
 
-    // Watched progress handled by CSS opacity only (no JS needed)
+    // Playables tagging & observer
+    ensurePlayablesObserver(!!settings.hideYoutubePlayables);
+    if (settings.hideYoutubePlayables) tagPlayablesShelves();
 }
 
 // TODO: Export this as a global util for the other util files
@@ -79,6 +120,12 @@ export function injectLayoutCSS() {
     html[hide_duration_badges] .ytThumbnailBottomOverlayViewModelBadgeContainer:has(.badge-shape-wiz__text) {
         display: none !important;
     }
+
+/* playbles (games) <span id="title" class="style-scope ytd-rich-shelf-renderer">YouTube Playables</span> */
+html[hide_youtube_playables] ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[data-hide-playables="true"]) {
+      display: none !important;
+    }
+
 
   /* Video preview metadata blocks (feed card metadata container) */
   html[hide_preview_details] .yt-lockup-view-model__metadata, 
@@ -201,17 +248,45 @@ export function injectLayoutCSS() {
         /* Prevent any play button overlays */
         html[hide_hover_preview] ytd-rich-item-renderer [class*='inline-preview'],
         html[hide_hover_preview] ytd-rich-item-renderer [class*='InlinePreview'] { display: none !important; }
+
+    /* Playables (games) – shelves tagged by JS */
+    html[hide_youtube_playables] ytd-rich-section-renderer[data-optube-playables] {
+        display: none !important;
+    }
   `;
     document.head.appendChild(style);
 }
 
 export function observeLayout() {
-    chrome.storage.sync.get(['hideDurationBadges', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips', 'hideWatchedProgress'], applyLayout);
+    chrome.storage.sync.get([
+        'hideDurationBadges',
+        'hidePreviewDetails',
+        'hidePreviewAvatars',
+        'hideBadgesChips',
+        'hideWatchedProgress',
+        'hideHoverPreview',
+        'hideChannelSubscriberCount',
+        'hideYoutubePlayables'
+    ], applyLayout);
+
     chrome.storage.onChanged.addListener(ch => {
-        if (ch.hideDurationBadges || ch.hidePreviewDetails || ch.hidePreviewAvatars || ch.hideBadgesChips || ch.hideWatchedProgress) {
-            chrome.storage.sync.get(['hideDurationBadges', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips', 'hideWatchedProgress'], applyLayout);
+        if (ch.hideDurationBadges || ch.hidePreviewDetails || ch.hidePreviewAvatars ||
+            ch.hideBadgesChips || ch.hideWatchedProgress || ch.hideHoverPreview ||
+            ch.hideChannelSubscriberCount || ch.hideYoutubePlayables) {
+
+            chrome.storage.sync.get([
+                'hideDurationBadges',
+                'hidePreviewDetails',
+                'hidePreviewAvatars',
+                'hideBadgesChips',
+                'hideWatchedProgress',
+                'hideHoverPreview',
+                'hideChannelSubscriberCount',
+                'hideYoutubePlayables'
+            ], applyLayout);
         }
     });
+
     attachHoverDelegation();
     attachPreviewBlocker();
 }
