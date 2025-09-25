@@ -1,0 +1,2 @@
+- Youtube playables (games grid) toggle
+- Hide sub count on channel pages/videos toggle
