@@ -9,6 +9,13 @@ export function setMastheadVisibility(hide: boolean) {
     masthead.style.display = hide ? 'none' : '';
 }
 
+export function setMastheadAvatarVisibility(hide: boolean) {
+    const avatar = document.getElementById('avatar-btn');
+    if (!avatar) return;
+
+    avatar.style.display = hide ? 'none' : '';
+}
+
 /**
  * Shows or hides the YouTube searchbar by directly targeting the #center element.
  * @param hide - Whether to hide (true) or show (false) the searchbar.

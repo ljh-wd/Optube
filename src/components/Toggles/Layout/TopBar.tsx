@@ -10,6 +10,7 @@ export default function TopBar() {
             <CardWithInput label="Search" checked={settings.hideSearchbar} onChange={handleToggle('hideSearchbar')} disabled={settings.hideMasthead} />
             <CardWithInput label="Notifications" checked={settings.hideNotifications} onChange={handleToggle('hideNotifications')} disabled={settings.hideMasthead} />
             <CardWithInput label="Create" checked={settings.hideCreateButton} onChange={handleToggle('hideCreateButton')} disabled={settings.hideMasthead} />
+            <CardWithInput label="Avatar" checked={settings.hideAvatar} onChange={handleToggle('hideAvatar')} disabled={settings.hideMasthead} />
         </NestedToggle>
     )
 }

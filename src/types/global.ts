@@ -8,6 +8,7 @@ export interface Settings {
     hideRecommended: boolean;
     hidePosts: boolean; // new posts (community) feed items
     hideMasthead: boolean;
+    hideAvatar: boolean;
     hideSidebar: boolean;
     hideHome: boolean;
     hideYouFeed: boolean; // new: hide 'You' page sections independently of sidebar navigation

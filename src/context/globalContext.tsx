@@ -13,6 +13,7 @@ const defaultSettings: Settings = {
     hideHome: false,
     hideYouFeed: false,
     hideMasthead: false,
+    hideAvatar: false,
     hideSearchbar: false,
     hideNotifications: false,
     hideCreateButton: false,
@@ -184,6 +185,7 @@ export function useGlobalContext() {
                 updated.hideSearchbar = true;
                 updated.hideNotifications = true;
                 updated.hideCreateButton = true;
+                updated.hideAvatar = true;
             }
 
             // If topbar is being disabled, also disable searchbar and notifications
@@ -191,6 +193,7 @@ export function useGlobalContext() {
                 updated.hideSearchbar = false;
                 updated.hideNotifications = false;
                 updated.hideCreateButton = false;
+                updated.hideAvatar = false;
             }
 
             // If subscriptions is being enabled, also enable subscriptions sidebar
