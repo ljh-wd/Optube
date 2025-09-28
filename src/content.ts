@@ -57,6 +57,7 @@ function cleanYouTube(settings: Settings): void {
     setChannelSubscriberCount(!!settings.hideChannelSubscriberCount);
     setMastheadVisibility(!!settings.hideMasthead);
     setMastheadAvatarVisibility(!!settings.hideAvatar);
+    setMastheadAvatarVisibility(!!settings.hideAvatar);
     setSearchbarVisibility(!!settings.hideSearchbar);
     setNotificationsVisibility(!!settings.hideNotifications);
     setCreateButtonVisibility(!!settings.hideCreateButton);
@@ -103,6 +104,7 @@ function cleanYouTube(settings: Settings): void {
         hideWatchLater: settings.hideWatchLater,
         hideLikedVideos: settings.hideLikedVideos,
     });
+
 
     applyYouFeedAttributes({
         hideYouSection: settings.hideYouFeed,
