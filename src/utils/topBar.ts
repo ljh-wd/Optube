@@ -9,6 +9,14 @@ export function setMastheadVisibility(hide: boolean) {
     masthead.style.display = hide ? 'none' : '';
 }
 
+export function setMastheadAvatarVisibility(hide: boolean) {
+    const root = document.documentElement;
+    if (hide) root.setAttribute('hide_avatar', 'true'); else root.removeAttribute('hide_avatar');
+    // Conservative selectors for the avatar button
+    document.querySelectorAll<HTMLElement>('#avatar-btn, ytd-topbar-menu-button-renderer #avatar-btn')
+        .forEach(n => { n.style.display = hide ? 'none' : ''; });
+}
+
 /**
  * Shows or hides the YouTube searchbar by directly targeting the #center element.
  * @param hide - Whether to hide (true) or show (false) the searchbar.
@@ -63,7 +71,6 @@ export function observeCreateButton() {
     observer.observe(document.body, { childList: true, subtree: true });
 }
 
-// Inject CSS once for create button hiding
 let createButtonCSSInjected = false;
 export function injectCreateButtonCSS() {
     if (createButtonCSSInjected) return;
@@ -77,17 +84,23 @@ export function injectCreateButtonCSS() {
 }
 
 export function observeMasthead() {
-    chrome.storage.sync.get(['hideMasthead'], (settings) => {
-        const hide = !!settings.hideMasthead;
+    chrome.storage.sync.get(['hideMasthead', 'hideSearchbar', 'hideNotifications', 'hideCreateButton', 'hideAvatar'], s => {
+        const hide = !!s.hideMasthead;
         setMastheadVisibility(hide);
+        setMastheadAvatarVisibility(!!s.hideAvatar);
     });
-    const observer = new MutationObserver(() => {
-        chrome.storage.sync.get(['hideMasthead'], (settings) => {
-            const hide = !!settings.hideMasthead;
-            setMastheadVisibility(hide);
-        });
+
+    chrome.storage.onChanged.addListener(ch => {
+        if (ch.hideAvatar) setMastheadAvatarVisibility(!!ch.hideAvatar.newValue);
     });
-    observer.observe(document.body, { childList: true, subtree: true });
+
+    const mo = new MutationObserver(() => {
+        if (document.documentElement.hasAttribute('hide_avatar')) {
+            setMastheadAvatarVisibility(true);
+        }
+    });
+    if (document.body) mo.observe(document.body, { childList: true, subtree: true });
+    return mo;
 }
 
 export function observeSearchbar() {

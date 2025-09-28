@@ -7,7 +7,8 @@ import {
     setNotificationsVisibility,
     observeCreateButton,
     injectCreateButtonCSS,
-    setCreateButtonVisibility
+    setCreateButtonVisibility,
+    setMastheadAvatarVisibility
 } from './utils/topBar';
 import {
     observeCategoryAndTopic,
@@ -55,6 +56,7 @@ function cleanYouTube(settings: Settings): void {
     setSubscriptionsSidebarVisibility(!!settings.hideSubscriptionsSidebar);
     setChannelSubscriberCount(!!settings.hideChannelSubscriberCount);
     setMastheadVisibility(!!settings.hideMasthead);
+    setMastheadAvatarVisibility(!!settings.hideAvatar);
     setSearchbarVisibility(!!settings.hideSearchbar);
     setNotificationsVisibility(!!settings.hideNotifications);
     setCreateButtonVisibility(!!settings.hideCreateButton);
@@ -76,6 +78,7 @@ function cleanYouTube(settings: Settings): void {
         hideBadgesChips: settings.hideBadgesChips,
         hideWatchedProgress: settings.hideWatchedProgress,
         hideHoverPreview: settings.hideHoverPreview,
+        hideYoutubePlayables: settings.hideYoutubePlayables,
     });
     applyCinema({ cinematicMode: settings.cinematicMode, cinemaPreviewMuted: settings.cinemaPreviewMuted });
     applyNavigation({
@@ -100,9 +103,9 @@ function cleanYouTube(settings: Settings): void {
         hideWatchLater: settings.hideWatchLater,
         hideLikedVideos: settings.hideLikedVideos,
     });
-    // Update You feed attributes for CSS-driven hiding
+
     applyYouFeedAttributes({
-        hideYouSection: settings.hideYouFeed, // independent feed hiding distinct from sidebar 'You' nav section
+        hideYouSection: settings.hideYouFeed,
         hideHistory: settings.hideHistory,
         hidePlaylists: settings.hidePlaylists,
         hideYourVideos: settings.hideYourVideos,
@@ -118,19 +121,17 @@ function run(): void {
         'hideDurationBadges', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips',
         'hideWatchedProgress', 'hideHoverPreview',
         "hideAiSummary",
-        'hideExplore', 'hideExploreMovies', 'hideExploreMusic', 'hideExploreLive', 'hideExploreGaming', 'hideExploreNews', 'hideExploreSport', 'hideExploreLearning', 'hideExploreFashion', 'hideExplorePodcasts', 'hideExplorePlayables', 'hideMoreFromYouTube', 'hideYouSection', 'hideYouFeed', 'hideHistory', 'hidePlaylists', 'hideYourVideos', 'hideYourCourses', 'hideWatchLater', 'hideLikedVideos', 'hideChannelSubscriberCount'
+        'hideExplore', 'hideExploreMovies', 'hideExploreMusic', 'hideExploreLive', 'hideExploreGaming', 'hideExploreNews', 'hideExploreSport', 'hideExploreLearning', 'hideExploreFashion', 'hideExplorePodcasts', 'hideExplorePlayables', 'hideMoreFromYouTube', 'hideYouSection', 'hideYouFeed', 'hideHistory', 'hidePlaylists', 'hideYourVideos', 'hideYourCourses', 'hideWatchLater', 'hideLikedVideos', 'hideChannelSubscriberCount', 'hideAvatar',
+        'hideYoutubePlayables'
     ], cleanYouTube);
 }
 
 let debounceId: number | null = null;
-
 const observer = new MutationObserver(() => {
-    if (debounceId) {
-        clearTimeout(debounceId);
-        debounceId = window.setTimeout(() => {
-            run();
-        }, 0);
-    }
+    if (debounceId) clearTimeout(debounceId);
+    debounceId = window.setTimeout(() => {
+        run();
+    }, 0);
 });
 
 function startObserver(): void {
@@ -147,8 +148,6 @@ function startObserver(): void {
 window.addEventListener('load', run);
 run();
 startObserver();
-
-// Inject CSS for shorts, home, and subscriptions hiding
 injectShortsCSS();
 injectHomeCSS();
 injectVideoPlayerCSS()
@@ -162,10 +161,13 @@ injectCinemaCSS();
 chrome.storage.onChanged.addListener((changes, area) => {
     if (
         area === 'sync' &&
-        (changes.hideShorts || changes.hideHome || changes.hideSubscriptions || changes.hideChannelSubscriberCount || changes.hideSubscriptionsSidebar || changes.hideMasthead || changes.hideSearchbar || changes.hideNotifications || changes.hideCreateButton || changes.hideFold || changes.hideComments || changes.hideCommentAvatars || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hidePosts || changes.hideSidebar || changes.hideDescription || changes.hideTitle || changes.hideCreator ||
+        (
+            changes.hideShorts || changes.hideHome || changes.hideSubscriptions || changes.hideChannelSubscriberCount || changes.hideSubscriptionsSidebar || changes.hideMasthead || changes.hideSearchbar || changes.hideNotifications || changes.hideCreateButton || changes.hideFold || changes.hideComments || changes.hideCommentAvatars || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hidePosts || changes.hideSidebar || changes.hideDescription || changes.hideTitle || changes.hideCreator ||
             changes.hideDurationBadges || changes.hidePreviewDetails || changes.hidePreviewAvatars || changes.hideBadgesChips || changes.hideWatchedProgress ||
             changes.hideHoverPreview || changes.hideAiSummary ||
-            changes.hideExplore || changes.hideExploreMovies || changes.hideExploreLive || changes.hideExploreGaming || changes.hideExploreNews || changes.hideExploreSport || changes.hideExploreLearning || changes.hideExploreFashion || changes.hideExplorePodcasts || changes.hideExplorePlayables || changes.hideMoreFromYouTube || changes.hideYouSection || changes.hideYouFeed || changes.hideHistory || changes.hidePlaylists || changes.hideYourVideos || changes.hideYourCourses || changes.hideWatchLater || changes.hideLikedVideos || changes.cinematicMode || changes.cinemaPreviewMuted)
+            changes.hideExplore || changes.hideExploreMovies || changes.hideExploreLive || changes.hideExploreGaming || changes.hideExploreNews || changes.hideExploreSport || changes.hideExploreLearning || changes.hideExploreFashion || changes.hideExplorePodcasts || changes.hideExplorePlayables || changes.hideMoreFromYouTube || changes.hideYouSection || changes.hideYouFeed || changes.hideHistory || changes.hidePlaylists || changes.hideYourVideos || changes.hideYourCourses || changes.hideWatchLater || changes.hideLikedVideos || changes.cinematicMode || changes.cinemaPreviewMuted || changes.hideAvatar ||
+            changes.hideYoutubePlayables
+        )
     ) {
         setTimeout(() => {
             run();
@@ -197,6 +199,5 @@ observePosts();
 observeYouFeed();
 observeCinema();
 
-// Inject layout CSS last
 injectLayoutCSS();
 
