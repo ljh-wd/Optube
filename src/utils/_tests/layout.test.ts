@@ -21,6 +21,7 @@ beforeEach(() => {
     document.documentElement.removeAttribute('hide_badges_chips')
     document.documentElement.removeAttribute('hide_watched_progress')
     document.documentElement.removeAttribute('hide_hover_preview')
+    document.documentElement.removeAttribute('hide_live_videos')
     setupMockChromeStorage({}) // ensures chrome defined then cleared below
         ; (globalThis as unknown as { chrome?: unknown }).chrome = undefined
     vi.useRealTimers()
@@ -32,11 +33,12 @@ test('applyLayout sets attributes & hides duration badges', () => {
     const nonBadge = createDurationBadge('LIVE') // not matching time regex
     document.body.append(badge, nonBadge)
 
-    applyLayout({ hideDurationBadges: true, hidePreviewDetails: true, hidePreviewAvatars: true })
+    applyLayout({ hideDurationBadges: true, hidePreviewDetails: true, hidePreviewAvatars: true, hideLiveVideos: true })
 
     expect(document.documentElement.hasAttribute('hide_duration_badges')).toBe(true)
     expect(document.documentElement.hasAttribute('hide_preview_details')).toBe(true)
     expect(document.documentElement.hasAttribute('hide_preview_avatars')).toBe(true)
+    expect(document.documentElement.hasAttribute('hide_live_videos')).toBe(true)
     expect(badge.style.display).toBe('none')
     expect(nonBadge.style.display).toBe('')
 })

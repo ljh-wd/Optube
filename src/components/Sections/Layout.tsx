@@ -18,6 +18,7 @@ export default function Layout() {
                 <CardWithInput label="Hover preview" checked={settings.hideHoverPreview} onChange={handleToggle('hideHoverPreview')} />
                 <CardWithInput label="Filter chips (badges)" checked={settings.hideBadgesChips} onChange={handleToggle('hideBadgesChips')} />
                 <CardWithInput label="Channel subscriber count" checked={settings.hideChannelSubscriberCount} onChange={handleToggle('hideChannelSubscriberCount')} />
+                <CardWithInput label="Live videos" checked={settings.hideLiveVideos} onChange={handleToggle('hideLiveVideos')} />
                 <CardWithInput label="Hide Playables" checked={settings.hideYoutubePlayables} onChange={handleToggle('hideYoutubePlayables')} />
                 <Sidebar />
                 <Preview />

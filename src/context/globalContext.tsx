@@ -36,6 +36,7 @@ const defaultSettings: Settings = {
     hideBadgesChips: false,
     hideWatchedProgress: false,
     hideHoverPreview: false,
+    hideLiveVideos: false,
     hideYoutubePlayables: false,
     // Navigation additions
     hideExplore: false,

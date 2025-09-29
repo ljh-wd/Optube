@@ -32,6 +32,7 @@ export interface Settings {
     hideBadgesChips: boolean; // filter chips row
     hideWatchedProgress: boolean; // watched progress bar overlay
     hideHoverPreview: boolean; // disable inline hover video preview
+    hideLiveVideos: boolean; // hide entire videos marked as LIVE
     // Navigation additions
     hideExplore: boolean;
     hideMoreFromYouTube: boolean;

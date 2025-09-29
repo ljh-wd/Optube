@@ -9,6 +9,7 @@ interface LayoutToggles {
     hideWatchedProgress: boolean;
     hideHoverPreview: boolean;
     hideChannelSubscriberCount: boolean;
+    hideLiveVideos: boolean;
     hideYoutubePlayables: boolean;
 }
 
@@ -88,6 +89,7 @@ export function applyLayout(settings: Partial<LayoutToggles>) {
     toggleAttr(root, 'hide_watched_progress', settings.hideWatchedProgress);
     toggleAttr(root, 'hide_hover_preview', settings.hideHoverPreview);
     toggleAttr(root, 'hide_channel_subscriber_count', settings.hideChannelSubscriberCount);
+    toggleAttr(root, 'hide_live_videos', settings.hideLiveVideos);
     toggleAttr(root, 'hide_youtube_playables', settings.hideYoutubePlayables);
 
     ensureDurationObserver(!!settings.hideDurationBadges);
@@ -120,12 +122,6 @@ export function injectLayoutCSS() {
     html[hide_duration_badges] .ytThumbnailBottomOverlayViewModelBadgeContainer:has(.badge-shape-wiz__text) {
         display: none !important;
     }
-
-/* playbles (games) <span id="title" class="style-scope ytd-rich-shelf-renderer">YouTube Playables</span> */
-html[hide_youtube_playables] ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[data-hide-playables="true"]) {
-      display: none !important;
-    }
-
 
   /* Video preview metadata blocks (feed card metadata container) */
   html[hide_preview_details] .yt-lockup-view-model__metadata, 
@@ -253,6 +249,23 @@ html[hide_youtube_playables] ytd-rich-section-renderer:has(ytd-rich-shelf-render
     html[hide_youtube_playables] ytd-rich-section-renderer[data-optube-playables] {
         display: none !important;
     }
+
+    /* Live videos – hide cards containing LIVE badges */
+    html[hide_live_videos] ytd-rich-item-renderer:has(badge-shape.yt-badge-shape--thumbnail-live),
+    html[hide_live_videos] ytd-rich-item-renderer:has(yt-live-badge-renderer),
+    html[hide_live_videos] ytd-rich-grid-media:has(badge-shape.yt-badge-shape--thumbnail-live),
+    html[hide_live_videos] yt-lockup-view-model:has(badge-shape.yt-badge-shape--thumbnail-live),
+    html[hide_live_videos] ytd-video-renderer:has(badge-shape.yt-badge-shape--thumbnail-live),
+    html[hide_live_videos] ytd-compact-video-renderer:has(badge-shape.yt-badge-shape--thumbnail-live),
+    html[hide_live_videos] ytd-grid-video-renderer:has(badge-shape.yt-badge-shape--thumbnail-live),
+    html[hide_live_videos] ytd-compact-video-renderer:has(yt-live-badge-renderer),
+    html[hide_live_videos] ytd-video-renderer:has(yt-live-badge-renderer),
+    html[hide_live_videos] ytd-rich-grid-media:has(yt-live-badge-renderer),
+    html[hide_live_videos] ytd-rich-item-renderer:has(yt-thumbnail-overlay-live-badge-renderer),
+    html[hide_live_videos] ytd-video-renderer:has(yt-thumbnail-overlay-live-badge-renderer),
+    html[hide_live_videos] ytd-compact-video-renderer:has(yt-thumbnail-overlay-live-badge-renderer) {
+        display: none !important;
+    }
   `;
     document.head.appendChild(style);
 }
@@ -265,6 +278,7 @@ export function observeLayout() {
         'hideBadgesChips',
         'hideWatchedProgress',
         'hideHoverPreview',
+        'hideLiveVideos',
         'hideChannelSubscriberCount',
         'hideYoutubePlayables'
     ], applyLayout);
@@ -272,6 +286,7 @@ export function observeLayout() {
     chrome.storage.onChanged.addListener(ch => {
         if (ch.hideDurationBadges || ch.hidePreviewDetails || ch.hidePreviewAvatars ||
             ch.hideBadgesChips || ch.hideWatchedProgress || ch.hideHoverPreview ||
+            ch.hideLiveVideos ||
             ch.hideChannelSubscriberCount || ch.hideYoutubePlayables) {
 
             chrome.storage.sync.get([
@@ -281,6 +296,7 @@ export function observeLayout() {
                 'hideBadgesChips',
                 'hideWatchedProgress',
                 'hideHoverPreview',
+                'hideLiveVideos',
                 'hideChannelSubscriberCount',
                 'hideYoutubePlayables'
             ], applyLayout);
