@@ -33,6 +33,7 @@ export interface Settings {
     hideWatchedProgress: boolean; // watched progress bar overlay
     hideHoverPreview: boolean; // disable inline hover video preview
     hideLiveVideos: boolean; // hide entire videos marked as LIVE
+    hideLiveChat: boolean; // hide live chat panel (sub-toggle of live videos)
     // Navigation additions
     hideExplore: boolean;
     hideMoreFromYouTube: boolean;

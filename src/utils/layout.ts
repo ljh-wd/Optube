@@ -10,6 +10,7 @@ interface LayoutToggles {
     hideHoverPreview: boolean;
     hideChannelSubscriberCount: boolean;
     hideLiveVideos: boolean;
+    hideLiveChat: boolean;
     hideYoutubePlayables: boolean;
 }
 
@@ -90,6 +91,7 @@ export function applyLayout(settings: Partial<LayoutToggles>) {
     toggleAttr(root, 'hide_hover_preview', settings.hideHoverPreview);
     toggleAttr(root, 'hide_channel_subscriber_count', settings.hideChannelSubscriberCount);
     toggleAttr(root, 'hide_live_videos', settings.hideLiveVideos);
+    toggleAttr(root, 'hide_live_chat', settings.hideLiveChat);
     toggleAttr(root, 'hide_youtube_playables', settings.hideYoutubePlayables);
 
     ensureDurationObserver(!!settings.hideDurationBadges);
@@ -112,6 +114,24 @@ export function injectLayoutCSS() {
     style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
+    /* Hide live chat panel when attribute active */
+    html[hide_live_chat] #chat, /* classic */
+    html[hide_live_chat] ytd-live-chat-frame,
+    html[hide_live_chat] ytd-live-chat-renderer,
+    html[hide_live_chat] #chat-messages,
+    html[hide_live_chat] #chatframe,
+    html[hide_live_chat] #chat-container,
+    html[hide_live_chat] #live-chat-iframe,
+    html[hide_live_chat] #secondary-inner ytd-live-chat-frame,
+    html[hide_live_chat] #secondary-inner ytd-live-chat-renderer,
+    html[hide_live_chat] #contents ytd-live-chat-renderer,
+    html[hide_live_chat] #contents #chat,
+    html[hide_live_chat] #contents #chat-messages,
+    html[hide_live_chat] #contents #chatframe,
+    html[hide_live_chat] #contents #chat-container,
+    html[hide_live_chat] #contents #live-chat-iframe {
+        display: none !important;
+    }
 
     /* Duration badges (broad selectors) when attribute active */
     html[hide_duration_badges] ytd-thumbnail-overlay-time-status-renderer,

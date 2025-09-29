@@ -22,25 +22,36 @@ beforeEach(() => {
     document.documentElement.removeAttribute('hide_watched_progress')
     document.documentElement.removeAttribute('hide_hover_preview')
     document.documentElement.removeAttribute('hide_live_videos')
+    document.documentElement.removeAttribute('hide_live_chat')
     setupMockChromeStorage({}) // ensures chrome defined then cleared below
         ; (globalThis as unknown as { chrome?: unknown }).chrome = undefined
     vi.useRealTimers()
 })
 
 // applyLayout basic attribute toggling & duration hiding --------------------
+
 test('applyLayout sets attributes & hides duration badges', () => {
     const badge = createDurationBadge()
     const nonBadge = createDurationBadge('LIVE') // not matching time regex
     document.body.append(badge, nonBadge)
 
-    applyLayout({ hideDurationBadges: true, hidePreviewDetails: true, hidePreviewAvatars: true, hideLiveVideos: true })
+    applyLayout({ hideDurationBadges: true, hidePreviewDetails: true, hidePreviewAvatars: true, hideLiveVideos: true, hideLiveChat: true })
 
     expect(document.documentElement.hasAttribute('hide_duration_badges')).toBe(true)
     expect(document.documentElement.hasAttribute('hide_preview_details')).toBe(true)
     expect(document.documentElement.hasAttribute('hide_preview_avatars')).toBe(true)
     expect(document.documentElement.hasAttribute('hide_live_videos')).toBe(true)
+    expect(document.documentElement.hasAttribute('hide_live_chat')).toBe(true)
     expect(badge.style.display).toBe('none')
     expect(nonBadge.style.display).toBe('')
+})
+test('injectLayoutCSS injects live chat hiding rules', () => {
+    injectLayoutCSS()
+    const style = document.getElementById('optube-layout-css') as HTMLStyleElement | null
+    expect(style).toBeTruthy()
+    expect(style?.textContent).toContain('hide_live_chat')
+    // Check for a key selector
+    expect(style?.textContent).toMatch(/#chat|ytd-live-chat-renderer|#chat-messages/)
 })
 
 test('applyLayout unsets attribute & restores duration badges', () => {

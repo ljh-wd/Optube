@@ -1,5 +1,6 @@
 import { useGlobalContext } from "../../context/globalContext";
 import CardWithInput from "../CardWithInput";
+import NestedToggle from "../NestedToggle";
 import SettingsGrid from "../SettingsGrid";
 import SettingsGroup from "../SettingsGroup";
 import Preview from "../Toggles/Layout/Preview";
@@ -18,7 +19,14 @@ export default function Layout() {
                 <CardWithInput label="Hover preview" checked={settings.hideHoverPreview} onChange={handleToggle('hideHoverPreview')} />
                 <CardWithInput label="Filter chips (badges)" checked={settings.hideBadgesChips} onChange={handleToggle('hideBadgesChips')} />
                 <CardWithInput label="Channel subscriber count" checked={settings.hideChannelSubscriberCount} onChange={handleToggle('hideChannelSubscriberCount')} />
-                <CardWithInput label="Live videos" checked={settings.hideLiveVideos} onChange={handleToggle('hideLiveVideos')} />
+                <NestedToggle label="Live videos" checked={settings.hideLiveVideos} onChange={handleToggle('hideLiveVideos')}>
+                    <CardWithInput
+                        label="Hide live chat"
+                        checked={settings.hideLiveChat}
+                        onChange={handleToggle('hideLiveChat')}
+                    />
+                </NestedToggle>
+
                 <CardWithInput label="Hide Playables" checked={settings.hideYoutubePlayables} onChange={handleToggle('hideYoutubePlayables')} />
                 <Sidebar />
                 <Preview />

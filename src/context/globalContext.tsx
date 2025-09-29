@@ -37,6 +37,7 @@ const defaultSettings: Settings = {
     hideWatchedProgress: false,
     hideHoverPreview: false,
     hideLiveVideos: false,
+    hideLiveChat: false,
     hideYoutubePlayables: false,
     // Navigation additions
     hideExplore: false,
@@ -231,6 +232,15 @@ export function useGlobalContext() {
             }
             if (key === 'hideComments' && !checked) {
                 updated.hideCommentAvatars = false;
+            }
+
+
+            // If live videos is being enabled/disabled, cascade to live chat
+            if (key === 'hideLiveVideos' && checked) {
+                updated.hideLiveChat = true;
+            }
+            if (key === 'hideLiveVideos' && !checked) {
+                updated.hideLiveChat = false;
             }
 
             // If preview details (layout) is enabled, also enable preview avatars automatically
