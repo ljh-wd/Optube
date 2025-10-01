@@ -1,5 +1,5 @@
 import { beforeEach, expect, test } from 'vitest'
-import { setFoldVisibility, setCommentsVisibility, setAiSummaryVisibility, setCommentAvatarsVisibility, injectVideoPlayerCSS, setRecommendedVisibility, injectCommentAvatarCSS, setDescriptionVisibility, setTitleVisibility, setCreatorVisibility, injectActionsCSS, applyActions, setVideoFilterChipsVisibility, injectVideoChipsCSS, setCommentUploadTimeVisibility, injectCommentTimeCSS } from '../video'
+import { setFoldVisibility, setCommentsVisibility, setAiSummaryVisibility, setCommentAvatarsVisibility, injectVideoPlayerCSS, setRecommendedVisibility, injectCommentAvatarCSS, setDescriptionVisibility, setTitleVisibility, setCreatorVisibility, injectActionsCSS, applyActions, setVideoFilterChipsVisibility, injectVideoChipsCSS, setCommentUploadTimeVisibility, injectCommentTimeCSS, setCommentRepliesVisibility, injectCommentRepliesCSS } from '../video'
 
 // @vitest-environment jsdom
 
@@ -17,6 +17,7 @@ beforeEach(() => {
     document.documentElement.removeAttribute('hide_action_clip')
     document.documentElement.removeAttribute('hide_video_filter_chips')
     document.documentElement.removeAttribute('hide_comment_upload_time')
+    document.documentElement.removeAttribute('hide_comment_replies')
 })
 
 test('setFoldVisibility toggles #above-the-fold', () => {
@@ -120,6 +121,22 @@ test('setCommentUploadTimeVisibility toggles root attribute', () => {
     expect(document.documentElement.getAttribute('hide_comment_upload_time')).toBe('true')
     setCommentUploadTimeVisibility(false)
     expect(document.documentElement.getAttribute('hide_comment_upload_time')).toBeNull()
+})
+
+test('injectCommentRepliesCSS injects only once', () => {
+    injectCommentRepliesCSS()
+    const first = document.getElementById('optube-comment-replies-css')
+    expect(first).toBeTruthy()
+    injectCommentRepliesCSS()
+    const second = document.getElementById('optube-comment-replies-css')
+    expect(second).toBe(first)
+})
+
+test('setCommentRepliesVisibility toggles root attribute', () => {
+    setCommentRepliesVisibility(true)
+    expect(document.documentElement.getAttribute('hide_comment_replies')).toBe('true')
+    setCommentRepliesVisibility(false)
+    expect(document.documentElement.getAttribute('hide_comment_replies')).toBeNull()
 })
 
 test('injectCommentAvatarCSS injects only once', () => {

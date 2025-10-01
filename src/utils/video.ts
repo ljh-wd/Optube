@@ -74,6 +74,16 @@ export function setCommentUploadTimeVisibility(hide: boolean) {
     });
 }
 
+export function setCommentRepliesVisibility(hide: boolean) {
+    const root = document.documentElement;
+    if (hide) root.setAttribute('hide_comment_replies', 'true'); else root.removeAttribute('hide_comment_replies');
+    injectCommentRepliesCSS();
+    // Inline fallback for current DOM
+    document.querySelectorAll('ytd-comment-engagement-bar #reply-button-end, ytd-comment-replies-renderer, #replies.ytd-comment-thread-renderer').forEach(el => {
+        (el as HTMLElement).style.display = hide ? 'none' : '';
+    });
+}
+
 
 export function injectVideoPlayerCSS() {
     const id = 'optube-video-player-css';
@@ -184,6 +194,28 @@ export function injectCommentTimeCSS() {
 html[hide_comment_upload_time] ytd-comment-view-model #published-time-text { display: none !important; }
 /* Legacy comments renderer fallback */
 html[hide_comment_upload_time] ytd-comment-renderer #published-time-text { display: none !important; }
+`;
+    document.head.appendChild(style);
+}
+
+export function injectCommentRepliesCSS() {
+    const id = 'optube-comment-replies-css';
+    if (document.getElementById(id)) return;
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = `
+/* Hide reply button in engagement bar */
+html[hide_comment_replies] ytd-comment-engagement-bar #reply-button-end { display: none !important; }
+/* Hide replies containers (thread renderer and replies renderer) */
+html[hide_comment_replies] ytd-comment-thread-renderer #replies,
+html[hide_comment_replies] ytd-comment-replies-renderer { display: none !important; }
+/* Hide sub-thread "1 reply" and similar CTAs */
+html[hide_comment_replies] ytd-comment-replies-renderer #more-replies,
+html[hide_comment_replies] ytd-comment-replies-renderer #less-replies,
+html[hide_comment_replies] ytd-comment-replies-renderer #more-replies-sub-thread,
+html[hide_comment_replies] ytd-comment-replies-renderer #less-replies-sub-thread,
+html[hide_comment_replies] ytd-comment-replies-renderer .more-button,
+html[hide_comment_replies] ytd-comment-replies-renderer .less-button { display: none !important; }
 `;
     document.head.appendChild(style);
 }

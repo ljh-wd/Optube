@@ -21,6 +21,7 @@ const defaultSettings: Settings = {
     hideComments: false,
     hideCommentAvatars: false,
     hideCommentUploadTime: false,
+    hideCommentReplies: false,
     hideCategoryAndTopic: false,
     hideRecommended: false,
     hidePosts: false,
@@ -241,10 +242,12 @@ export function useGlobalContext() {
             if (key === 'hideComments' && checked) {
                 updated.hideCommentAvatars = true;
                 updated.hideCommentUploadTime = true;
+                updated.hideCommentReplies = true;
             }
             if (key === 'hideComments' && !checked) {
                 updated.hideCommentAvatars = false;
                 updated.hideCommentUploadTime = false;
+                updated.hideCommentReplies = false;
             }
 
 

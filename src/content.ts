@@ -32,7 +32,8 @@ import {
     observeAiSummary, injectVideoPlayerCSS,
     applyActions, observeActions, injectActionsCSS,
     setVideoFilterChipsVisibility, injectVideoChipsCSS,
-    setCommentUploadTimeVisibility, injectCommentTimeCSS
+    setCommentUploadTimeVisibility, injectCommentTimeCSS,
+    setCommentRepliesVisibility, injectCommentRepliesCSS
 } from './utils/video';
 import { observeSidebar, setSidebarVisibility } from './utils/sidebar';
 import type { Settings } from './types/global';
@@ -67,6 +68,7 @@ function cleanYouTube(settings: Settings): void {
     setCommentsVisibility(!!settings.hideComments);
     setCommentAvatarsVisibility(!!settings.hideCommentAvatars);
     setCommentUploadTimeVisibility(!!settings.hideCommentUploadTime);
+    setCommentRepliesVisibility(!!settings.hideCommentReplies);
     setAiSummaryVisibility(!!settings.hideAiSummary);
     setFoldVisibility(!!settings.hideFold);
     setCategoryAndTopicVisibility(!!settings.hideCategoryAndTopic);
@@ -144,7 +146,7 @@ function run(): void {
         'hideExplore', 'hideExploreMovies', 'hideExploreMusic', 'hideExploreLive', 'hideExploreGaming', 'hideExploreNews', 'hideExploreSport', 'hideExploreLearning', 'hideExploreFashion', 'hideExplorePodcasts', 'hideExplorePlayables', 'hideMoreFromYouTube', 'hideYouSection', 'hideYouFeed', 'hideHistory', 'hidePlaylists', 'hideYourVideos', 'hideYourCourses', 'hideWatchLater', 'hideLikedVideos', 'hideChannelSubscriberCount', 'hideAvatar',
         'hideYoutubePlayables',
         'hideActions', 'hideActionLikeDislike', 'hideActionShare', 'hideActionSave', 'hideActionEllipsis', 'hideActionJoin', 'hideActionSubscribe', 'hideActionClip'
-        , 'hideVideoFilterChips', 'hideCommentUploadTime'
+        , 'hideVideoFilterChips', 'hideCommentUploadTime', 'hideCommentReplies'
     ], cleanYouTube);
 }
 
@@ -177,6 +179,7 @@ injectSubscriptionsCSS();
 injectCreateButtonCSS();
 injectCommentAvatarCSS();
 injectCommentTimeCSS();
+injectCommentRepliesCSS();
 injectPostsCSS();
 injectYouFeedCSS();
 injectCinemaCSS();
@@ -187,7 +190,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
     if (
         area === 'sync' &&
         (
-            changes.hideShorts || changes.hideHome || changes.hideSubscriptions || changes.hideChannelSubscriberCount || changes.hideSubscriptionsSidebar || changes.hideMasthead || changes.hideSearchbar || changes.hideNotifications || changes.hideCreateButton || changes.hideFold || changes.hideComments || changes.hideCommentAvatars || changes.hideCommentUploadTime || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hidePosts || changes.hideSidebar || changes.hideDescription || changes.hideTitle || changes.hideCreator ||
+            changes.hideShorts || changes.hideHome || changes.hideSubscriptions || changes.hideChannelSubscriberCount || changes.hideSubscriptionsSidebar || changes.hideMasthead || changes.hideSearchbar || changes.hideNotifications || changes.hideCreateButton || changes.hideFold || changes.hideComments || changes.hideCommentAvatars || changes.hideCommentUploadTime || changes.hideCommentReplies || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hidePosts || changes.hideSidebar || changes.hideDescription || changes.hideTitle || changes.hideCreator ||
             changes.hideDurationBadges || changes.hidePreviewDetails || changes.hidePreviewAvatars || changes.hideBadgesChips || changes.hideWatchedProgress ||
             changes.hideHoverPreview || changes.hideAiSummary ||
             changes.hideLiveVideos || changes.hideLiveChat ||

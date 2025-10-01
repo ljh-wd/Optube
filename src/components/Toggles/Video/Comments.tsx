@@ -9,6 +9,7 @@ export default function Comments() {
         <NestedToggle label="Comments" checked={settings.hideComments} onChange={handleToggle('hideComments')}>
             <CardWithInput label="Avatars" checked={settings.hideCommentAvatars} onChange={handleToggle('hideCommentAvatars')} disabled={settings.hideComments} />
             <CardWithInput label="Upload time" checked={settings.hideCommentUploadTime} onChange={handleToggle('hideCommentUploadTime')} disabled={settings.hideComments} />
+            <CardWithInput label="Replies" checked={settings.hideCommentReplies} onChange={handleToggle('hideCommentReplies')} disabled={settings.hideComments} />
         </NestedToggle>
     )
 }

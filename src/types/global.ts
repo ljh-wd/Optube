@@ -5,6 +5,7 @@ export interface Settings {
     hideComments: boolean;
     hideCommentAvatars: boolean; // new sub option under Comments
     hideCommentUploadTime: boolean; // sub option under Comments: hide published time
+    hideCommentReplies: boolean; // sub option under Comments: hide replies and reply button
     hideCategoryAndTopic: boolean;
     hideRecommended: boolean;
     hidePosts: boolean; // new posts (community) feed items
