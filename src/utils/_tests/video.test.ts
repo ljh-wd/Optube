@@ -1,5 +1,5 @@
 import { beforeEach, expect, test } from 'vitest'
-import { setFoldVisibility, setCommentsVisibility, setAiSummaryVisibility, setCommentAvatarsVisibility, injectVideoPlayerCSS, setRecommendedVisibility, injectCommentAvatarCSS, setDescriptionVisibility, setTitleVisibility, setCreatorVisibility, injectActionsCSS, applyActions, setVideoFilterChipsVisibility, injectVideoChipsCSS } from '../video'
+import { setFoldVisibility, setCommentsVisibility, setAiSummaryVisibility, setCommentAvatarsVisibility, injectVideoPlayerCSS, setRecommendedVisibility, injectCommentAvatarCSS, setDescriptionVisibility, setTitleVisibility, setCreatorVisibility, injectActionsCSS, applyActions, setVideoFilterChipsVisibility, injectVideoChipsCSS, setCommentUploadTimeVisibility, injectCommentTimeCSS } from '../video'
 
 // @vitest-environment jsdom
 
@@ -16,6 +16,7 @@ beforeEach(() => {
     document.documentElement.removeAttribute('hide_action_subscribe')
     document.documentElement.removeAttribute('hide_action_clip')
     document.documentElement.removeAttribute('hide_video_filter_chips')
+    document.documentElement.removeAttribute('hide_comment_upload_time')
 })
 
 test('setFoldVisibility toggles #above-the-fold', () => {
@@ -103,6 +104,22 @@ test('setVideoFilterChipsVisibility toggles root attribute', () => {
     expect(document.documentElement.getAttribute('hide_video_filter_chips')).toBe('true')
     setVideoFilterChipsVisibility(false)
     expect(document.documentElement.getAttribute('hide_video_filter_chips')).toBeNull()
+})
+
+test('injectCommentTimeCSS injects only once', () => {
+    injectCommentTimeCSS()
+    const first = document.getElementById('optube-comment-time-css')
+    expect(first).toBeTruthy()
+    injectCommentTimeCSS()
+    const second = document.getElementById('optube-comment-time-css')
+    expect(second).toBe(first)
+})
+
+test('setCommentUploadTimeVisibility toggles root attribute', () => {
+    setCommentUploadTimeVisibility(true)
+    expect(document.documentElement.getAttribute('hide_comment_upload_time')).toBe('true')
+    setCommentUploadTimeVisibility(false)
+    expect(document.documentElement.getAttribute('hide_comment_upload_time')).toBeNull()
 })
 
 test('injectCommentAvatarCSS injects only once', () => {

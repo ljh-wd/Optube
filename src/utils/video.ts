@@ -64,6 +64,16 @@ export function setCommentAvatarsVisibility(hide: boolean) {
     });
 }
 
+export function setCommentUploadTimeVisibility(hide: boolean) {
+    const root = document.documentElement;
+    if (hide) root.setAttribute('hide_comment_upload_time', 'true'); else root.removeAttribute('hide_comment_upload_time');
+    injectCommentTimeCSS();
+    // Fallback inline style for currently mounted nodes
+    document.querySelectorAll('ytd-comment-view-model #published-time-text').forEach(el => {
+        (el as HTMLElement).style.display = hide ? 'none' : '';
+    });
+}
+
 
 export function injectVideoPlayerCSS() {
     const id = 'optube-video-player-css';
@@ -155,11 +165,25 @@ export function injectCommentAvatarCSS() {
 html[hide_comment_avatars] #author-thumbnail,
 html[hide_comment_avatars] ytd-comment-view-model #author-thumbnail,
 html[hide_comment_avatars] ytd-comment-simplebox-renderer #author-thumbnail {
-  display: none !important;
+    display: none !important;
 }
 html[hide_comment_avatars] #expander.style-scope.ytd-comment-replies-renderer .expander-header.style-scope.ytd-comment-replies-renderer {
-  align-items: flex-start !important;
+    align-items: flex-start !important;
 }
+`;
+    document.head.appendChild(style);
+}
+
+export function injectCommentTimeCSS() {
+    const id = 'optube-comment-time-css';
+    if (document.getElementById(id)) return;
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = `
+/* Hide published time in comment headers (new VM-based comments) */
+html[hide_comment_upload_time] ytd-comment-view-model #published-time-text { display: none !important; }
+/* Legacy comments renderer fallback */
+html[hide_comment_upload_time] ytd-comment-renderer #published-time-text { display: none !important; }
 `;
     document.head.appendChild(style);
 }

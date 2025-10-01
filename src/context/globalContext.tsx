@@ -20,6 +20,7 @@ const defaultSettings: Settings = {
     hideFold: false,
     hideComments: false,
     hideCommentAvatars: false,
+    hideCommentUploadTime: false,
     hideCategoryAndTopic: false,
     hideRecommended: false,
     hidePosts: false,
@@ -239,9 +240,11 @@ export function useGlobalContext() {
             // Cascade comment avatars with comments parent
             if (key === 'hideComments' && checked) {
                 updated.hideCommentAvatars = true;
+                updated.hideCommentUploadTime = true;
             }
             if (key === 'hideComments' && !checked) {
                 updated.hideCommentAvatars = false;
+                updated.hideCommentUploadTime = false;
             }
 
 
