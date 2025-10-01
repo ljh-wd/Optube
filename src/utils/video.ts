@@ -370,3 +370,85 @@ export function observeCreator() {
     });
     observer.observe(document.body, { childList: true, subtree: true });
 }
+
+// --- Actions (like/dislike, share, save, more, join, subscribe) ---
+
+function toggleRootAttr(name: string, on: boolean) {
+    const root = document.documentElement;
+    if (on) root.setAttribute(name, 'true'); else root.removeAttribute(name);
+}
+
+export function applyActions(settings: {
+    hideActions?: boolean;
+    hideActionLikeDislike?: boolean;
+    hideActionShare?: boolean;
+    hideActionSave?: boolean;
+    hideActionEllipsis?: boolean;
+    hideActionJoin?: boolean;
+    hideActionSubscribe?: boolean;
+    hideActionClip?: boolean;
+}) {
+    toggleRootAttr('hide_actions', !!settings.hideActions);
+    toggleRootAttr('hide_action_like_dislike', !!settings.hideActionLikeDislike || !!settings.hideActions);
+    toggleRootAttr('hide_action_share', !!settings.hideActionShare || !!settings.hideActions);
+    toggleRootAttr('hide_action_save', !!settings.hideActionSave || !!settings.hideActions);
+    toggleRootAttr('hide_action_ellipsis', !!settings.hideActionEllipsis || !!settings.hideActions);
+    toggleRootAttr('hide_action_join', !!settings.hideActionJoin || !!settings.hideActions);
+    toggleRootAttr('hide_action_subscribe', !!settings.hideActionSubscribe || !!settings.hideActions);
+    toggleRootAttr('hide_action_clip', !!settings.hideActionClip || !!settings.hideActions);
+    injectActionsCSS();
+}
+
+export function observeActions() {
+    // Initial fetch from storage and apply
+    chrome.storage.sync.get(['hideActions', 'hideActionLikeDislike', 'hideActionShare', 'hideActionSave', 'hideActionEllipsis', 'hideActionJoin', 'hideActionSubscribe', 'hideActionClip'], s => applyActions(s));
+    // Listen for storage changes and re-apply
+    chrome.storage.onChanged.addListener((ch) => {
+        if (ch.hideActions || ch.hideActionLikeDislike || ch.hideActionShare || ch.hideActionSave || ch.hideActionEllipsis || ch.hideActionJoin || ch.hideActionSubscribe || ch.hideActionClip) {
+            chrome.storage.sync.get(['hideActions', 'hideActionLikeDislike', 'hideActionShare', 'hideActionSave', 'hideActionEllipsis', 'hideActionJoin', 'hideActionSubscribe', 'hideActionClip'], s => applyActions(s));
+        }
+    });
+}
+
+export function injectActionsCSS() {
+    const id = 'optube-actions-css';
+    const exists = document.getElementById(id);
+    if (exists) return;
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = `
+/* Scope to watch page actions row */
+/* Parent: hide entire actions row */
+html[hide_actions] ytd-watch-metadata #actions { display: none !important; }
+
+/* Like/Dislike: segmented buttons */
+html[hide_action_like_dislike] ytd-watch-metadata #actions ytd-menu-renderer segmented-like-dislike-button-view-model { display: none !important; }
+
+/* Share button */
+html[hide_action_share] ytd-watch-metadata #actions ytd-menu-renderer yt-button-view-model:has(button[aria-label*="Share" i]) { display: none !important; }
+/* Fallback: hide icon-only share button via aria-label on the button element */
+html[hide_action_share] ytd-watch-metadata #actions ytd-menu-renderer button[aria-label*="Share" i] { display: none !important; }
+
+/* Save button */
+html[hide_action_save] ytd-watch-metadata #actions ytd-menu-renderer yt-button-view-model:has(button[aria-label*="Save" i]) { display: none !important; }
+html[hide_action_save] ytd-watch-metadata #actions ytd-menu-renderer button[aria-label*="Save" i] { display: none !important; }
+
+/* Ellipsis (more actions) button */
+html[hide_action_ellipsis] ytd-watch-metadata #actions ytd-menu-renderer yt-icon-button#button,
+html[hide_action_ellipsis] ytd-watch-metadata #actions ytd-menu-renderer yt-button-shape#button-shape { display: none !important; }
+
+/* Join button next to owner */
+html[hide_action_join] ytd-video-owner-renderer #sponsor-button,
+html[hide_action_join] ytd-video-owner-renderer #sponsor-button ytd-button-renderer,
+html[hide_action_join] ytd-video-owner-renderer button[aria-label*="Join" i] { display: none !important; }
+
+/* Subscribe button block */
+html[hide_action_subscribe] ytd-watch-metadata #subscribe-button,
+html[hide_action_subscribe] ytd-subscribe-button-renderer,
+html[hide_action_subscribe] ytd-subscribe-button-renderer #subscribe-button-shape { display: none !important; }
+/* Clip button (Create clip) */
+html[hide_action_clip] ytd-watch-metadata #actions ytd-menu-renderer yt-button-view-model:has(button[aria-label*="Clip" i]) { display: none !important; }
+html[hide_action_clip] ytd-watch-metadata #actions ytd-menu-renderer button[aria-label*="Clip" i] { display: none !important; }
+`;
+    document.head.appendChild(style);
+}

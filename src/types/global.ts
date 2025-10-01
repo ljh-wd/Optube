@@ -34,6 +34,15 @@ export interface Settings {
     hideHoverPreview: boolean; // disable inline hover video preview
     hideLiveVideos: boolean; // hide entire videos marked as LIVE
     hideLiveChat: boolean; // hide live chat panel (sub-toggle of live videos)
+    // Video Actions (parent + children)
+    hideActions: boolean; // parent: hide all actions row items
+    hideActionLikeDislike: boolean;
+    hideActionShare: boolean;
+    hideActionSave: boolean;
+    hideActionEllipsis: boolean; // more actions kebab
+    hideActionJoin: boolean; // channel join button
+    hideActionSubscribe: boolean; // subscribe button
+    hideActionClip: boolean; // clip button
     // Navigation additions
     hideExplore: boolean;
     hideMoreFromYouTube: boolean;

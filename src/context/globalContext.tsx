@@ -39,6 +39,15 @@ const defaultSettings: Settings = {
     hideLiveVideos: false,
     hideLiveChat: false,
     hideYoutubePlayables: false,
+    // Video Actions
+    hideActions: false,
+    hideActionLikeDislike: false,
+    hideActionShare: false,
+    hideActionSave: false,
+    hideActionEllipsis: false,
+    hideActionJoin: false,
+    hideActionSubscribe: false,
+    hideActionClip: false,
     // Navigation additions
     hideExplore: false,
     hideMoreFromYouTube: false,
@@ -281,6 +290,39 @@ export function useGlobalContext() {
                 updated.hideExploreFashion = checked;
                 updated.hideExplorePodcasts = checked;
                 updated.hideExplorePlayables = checked;
+            }
+
+            // Actions parent cascade: like/dislike, share, save, ellipsis, join, subscribe, clip
+            if (key === 'hideActions') {
+                updated.hideActionLikeDislike = checked;
+                updated.hideActionShare = checked;
+                updated.hideActionSave = checked;
+                updated.hideActionEllipsis = checked;
+                updated.hideActionJoin = checked;
+                updated.hideActionSubscribe = checked;
+                updated.hideActionClip = checked;
+            }
+
+            // Keep parent Actions reflecting all children when a child changes
+            if ([
+                'hideActionLikeDislike',
+                'hideActionShare',
+                'hideActionSave',
+                'hideActionEllipsis',
+                'hideActionJoin',
+                'hideActionSubscribe',
+                'hideActionClip'
+            ].includes(key)) {
+                const allChildren = [
+                    key === 'hideActionLikeDislike' ? checked : prev.hideActionLikeDislike,
+                    key === 'hideActionShare' ? checked : prev.hideActionShare,
+                    key === 'hideActionSave' ? checked : prev.hideActionSave,
+                    key === 'hideActionEllipsis' ? checked : prev.hideActionEllipsis,
+                    key === 'hideActionJoin' ? checked : prev.hideActionJoin,
+                    key === 'hideActionSubscribe' ? checked : prev.hideActionSubscribe,
+                    key === 'hideActionClip' ? checked : prev.hideActionClip,
+                ];
+                updated.hideActions = allChildren.every(Boolean);
             }
 
             // If any Explore child is toggled, only update itself and parent

@@ -29,7 +29,8 @@ import {
     setCommentAvatarsVisibility,
     setAiSummaryVisibility,
     injectCommentAvatarCSS,
-    observeAiSummary, injectVideoPlayerCSS
+    observeAiSummary, injectVideoPlayerCSS,
+    applyActions, observeActions, injectActionsCSS
 } from './utils/video';
 import { observeSidebar, setSidebarVisibility } from './utils/sidebar';
 import type { Settings } from './types/global';
@@ -72,6 +73,16 @@ function cleanYouTube(settings: Settings): void {
     setDescriptionVisibility(!!settings.hideDescription);
     setTitleVisibility(!!settings.hideTitle);
     setCreatorVisibility(!!settings.hideCreator);
+    applyActions({
+        hideActions: settings.hideActions,
+        hideActionLikeDislike: settings.hideActionLikeDislike,
+        hideActionShare: settings.hideActionShare,
+        hideActionSave: settings.hideActionSave,
+        hideActionEllipsis: settings.hideActionEllipsis,
+        hideActionJoin: settings.hideActionJoin,
+        hideActionSubscribe: settings.hideActionSubscribe,
+        hideActionClip: settings.hideActionClip,
+    });
     applyLayout({
         hideDurationBadges: settings.hideDurationBadges,
         hidePreviewDetails: settings.hidePreviewDetails,
@@ -127,7 +138,8 @@ function run(): void {
         'hideLiveVideos', 'hideLiveChat',
         "hideAiSummary",
         'hideExplore', 'hideExploreMovies', 'hideExploreMusic', 'hideExploreLive', 'hideExploreGaming', 'hideExploreNews', 'hideExploreSport', 'hideExploreLearning', 'hideExploreFashion', 'hideExplorePodcasts', 'hideExplorePlayables', 'hideMoreFromYouTube', 'hideYouSection', 'hideYouFeed', 'hideHistory', 'hidePlaylists', 'hideYourVideos', 'hideYourCourses', 'hideWatchLater', 'hideLikedVideos', 'hideChannelSubscriberCount', 'hideAvatar',
-        'hideYoutubePlayables'
+        'hideYoutubePlayables',
+        'hideActions', 'hideActionLikeDislike', 'hideActionShare', 'hideActionSave', 'hideActionEllipsis', 'hideActionJoin', 'hideActionSubscribe', 'hideActionClip'
     ], cleanYouTube);
 }
 
@@ -162,6 +174,7 @@ injectCommentAvatarCSS();
 injectPostsCSS();
 injectYouFeedCSS();
 injectCinemaCSS();
+injectActionsCSS();
 
 chrome.storage.onChanged.addListener((changes, area) => {
     if (
@@ -171,6 +184,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
             changes.hideDurationBadges || changes.hidePreviewDetails || changes.hidePreviewAvatars || changes.hideBadgesChips || changes.hideWatchedProgress ||
             changes.hideHoverPreview || changes.hideAiSummary ||
             changes.hideLiveVideos || changes.hideLiveChat ||
+            changes.hideActions || changes.hideActionLikeDislike || changes.hideActionShare || changes.hideActionSave || changes.hideActionEllipsis || changes.hideActionJoin || changes.hideActionSubscribe || changes.hideActionClip ||
             changes.hideExplore || changes.hideExploreMovies || changes.hideExploreLive || changes.hideExploreGaming || changes.hideExploreNews || changes.hideExploreSport || changes.hideExploreLearning || changes.hideExploreFashion || changes.hideExplorePodcasts || changes.hideExplorePlayables || changes.moreFromYouTube || changes.hideYouSection || changes.hideYouFeed || changes.hideHistory || changes.hidePlaylists || changes.hideYourVideos || changes.hideYourCourses || changes.hideWatchLater || changes.hideLikedVideos || changes.cinematicMode || changes.cinemaPreviewMuted || changes.hideAvatar ||
             changes.hideYoutubePlayables
         )
@@ -204,6 +218,7 @@ observeNavigation();
 observePosts();
 observeYouFeed();
 observeCinema();
+observeActions();
 
 injectLayoutCSS();
 

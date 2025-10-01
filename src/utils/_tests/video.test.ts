@@ -1,5 +1,5 @@
 import { beforeEach, expect, test } from 'vitest'
-import { setFoldVisibility, setCommentsVisibility, setAiSummaryVisibility, setCommentAvatarsVisibility, injectVideoPlayerCSS, setRecommendedVisibility, injectCommentAvatarCSS, setDescriptionVisibility, setTitleVisibility, setCreatorVisibility } from '../video'
+import { setFoldVisibility, setCommentsVisibility, setAiSummaryVisibility, setCommentAvatarsVisibility, injectVideoPlayerCSS, setRecommendedVisibility, injectCommentAvatarCSS, setDescriptionVisibility, setTitleVisibility, setCreatorVisibility, injectActionsCSS, applyActions } from '../video'
 
 // @vitest-environment jsdom
 
@@ -7,6 +7,14 @@ beforeEach(() => {
     document.head.innerHTML = ''
     document.body.innerHTML = ''
     document.documentElement.removeAttribute('optube_hide_recommended')
+    document.documentElement.removeAttribute('hide_actions')
+    document.documentElement.removeAttribute('hide_action_like_dislike')
+    document.documentElement.removeAttribute('hide_action_share')
+    document.documentElement.removeAttribute('hide_action_save')
+    document.documentElement.removeAttribute('hide_action_ellipsis')
+    document.documentElement.removeAttribute('hide_action_join')
+    document.documentElement.removeAttribute('hide_action_subscribe')
+    document.documentElement.removeAttribute('hide_action_clip')
 })
 
 test('setFoldVisibility toggles #above-the-fold', () => {
@@ -50,6 +58,34 @@ test('injectVideoPlayerCSS injects only once', () => {
     injectVideoPlayerCSS()
     const second = document.getElementById('optube-video-player-css')
     expect(second).toBe(first)
+})
+
+test('injectActionsCSS injects only once', () => {
+    injectActionsCSS()
+    const first = document.getElementById('optube-actions-css')
+    expect(first).toBeTruthy()
+    injectActionsCSS()
+    const second = document.getElementById('optube-actions-css')
+    expect(second).toBe(first)
+})
+
+test('applyActions toggles root attributes', () => {
+    applyActions({ hideActionShare: true })
+    expect(document.documentElement.getAttribute('hide_action_share')).toBe('true')
+    applyActions({ hideActionShare: false })
+    expect(document.documentElement.getAttribute('hide_action_share')).toBeNull()
+    // Parent should cascade to children
+    applyActions({ hideActions: true })
+    expect(document.documentElement.getAttribute('hide_actions')).toBe('true')
+    expect(document.documentElement.getAttribute('hide_action_like_dislike')).toBe('true')
+    expect(document.documentElement.getAttribute('hide_action_share')).toBe('true')
+    expect(document.documentElement.getAttribute('hide_action_save')).toBe('true')
+    expect(document.documentElement.getAttribute('hide_action_ellipsis')).toBe('true')
+    expect(document.documentElement.getAttribute('hide_action_join')).toBe('true')
+    expect(document.documentElement.getAttribute('hide_action_subscribe')).toBe('true')
+    expect(document.documentElement.getAttribute('hide_action_clip')).toBe('true')
+    applyActions({ hideActions: false })
+    expect(document.documentElement.getAttribute('hide_actions')).toBeNull()
 })
 
 test('injectCommentAvatarCSS injects only once', () => {
