@@ -1,5 +1,5 @@
 import { beforeEach, expect, test } from 'vitest'
-import { setFoldVisibility, setCommentsVisibility, setAiSummaryVisibility, setCommentAvatarsVisibility, injectVideoPlayerCSS, setRecommendedVisibility, injectCommentAvatarCSS, setDescriptionVisibility, setTitleVisibility, setCreatorVisibility, injectActionsCSS, applyActions } from '../video'
+import { setFoldVisibility, setCommentsVisibility, setAiSummaryVisibility, setCommentAvatarsVisibility, injectVideoPlayerCSS, setRecommendedVisibility, injectCommentAvatarCSS, setDescriptionVisibility, setTitleVisibility, setCreatorVisibility, injectActionsCSS, applyActions, setVideoFilterChipsVisibility, injectVideoChipsCSS } from '../video'
 
 // @vitest-environment jsdom
 
@@ -15,6 +15,7 @@ beforeEach(() => {
     document.documentElement.removeAttribute('hide_action_join')
     document.documentElement.removeAttribute('hide_action_subscribe')
     document.documentElement.removeAttribute('hide_action_clip')
+    document.documentElement.removeAttribute('hide_video_filter_chips')
 })
 
 test('setFoldVisibility toggles #above-the-fold', () => {
@@ -86,6 +87,22 @@ test('applyActions toggles root attributes', () => {
     expect(document.documentElement.getAttribute('hide_action_clip')).toBe('true')
     applyActions({ hideActions: false })
     expect(document.documentElement.getAttribute('hide_actions')).toBeNull()
+})
+
+test('injectVideoChipsCSS injects only once', () => {
+    injectVideoChipsCSS()
+    const first = document.getElementById('optube-video-chips-css')
+    expect(first).toBeTruthy()
+    injectVideoChipsCSS()
+    const second = document.getElementById('optube-video-chips-css')
+    expect(second).toBe(first)
+})
+
+test('setVideoFilterChipsVisibility toggles root attribute', () => {
+    setVideoFilterChipsVisibility(true)
+    expect(document.documentElement.getAttribute('hide_video_filter_chips')).toBe('true')
+    setVideoFilterChipsVisibility(false)
+    expect(document.documentElement.getAttribute('hide_video_filter_chips')).toBeNull()
 })
 
 test('injectCommentAvatarCSS injects only once', () => {

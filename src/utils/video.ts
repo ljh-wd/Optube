@@ -452,3 +452,31 @@ html[hide_action_clip] ytd-watch-metadata #actions ytd-menu-renderer button[aria
 `;
     document.head.appendChild(style);
 }
+
+// --- Watch page filter chips ---
+export function setVideoFilterChipsVisibility(hide: boolean) {
+    const root = document.documentElement;
+    if (hide) root.setAttribute('hide_video_filter_chips', 'true'); else root.removeAttribute('hide_video_filter_chips');
+    injectVideoChipsCSS();
+}
+
+export function injectVideoChipsCSS() {
+    const id = 'optube-video-chips-css';
+    if (document.getElementById(id)) return;
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = `
+/* Hide the chip cloud row on watch pages */
+/* Primary: chips often render in the right sidebar under yt-related-chip-cloud-renderer */
+html[hide_video_filter_chips] ytd-watch-next-secondary-results-renderer yt-related-chip-cloud-renderer,
+html[hide_video_filter_chips] ytd-watch-next-secondary-results-renderer yt-related-chip-cloud-renderer #content,
+html[hide_video_filter_chips] ytd-watch-next-secondary-results-renderer yt-chip-cloud-renderer,
+html[hide_video_filter_chips] ytd-watch-next-secondary-results-renderer iron-selector#chips,
+html[hide_video_filter_chips] ytd-watch-next-secondary-results-renderer #chips,
+/* Fallback: if chips render under watch metadata on some variants */
+html[hide_video_filter_chips] ytd-watch-metadata yt-chip-cloud-renderer,
+html[hide_video_filter_chips] ytd-watch-metadata iron-selector#chips,
+html[hide_video_filter_chips] ytd-watch-metadata #chips { display: none !important; }
+`;
+    document.head.appendChild(style);
+}

@@ -30,7 +30,8 @@ import {
     setAiSummaryVisibility,
     injectCommentAvatarCSS,
     observeAiSummary, injectVideoPlayerCSS,
-    applyActions, observeActions, injectActionsCSS
+    applyActions, observeActions, injectActionsCSS,
+    setVideoFilterChipsVisibility, injectVideoChipsCSS
 } from './utils/video';
 import { observeSidebar, setSidebarVisibility } from './utils/sidebar';
 import type { Settings } from './types/global';
@@ -83,6 +84,7 @@ function cleanYouTube(settings: Settings): void {
         hideActionSubscribe: settings.hideActionSubscribe,
         hideActionClip: settings.hideActionClip,
     });
+    setVideoFilterChipsVisibility(!!settings.hideVideoFilterChips);
     applyLayout({
         hideDurationBadges: settings.hideDurationBadges,
         hidePreviewDetails: settings.hidePreviewDetails,
@@ -140,6 +142,7 @@ function run(): void {
         'hideExplore', 'hideExploreMovies', 'hideExploreMusic', 'hideExploreLive', 'hideExploreGaming', 'hideExploreNews', 'hideExploreSport', 'hideExploreLearning', 'hideExploreFashion', 'hideExplorePodcasts', 'hideExplorePlayables', 'hideMoreFromYouTube', 'hideYouSection', 'hideYouFeed', 'hideHistory', 'hidePlaylists', 'hideYourVideos', 'hideYourCourses', 'hideWatchLater', 'hideLikedVideos', 'hideChannelSubscriberCount', 'hideAvatar',
         'hideYoutubePlayables',
         'hideActions', 'hideActionLikeDislike', 'hideActionShare', 'hideActionSave', 'hideActionEllipsis', 'hideActionJoin', 'hideActionSubscribe', 'hideActionClip'
+        , 'hideVideoFilterChips'
     ], cleanYouTube);
 }
 
@@ -175,6 +178,7 @@ injectPostsCSS();
 injectYouFeedCSS();
 injectCinemaCSS();
 injectActionsCSS();
+injectVideoChipsCSS();
 
 chrome.storage.onChanged.addListener((changes, area) => {
     if (
@@ -184,7 +188,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
             changes.hideDurationBadges || changes.hidePreviewDetails || changes.hidePreviewAvatars || changes.hideBadgesChips || changes.hideWatchedProgress ||
             changes.hideHoverPreview || changes.hideAiSummary ||
             changes.hideLiveVideos || changes.hideLiveChat ||
-            changes.hideActions || changes.hideActionLikeDislike || changes.hideActionShare || changes.hideActionSave || changes.hideActionEllipsis || changes.hideActionJoin || changes.hideActionSubscribe || changes.hideActionClip ||
+            changes.hideActions || changes.hideActionLikeDislike || changes.hideActionShare || changes.hideActionSave || changes.hideActionEllipsis || changes.hideActionJoin || changes.hideActionSubscribe || changes.hideActionClip || changes.hideVideoFilterChips ||
             changes.hideExplore || changes.hideExploreMovies || changes.hideExploreLive || changes.hideExploreGaming || changes.hideExploreNews || changes.hideExploreSport || changes.hideExploreLearning || changes.hideExploreFashion || changes.hideExplorePodcasts || changes.hideExplorePlayables || changes.moreFromYouTube || changes.hideYouSection || changes.hideYouFeed || changes.hideHistory || changes.hidePlaylists || changes.hideYourVideos || changes.hideYourCourses || changes.hideWatchLater || changes.hideLikedVideos || changes.cinematicMode || changes.cinemaPreviewMuted || changes.hideAvatar ||
             changes.hideYoutubePlayables
         )

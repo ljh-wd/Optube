@@ -27,6 +27,7 @@ const defaultSettings: Settings = {
     hideDescription: false,
     hideTitle: false,
     hideCreator: false,
+    hideVideoFilterChips: false,
     cinematicMode: false,
     cinemaPreviewMuted: true,
     // Layout

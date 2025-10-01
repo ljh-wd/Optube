@@ -23,6 +23,7 @@ export interface Settings {
     hideTitle: boolean;
     hideAiSummary: boolean;
     hideCreator: boolean;
+    hideVideoFilterChips: boolean; // hide chips row on watch page
     cinematicMode: boolean; // new UI: cinematic Netflix-like home experience
     cinemaPreviewMuted: boolean; // sub-setting: mute spotlight preview audio (default true, not auto-changed by parent)
     // Layout category

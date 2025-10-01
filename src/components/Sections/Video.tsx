@@ -14,6 +14,7 @@ export default function Video() {
                 <Details />
                 <Comments />
                 <Actions />
+                <CardWithInput label="Filter chips" checked={settings.hideVideoFilterChips} onChange={handleToggle('hideVideoFilterChips')} />
                 <CardWithInput label="Recommended" checked={settings.hideRecommended} onChange={handleToggle('hideRecommended')} />
             </SettingsGrid>
         </SettingsGroup>
