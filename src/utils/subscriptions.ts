@@ -18,7 +18,7 @@ export function setChannelSubscriberCount(hide: boolean) {
     } else {
         document.documentElement.removeAttribute('hide_subscriber_count');
     }
-    injectSubscriptionsCSS(); // Update CSS to apply changes
+    injectSubscriptionsCSS();
 }
 
 /**
@@ -35,36 +35,29 @@ export function setSubscriptionsSidebarVisibility(hide: boolean) {
     }
 }
 
-// Conservative inline hides within the Subscriptions surface only
 function cleanupSubscriptionsFeed() {
-    // Hide the main subscription feed content
     document.querySelectorAll('ytd-browse[page-subtype="subscriptions"]').forEach(el => {
         (el as HTMLElement).style.display = 'none';
     });
 
-    // Hide rich grid renderer on subscription page
     document.querySelectorAll('ytd-rich-grid-renderer').forEach(el => {
-        // Only hide if we're on the subscription page
         if (window.location.pathname.includes('/feed/subscriptions')) {
             (el as HTMLElement).style.display = 'none';
         }
     });
 
-    // Hide individual rich items on the subscription page
     document.querySelectorAll('ytd-rich-item-renderer').forEach(el => {
         if (window.location.pathname.includes('/feed/subscriptions')) {
             (el as HTMLElement).style.display = 'none';
         }
     });
 
-    // Hide rich section renderer (subscriptions page sections)
     document.querySelectorAll('ytd-rich-section-renderer').forEach(el => {
         if (window.location.pathname.includes('/feed/subscriptions')) {
             (el as HTMLElement).style.display = 'none';
         }
     });
 
-    // Hide mini guide Subscriptions entry
     document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
         const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
         if (label === 'Subscriptions') {
@@ -73,36 +66,29 @@ function cleanupSubscriptionsFeed() {
     });
 }
 
-// Reverse inline hides applied during cleanup
 function restoreSubscriptionsFeed() {
-    // Restore the main subscriptions feed content
     document.querySelectorAll('ytd-browse[page-subtype="subscriptions"]').forEach(el => {
         (el as HTMLElement).style.display = '';
     });
 
-    // Restore rich grid renderer on subscription page
     document.querySelectorAll('ytd-rich-grid-renderer').forEach(el => {
-        // Only restore if we're on the subscription page
         if (window.location.pathname.includes('/feed/subscriptions')) {
             (el as HTMLElement).style.display = '';
         }
     });
 
-    // Restore individual rich items on the subscription page
     document.querySelectorAll('ytd-rich-item-renderer').forEach(el => {
         if (window.location.pathname.includes('/feed/subscriptions')) {
             (el as HTMLElement).style.display = '';
         }
     });
 
-    // Restore rich section renderer (subscriptions page sections)
     document.querySelectorAll('ytd-rich-section-renderer').forEach(el => {
         if (window.location.pathname.includes('/feed/subscriptions')) {
             (el as HTMLElement).style.display = '';
         }
     });
 
-    // Restore mini guide Subscriptions entry
     document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
         const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
         if (label === 'Subscriptions') {
@@ -111,9 +97,7 @@ function restoreSubscriptionsFeed() {
     });
 }
 
-// Hide the Subscriptions section in the sidebar only when we match its header text
 function cleanupSubscriptionsSidebar() {
-    // Hide the subscription section in the sidebar, accounting for collapsible structure
     document.querySelectorAll('ytd-guide-section-renderer').forEach(sec => {
         const collapsible = sec.querySelector('ytd-guide-collapsible-section-entry-renderer');
         if (collapsible) {
@@ -124,7 +108,6 @@ function cleanupSubscriptionsSidebar() {
         }
     });
 
-    // Hide mini guide Subscriptions entry for consistency
     document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
         const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
         if (label === 'Subscriptions') {
@@ -133,9 +116,7 @@ function cleanupSubscriptionsSidebar() {
     });
 }
 
-// Reverse inline hides for the Subscriptions sidebar
 function restoreSubscriptionsSidebar() {
-    // Restore the subscription section in the sidebar, accounting for collapsible structure
     document.querySelectorAll('ytd-guide-section-renderer').forEach(sec => {
         const collapsible = sec.querySelector('ytd-guide-collapsible-section-entry-renderer');
         if (collapsible) {
@@ -146,7 +127,6 @@ function restoreSubscriptionsSidebar() {
         }
     });
 
-    // Restore mini guide Subscriptions entry for consistency
     document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
         const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
         if (label === 'Subscriptions') {
@@ -156,7 +136,6 @@ function restoreSubscriptionsSidebar() {
 }
 
 export function observeSubscriptions() {
-    // Observer specifically for subscriptions page changes
     const observer = new MutationObserver(() => {
         const hideSubscriptions = document.documentElement.hasAttribute('hide_subscriptions');
         const isSubscriptionsPage = window.location.pathname.includes('/feed/subscriptions');
@@ -181,19 +160,16 @@ export function observeSubscriptions() {
 }
 
 export function observeSubscriptionsSidebar() {
-    // Initial fetch from storage and apply
     chrome.storage.sync.get(['hideSubscriptionsSidebar'], (settings) => {
         setSubscriptionsSidebarVisibility(!!settings.hideSubscriptionsSidebar);
     });
 
-    // Listen for storage changes and re-apply
     chrome.storage.onChanged.addListener((changes) => {
         if (changes.hideSubscriptionsSidebar) {
             setSubscriptionsSidebarVisibility(!!changes.hideSubscriptionsSidebar.newValue);
         }
     });
 
-    // Observer specifically for subscriptions sidebar changes (reapplies on DOM mutations)
     const observer = new MutationObserver(() => {
         const hideSubscriptionsSidebar = document.documentElement.hasAttribute('hide_subscriptions_sidebar');
 
@@ -214,14 +190,10 @@ export function observeSubscriptionsSidebar() {
     return observer;
 }
 
-/**
- * Inject CSS to hide subscriptions feed elements and navigation.
- * This provides a more reliable way to hide content that gets dynamically loaded.
- */
+
 export function injectSubscriptionsCSS() {
     const cssId = 'optube-subscriptions-css';
 
-    // Remove the existing CSS if it exists
     const existingStyle = document.getElementById(cssId);
     if (existingStyle) {
         existingStyle.remove();

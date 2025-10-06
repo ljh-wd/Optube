@@ -1,7 +1,4 @@
-/**
- * Utilities to hide community posts (rich shelves & post renderers) on feeds like Home & Subscriptions.
- * Approach: attribute on <html> + injected CSS covering known component variants + light DOM cleanup for already inserted nodes.
- */
+
 
 const ATTR = 'hide_posts';
 
@@ -16,9 +13,7 @@ export function setPostsVisibility(hide: boolean) {
 }
 
 function matchesPostShelf(el: Element): boolean {
-    // ytd-rich-shelf-renderer containing posts; title may include 'posts' but we rely on structure
     if (el.tagName === 'YTD-RICH-SHELF-RENDERER') {
-        // Heuristic: contains a ytd-post-renderer descendant
         return !!el.querySelector('ytd-post-renderer');
     }
     return false;
@@ -29,17 +24,14 @@ function matchesPostItem(el: Element): boolean {
 }
 
 function cleanupPosts() {
-    // Hide shelves that are purely posts
     document.querySelectorAll('ytd-rich-shelf-renderer').forEach(el => {
         if (matchesPostShelf(el)) {
             (el as HTMLElement).style.display = 'none';
         }
     });
-    // Hide standalone post items (some appear as rich items within rich-item-renderer)
     document.querySelectorAll('ytd-post-renderer').forEach(el => {
         (el as HTMLElement).style.display = 'none';
     });
-    // Hide rich-item-renderer wrappers whose immediate child is a post
     document.querySelectorAll('ytd-rich-item-renderer').forEach(richItem => {
         if (richItem.querySelector(':scope > #content > ytd-post-renderer')) {
             (richItem as HTMLElement).style.display = 'none';
@@ -80,7 +72,6 @@ export function observePosts() {
             if (needsCleanup) break;
         }
         if (needsCleanup) {
-            // microtask batching
             requestAnimationFrame(() => cleanupPosts());
         }
     });

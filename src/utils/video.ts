@@ -1,7 +1,4 @@
-/**
- * Shows or hides the YouTube fold (video title/description etc.) by toggling the display on 'ytd-fold' elements.
- * @param hide - Whether to hide (true) or show (false) the fold.
- */
+
 export function setFoldVisibility(hide: boolean) {
     const fold = document.getElementById('above-the-fold')
 
@@ -58,7 +55,6 @@ export function setCommentAvatarsVisibility(hide: boolean) {
     } else {
         document.documentElement.removeAttribute('hide_comment_avatars');
     }
-    // Fallback immediate inline application for currently present nodes (in case CSS race).
     document.querySelectorAll('#author-thumbnail, ytd-comment-view-model #author-thumbnail, ytd-comment-simplebox-renderer #author-thumbnail').forEach(el => {
         (el as HTMLElement).style.display = hide ? 'none' : '';
     });
@@ -68,7 +64,6 @@ export function setCommentUploadTimeVisibility(hide: boolean) {
     const root = document.documentElement;
     if (hide) root.setAttribute('hide_comment_upload_time', 'true'); else root.removeAttribute('hide_comment_upload_time');
     injectCommentTimeCSS();
-    // Fallback inline style for currently mounted nodes
     document.querySelectorAll('ytd-comment-view-model #published-time-text').forEach(el => {
         (el as HTMLElement).style.display = hide ? 'none' : '';
     });
@@ -78,7 +73,6 @@ export function setCommentRepliesVisibility(hide: boolean) {
     const root = document.documentElement;
     if (hide) root.setAttribute('hide_comment_replies', 'true'); else root.removeAttribute('hide_comment_replies');
     injectCommentRepliesCSS();
-    // Inline fallback for current DOM
     document.querySelectorAll('ytd-comment-engagement-bar #reply-button-end, ytd-comment-replies-renderer, #replies.ytd-comment-thread-renderer').forEach(el => {
         (el as HTMLElement).style.display = hide ? 'none' : '';
     });
@@ -259,10 +253,8 @@ export function observeCategoryAndTopic() {
 }
 
 
-// Tracks whether we currently have the recommended sidebar adjustments applied
 let recommendedApplied = false;
 
-// Reverse any style overrides applied by setRecommendedVisibility()
 function cleanupRecommendedStyles() {
     const recommendedInner = document.getElementById('secondary-inner');
     const secondary = recommendedInner ? (recommendedInner.closest('#secondary') as HTMLElement | null) : document.getElementById('secondary') as HTMLElement | null;
@@ -273,7 +265,6 @@ function cleanupRecommendedStyles() {
         const candidate = secondary.closest('#columns') as HTMLElement | null;
         if (candidate) columns = candidate;
     }
-    // If columns are scoped, resolve #primary within that scope; fallback to global lookup.
     const primary = columns ? columns.querySelector('#primary') as HTMLElement | null : document.getElementById('primary') as HTMLElement | null;
     if (secondary) {
         secondary.style.width = '';
@@ -302,7 +293,6 @@ function cleanupRecommendedStyles() {
 }
 
 export function setRecommendedVisibility(hide: boolean) {
-    // Only touch the layout on canonical watch pages (/watch?v=…) OR when the watch app shell is present.
     const params = new URLSearchParams(location.search);
     const isWatchPage = (location.pathname === '/watch' && params.has('v')) || !!document.querySelector('ytd-watch-flexy');
     if (!isWatchPage) {
@@ -317,13 +307,11 @@ export function setRecommendedVisibility(hide: boolean) {
     const secondary = recommendedInner ? (recommendedInner.closest('#secondary') as HTMLElement | null) : null;
     if (!recommendedInner || !secondary) return; // DOM not ready yet (watch shell not mounted)
 
-    // Prefer #columns that actually contain the #secondary (scoped to the watch layout).
     let columns = document.getElementById('columns') as HTMLElement | null;
     if (columns && !columns.contains(secondary)) {
         const candidate = secondary.closest('#columns') as HTMLElement | null;
         if (candidate) columns = candidate;
     }
-    // Find primary inside the scoped columns when possible.
     const primary = columns ? columns.querySelector('#primary') as HTMLElement | null : document.getElementById('primary') as HTMLElement | null;
     if (!columns || !primary) return;
 
@@ -426,9 +414,6 @@ export function observeCreator() {
     });
     observer.observe(document.body, { childList: true, subtree: true });
 }
-
-// --- Actions (like/dislike, share, save, more, join, subscribe) ---
-
 function toggleRootAttr(name: string, on: boolean) {
     const root = document.documentElement;
     if (on) root.setAttribute(name, 'true'); else root.removeAttribute(name);
@@ -456,9 +441,9 @@ export function applyActions(settings: {
 }
 
 export function observeActions() {
-    // Initial fetch from storage and apply
+
     chrome.storage.sync.get(['hideActions', 'hideActionLikeDislike', 'hideActionShare', 'hideActionSave', 'hideActionEllipsis', 'hideActionJoin', 'hideActionSubscribe', 'hideActionClip'], s => applyActions(s));
-    // Listen for storage changes and re-apply
+
     chrome.storage.onChanged.addListener((ch) => {
         if (ch.hideActions || ch.hideActionLikeDislike || ch.hideActionShare || ch.hideActionSave || ch.hideActionEllipsis || ch.hideActionJoin || ch.hideActionSubscribe || ch.hideActionClip) {
             chrome.storage.sync.get(['hideActions', 'hideActionLikeDislike', 'hideActionShare', 'hideActionSave', 'hideActionEllipsis', 'hideActionJoin', 'hideActionSubscribe', 'hideActionClip'], s => applyActions(s));
@@ -509,7 +494,6 @@ html[hide_action_clip] ytd-watch-metadata #actions ytd-menu-renderer button[aria
     document.head.appendChild(style);
 }
 
-// --- Watch page filter chips ---
 export function setVideoFilterChipsVisibility(hide: boolean) {
     const root = document.documentElement;
     if (hide) root.setAttribute('hide_video_filter_chips', 'true'); else root.removeAttribute('hide_video_filter_chips');

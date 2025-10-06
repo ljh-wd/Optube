@@ -16,8 +16,8 @@ export default function Footer() {
                                 (reset as Record<string, boolean>)[k] = false;
                             }
                         });
-                        reset.cinematicMode = false; // ensure off
-                        reset.cinemaPreviewMuted = false; // ensure unmuted per request
+                        reset.cinematicMode = false;
+                        reset.cinemaPreviewMuted = false;
                         chrome.storage.sync.set(reset as Settings);
                         chrome.storage.sync.remove('_sidebarNestedBackup');
                         setSettings(prev => ({ ...prev, ...reset } as Settings));

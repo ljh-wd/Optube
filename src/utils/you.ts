@@ -33,10 +33,8 @@ const SECTION_LABELS = [
     'Liked videos'
 ];
 
-/** Apply / update root <html> attributes reflecting current settings */
 export function applyYouFeedAttributes(settings: YouSettings) {
     if (!isYouFeed()) {
-        // Clean up attributes when leaving the page
         document.documentElement.removeAttribute(ROOT_FLAG);
         removeAttr('hide_you_section');
         removeAttr('hide_you_history');
@@ -72,9 +70,7 @@ function isYouFeed(): boolean {
     return window.location.pathname.startsWith('/feed/you');
 }
 
-/**
- * Annotate sections with data-optube-section="<Label>" so CSS can target them.
- */
+
 function annotateYouSections(root: ParentNode = document) {
     if (!isYouFeed()) return;
     root.querySelectorAll('ytd-rich-section-renderer:not([data-optube-section])').forEach(sec => {
@@ -86,20 +82,16 @@ function annotateYouSections(root: ParentNode = document) {
 }
 
 function extractSectionLabel(sec: HTMLElement): string | null {
-    // Heuristic: look for common heading containers inside the section.
-    // The heading might live inside #contents or #title-container; fall back to first yt-formatted-string.
     const headingEl = sec.querySelector<HTMLElement>(
         'h2, #title-container, #title, #header, yt-formatted-string#title-text, yt-formatted-string.style-scope'
     );
     if (headingEl) {
         const text = headingEl.textContent?.trim();
         if (text) {
-            // Normalize typical capitalization mismatches
             const normalized = text.replace(/\s+/g, ' ').trim();
-            // Attempt to map partial matches (e.g. "Your Videos" vs "Your videos")
             for (const lbl of SECTION_LABELS) {
                 const lowerLbl = lbl.toLowerCase();
-                if (normalized.toLowerCase().startsWith(lowerLbl)) return lbl; // prefix tolerant
+                if (normalized.toLowerCase().startsWith(lowerLbl)) return lbl;
             }
             return null;
         }
@@ -107,12 +99,9 @@ function extractSectionLabel(sec: HTMLElement): string | null {
     return null;
 }
 
-/**
- * Observe DOM mutations on the You feed page and annotate new sections.
- */
 export function observeYouFeed() {
     const observer = new MutationObserver(muts => {
-        if (!isYouFeed()) return; // Ignore when not on page; attributes cleaned elsewhere via applyYouFeedAttributes
+        if (!isYouFeed()) return;
         let needs = false;
         for (const m of muts) {
             for (const n of Array.from(m.addedNodes)) {
@@ -125,19 +114,16 @@ export function observeYouFeed() {
             if (needs) break;
         }
         if (needs) {
-            // Batch annotate in next frame for performance
             requestAnimationFrame(() => annotateYouSections());
         }
     });
     if (document.body) {
         observer.observe(document.body, { childList: true, subtree: true });
     }
-    // Initial pass
     annotateYouSections();
     return observer;
 }
 
-/** Inject CSS controlling visibility based on root attributes + per-section attributes. */
 export function injectYouFeedCSS() {
     const id = 'optube-you-feed-css';
     document.getElementById(id)?.remove();

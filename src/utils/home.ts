@@ -12,14 +12,11 @@ export function setHomeVisibility(hide: boolean) {
     }
 }
 
-// Conservative inline hides only within the actual Home surface
 function cleanupHomeFeed() {
-    // Hide the main home feed content
     document.querySelectorAll('ytd-browse[page-subtype="home"]').forEach(el => {
         (el as HTMLElement).style.display = 'none';
     });
 
-    // Hide mini guide Home entry
     document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
         const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
         if (label === 'Home') {
@@ -27,22 +24,18 @@ function cleanupHomeFeed() {
         }
     });
 
-    // Hide rich grid renderer on home page (main feed container)
     document.querySelectorAll('ytd-rich-grid-renderer').forEach(el => {
-        // Only hide if we're on the home page
         if (window.location.pathname === '/' || window.location.pathname === '') {
             (el as HTMLElement).style.display = 'none';
         }
     });
 
-    // Hide individual rich items on home page
     document.querySelectorAll('ytd-rich-item-renderer').forEach(el => {
         if (window.location.pathname === '/' || window.location.pathname === '') {
             (el as HTMLElement).style.display = 'none';
         }
     });
 
-    // Hide rich section renderer (home page sections)
     document.querySelectorAll('ytd-rich-section-renderer').forEach(el => {
         if (window.location.pathname === '/' || window.location.pathname === '') {
             (el as HTMLElement).style.display = 'none';
@@ -50,14 +43,11 @@ function cleanupHomeFeed() {
     });
 }
 
-// Reverse inline hides applied during cleanup
 function restoreHomeFeed() {
-    // Restore the main home feed content
     document.querySelectorAll('ytd-browse[page-subtype="home"]').forEach(el => {
         (el as HTMLElement).style.display = '';
     });
 
-    // Restore mini guide Home entry
     document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
         const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
         if (label === 'Home') {
@@ -65,22 +55,18 @@ function restoreHomeFeed() {
         }
     });
 
-    // Restore rich grid renderer on home page (main feed container)
     document.querySelectorAll('ytd-rich-grid-renderer').forEach(el => {
-        // Only restore if we're on the home page
         if (window.location.pathname === '/' || window.location.pathname === '') {
             (el as HTMLElement).style.display = '';
         }
     });
 
-    // Restore individual rich items on home page
     document.querySelectorAll('ytd-rich-item-renderer').forEach(el => {
         if (window.location.pathname === '/' || window.location.pathname === '') {
             (el as HTMLElement).style.display = '';
         }
     });
 
-    // Restore rich section renderer (home page sections)
     document.querySelectorAll('ytd-rich-section-renderer').forEach(el => {
         if (window.location.pathname === '/' || window.location.pathname === '') {
             (el as HTMLElement).style.display = '';
@@ -89,7 +75,6 @@ function restoreHomeFeed() {
 }
 
 export function observeHome() {
-    // Observer specifically for home page changes
     const observer = new MutationObserver(() => {
         const hideHome = document.documentElement.hasAttribute('hide_home');
         const isHomePage = window.location.pathname === '/' || window.location.pathname === '';
@@ -113,14 +98,9 @@ export function observeHome() {
     return observer;
 }
 
-/**
- * Inject CSS to hide home feed elements.
- * This provides a more reliable way to hide content that gets dynamically loaded.
- */
 export function injectHomeCSS() {
     const cssId = 'optube-home-css';
 
-    // Remove existing CSS if it exists
     const existingStyle = document.getElementById(cssId);
     if (existingStyle) {
         existingStyle.remove();

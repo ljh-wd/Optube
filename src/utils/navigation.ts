@@ -2,7 +2,6 @@ interface NavSettings {
     hideExplore: boolean;
     hideMoreFromYouTube: boolean;
     hideYouSection: boolean;
-    // When the user hides the You feed (separate feed toggle), we also hide the sidebar 'You' section implicitly.
     hideYouFeed?: boolean;
     hideHistory: boolean;
     hidePlaylists: boolean;
@@ -10,7 +9,6 @@ interface NavSettings {
     hideYourCourses: boolean;
     hideWatchLater: boolean;
     hideLikedVideos: boolean;
-    // Explore sub items
     hideExploreMusic: boolean;
     hideExploreMovies: boolean;
     hideExploreLive: boolean;
@@ -41,9 +39,7 @@ export function injectNavigationCSS() {
     document.head.appendChild(style);
 }
 
-// Set data-optube-hidden on entire guide sections matching a title predicate
 function markMatchingGuideSections(predicate: (title: string) => boolean, hide: boolean) {
-    // Standard sections
     document.querySelectorAll('ytd-guide-section-renderer').forEach(sec => {
         const titleEl = sec.querySelector('#guide-section-title, yt-formatted-string');
         const title = (titleEl?.textContent || '').trim();
@@ -55,7 +51,6 @@ function markMatchingGuideSections(predicate: (title: string) => boolean, hide: 
             }
         }
     });
-    // Collapsible 'You' section container uses a different host element
     if (predicate('You')) {
         document.querySelectorAll('ytd-guide-collapsible-section-entry-renderer').forEach(sec => {
             const headerText = sec.querySelector('#header-entry .title')?.textContent?.trim();
@@ -70,9 +65,7 @@ function markMatchingGuideSections(predicate: (title: string) => boolean, hide: 
     }
 }
 
-// Toggle individual entries inside the guide; avoids touching whole sections when not needed
 function markIndividualEntries(matchers: { title: string, hide: boolean }[]) {
-    // Entries inside all guide sections including collapsible
     document.querySelectorAll('ytd-guide-entry-renderer').forEach(entry => {
         const label = (entry.querySelector('.title, yt-formatted-string')?.textContent || '').trim();
         matchers.forEach(m => {
@@ -88,7 +81,6 @@ function markIndividualEntries(matchers: { title: string, hide: boolean }[]) {
 }
 
 export function applyNavigation(settings: Partial<NavSettings>) {
-    // If all Explore sub-items are hidden, treat the whole Explore section as hidden
     const allExploreChildrenHidden = [
         settings.hideExploreMusic,
         settings.hideExploreMovies,
@@ -104,7 +96,6 @@ export function applyNavigation(settings: Partial<NavSettings>) {
 
     const effectiveHideExplore = !!settings.hideExplore || allExploreChildrenHidden;
 
-    // If all You sub-items are hidden (or You feed hidden), hide the whole You section
     const allYouChildrenHidden = [
         settings.hideHistory,
         settings.hidePlaylists,
@@ -120,7 +111,6 @@ export function applyNavigation(settings: Partial<NavSettings>) {
     markMatchingGuideSections(t => t === 'More from YouTube', !!settings.hideMoreFromYouTube);
     markMatchingGuideSections(t => t === 'You', effectiveHideYouSection);
 
-    // If whole You section hidden, skip individual entries for performance
     if (!effectiveHideYouSection) {
         markIndividualEntries([
             { title: 'History', hide: !!settings.hideHistory },
@@ -132,7 +122,6 @@ export function applyNavigation(settings: Partial<NavSettings>) {
         ]);
     }
 
-    // Explore sub-items (only process if we are not hiding entire Explore section to reduce work)
     if (!effectiveHideExplore) {
         markIndividualEntries([
             { title: 'Music', hide: !!settings.hideExploreMusic },
@@ -148,7 +137,6 @@ export function applyNavigation(settings: Partial<NavSettings>) {
         ]);
     }
 
-    // Mini guide (collapsed) entry for "You" – keep in sync with the full section state
     document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
         const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
         if (label === 'You') {
@@ -162,7 +150,7 @@ export function applyNavigation(settings: Partial<NavSettings>) {
 }
 
 export function observeNavigation() {
-    injectNavigationCSS();  // Inject the static CSS once
+    injectNavigationCSS();
 
     const KEYS: (keyof NavSettings)[] = ['hideExplore', 'hideMoreFromYouTube', 'hideYouSection', 'hideYouFeed', 'hideHistory', 'hidePlaylists', 'hideYourVideos', 'hideYourCourses', 'hideWatchLater', 'hideLikedVideos', 'hideExploreMusic', 'hideExploreMovies', 'hideExploreLive', 'hideExploreGaming', 'hideExploreNews', 'hideExploreSport', 'hideExploreLearning', 'hideExploreFashion', 'hideExplorePodcasts', 'hideExplorePlayables'];
     chrome.storage.sync.get(KEYS, applyNavigation);
@@ -172,9 +160,8 @@ export function observeNavigation() {
         }
     });
 
-    // Mutation observer to re-run when sidebar re-renders.
     const observer = new MutationObserver(() => {
-        // Guard against jsdom teardown between tests where document becomes undefined
+
         if (typeof document === 'undefined' || !document.body) return;
         chrome.storage.sync.get(KEYS, applyNavigation);
     });

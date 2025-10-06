@@ -12,7 +12,6 @@ export function setMastheadVisibility(hide: boolean) {
 export function setMastheadAvatarVisibility(hide: boolean) {
     const root = document.documentElement;
     if (hide) root.setAttribute('hide_avatar', 'true'); else root.removeAttribute('hide_avatar');
-    // Conservative selectors for the avatar button
     document.querySelectorAll<HTMLElement>('#avatar-btn, ytd-topbar-menu-button-renderer #avatar-btn')
         .forEach(n => { n.style.display = hide ? 'none' : ''; });
 }
@@ -22,19 +21,13 @@ export function setMastheadAvatarVisibility(hide: boolean) {
  * @param hide - Whether to hide (true) or show (false) the searchbar.
 */
 export function setSearchbarVisibility(hide: boolean) {
-    // Target the #center element which contains the entire search area
     const centerElements = document.querySelectorAll('#center');
     centerElements.forEach(el => {
         (el as HTMLElement).style.display = hide ? 'none' : '';
     });
 }
 
-/**
- * Shows or hides the YouTube notifications icon by targeting ytd-notification-topbar-button-renderer.
- * @param hide - Whether to hide (true) or show (false) the notifications icon.
-*/
 export function setNotificationsVisibility(hide: boolean) {
-    // Target the notifications button element
     const notificationElements = document.querySelectorAll('ytd-notification-topbar-button-renderer');
     notificationElements.forEach(el => {
         (el as HTMLElement).style.display = hide ? 'none' : '';
@@ -48,7 +41,6 @@ export function setCreateButtonVisibility(hide: boolean) {
     } else {
         document.documentElement.removeAttribute('hide_create_button');
     }
-    // Fallback immediate hide for already present nodes until CSS applies
     const selectors = [
         'ytd-topbar-menu-button-renderer:has([aria-label="Create" i])',
         'ytd-button-renderer:has([aria-label="Create" i])',

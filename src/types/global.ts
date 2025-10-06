@@ -3,50 +3,47 @@ export interface Settings {
     hideShorts: boolean;
     hideFold: boolean;
     hideComments: boolean;
-    hideCommentAvatars: boolean; // new sub option under Comments
-    hideCommentUploadTime: boolean; // sub option under Comments: hide published time
-    hideCommentReplies: boolean; // sub option under Comments: hide replies and reply button
+    hideCommentAvatars: boolean;
+    hideCommentUploadTime: boolean;
+    hideCommentReplies: boolean;
     hideCategoryAndTopic: boolean;
     hideRecommended: boolean;
-    hidePosts: boolean; // new posts (community) feed items
+    hidePosts: boolean;
     hideMasthead: boolean;
     hideAvatar: boolean;
     hideSidebar: boolean;
     hideHome: boolean;
-    hideYouFeed: boolean; // new: hide 'You' page sections independently of sidebar navigation
+    hideYouFeed: boolean;
     hideSubscriptions: boolean;
     hideSubscriptionsSidebar: boolean;
-    hideChannelSubscriberCount: boolean; // new: hide subscriber count on channel pages and videos
+    hideChannelSubscriberCount: boolean;
     hideYoutubePlayables: boolean;
     hideSearchbar: boolean;
     hideNotifications: boolean;
-    hideCreateButton: boolean; // new create button in top bar
+    hideCreateButton: boolean;
     hideDescription: boolean;
     hideTitle: boolean;
     hideAiSummary: boolean;
     hideCreator: boolean;
-    hideVideoFilterChips: boolean; // hide chips row on watch page
-    cinematicMode: boolean; // new UI: cinematic Netflix-like home experience
-    cinemaPreviewMuted: boolean; // sub-setting: mute spotlight preview audio (default true, not auto-changed by parent)
-    // Layout category
+    hideVideoFilterChips: boolean;
+    cinematicMode: boolean;
+    cinemaPreviewMuted: boolean;
     hideDurationBadges: boolean;
-    hidePreviewDetails: boolean; // video preview metadata (feed cards)
+    hidePreviewDetails: boolean;
     hidePreviewAvatars: boolean;
-    hideBadgesChips: boolean; // filter chips row
-    hideWatchedProgress: boolean; // watched progress bar overlay
-    hideHoverPreview: boolean; // disable inline hover video preview
-    hideLiveVideos: boolean; // hide entire videos marked as LIVE
-    hideLiveChat: boolean; // hide live chat panel (sub-toggle of live videos)
-    // Video Actions (parent + children)
-    hideActions: boolean; // parent: hide all actions row items
+    hideBadgesChips: boolean;
+    hideWatchedProgress: boolean;
+    hideHoverPreview: boolean;
+    hideLiveVideos: boolean;
+    hideLiveChat: boolean;
+    hideActions: boolean;
     hideActionLikeDislike: boolean;
     hideActionShare: boolean;
     hideActionSave: boolean;
-    hideActionEllipsis: boolean; // more actions kebab
-    hideActionJoin: boolean; // channel join button
-    hideActionSubscribe: boolean; // subscribe button
-    hideActionClip: boolean; // clip button
-    // Navigation additions
+    hideActionEllipsis: boolean;
+    hideActionJoin: boolean;
+    hideActionSubscribe: boolean;
+    hideActionClip: boolean;
     hideExplore: boolean;
     hideMoreFromYouTube: boolean;
     hideYouSection: boolean;
@@ -55,8 +52,7 @@ export interface Settings {
     hideYourCourses: boolean;
     hideWatchLater: boolean;
     hideLikedVideos: boolean;
-    hideHistory: boolean; // newly added for You section sub item
-    // Explore submenu additions
+    hideHistory: boolean;
     hideExploreMusic: boolean;
     hideExploreMovies: boolean;
     hideExploreLive: boolean;

@@ -3,7 +3,6 @@ import { useGlobalContext } from "../context/globalContext";
 
 export default function Header() {
     const { settings } = useGlobalContext()
-    // Compute counts ignoring non-boolean fields and theme selector
     const { activeCount, total } = useMemo(() => {
         const entries = Object.entries(settings).filter(([k, v]) => k !== 'theme' && typeof v === 'boolean');
         return { activeCount: entries.filter(([, v]) => !!v).length, total: entries.length };

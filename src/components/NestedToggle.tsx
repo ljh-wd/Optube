@@ -17,15 +17,12 @@ const NestedToggle = ({ label, checked, onChange, children, disabled = false }: 
     const id = useId();
     const [isExpanded, setIsExpanded] = useState(false);
     const [indeterminate, setIndeterminate] = useState(false);
-
-    // Detect partial (half) state: if any child toggle is active but parent not fully toggled
     useEffect(() => {
         if (!children) {
             setIndeterminate(false);
             return;
         }
-        // We rely on Radix structure: children may include CardWithInput components which render SwitchRoot elements
-        // We'll query after render for sibling switch states
+
         const container = document.getElementById(id)?.closest('.nested-toggle');
         if (!container) {
             setIndeterminate(false);
@@ -41,7 +38,6 @@ const NestedToggle = ({ label, checked, onChange, children, disabled = false }: 
         if (!checked && anyOn) {
             setIndeterminate(true);
         } else if (checked && !allOn) {
-            // Parent is on but some children forced off (edge case)
             setIndeterminate(true);
         } else {
             setIndeterminate(false);
@@ -76,7 +72,6 @@ const NestedToggle = ({ label, checked, onChange, children, disabled = false }: 
                     checked={checked}
                     onCheckedChange={onChange}
                     disabled={disabled}
-                    // apply visual indeterminate hint
                     data-state={indeterminate ? 'indeterminate' : (checked ? 'checked' : 'unchecked')}
                 >
                     <Switch.Thumb className="SwitchThumb" />

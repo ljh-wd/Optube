@@ -1,5 +1,5 @@
 let injected = false;
-const FEED_LEFT_PADDING = '16px'; // gutter to apply to rich grid when sidebar hidden
+const FEED_LEFT_PADDING = '16px';
 
 function ensureSidebarCSS() {
     if (injected) return;
@@ -17,14 +17,9 @@ function ensureSidebarCSS() {
 
 function hideFullSidebar() {
     ensureSidebarCSS();
-    // IMPORTANT: Do NOT remove `You`Tube's guide persistence attributes; doing so can
-    // trigger internal re-initialisation that spawns a duplicate drawer/miniguide
-    // when the user re-enables the sidebar. We'll rely purely on CSS + inline
-    // overrides so that restoring simply unhides existing nodes.
 
     const app = document.querySelector<HTMLElement>('ytd-app');
 
-    // Fallback inline styles (in case CSS injection races)
     const guideDrawer = document.querySelector<HTMLElement>('tp-yt-app-drawer#guide');
     if (guideDrawer) {
         guideDrawer.style.display = 'none';
@@ -36,7 +31,6 @@ function hideFullSidebar() {
         el.style.display = 'none';
         el.style.visibility = 'hidden';
     });
-    // Hide guide button inline (fallback)
     const guideButton = document.querySelector<HTMLElement>('#guide-button');
     if (guideButton) {
         guideButton.style.display = 'none';
@@ -47,7 +41,6 @@ function hideFullSidebar() {
         content.style.marginLeft = '0';
         content.style.paddingLeft = '0';
     }
-    // Add left padding to feed grids (home, subscriptions, library, explore etc.)
     document.querySelectorAll<HTMLElement>('ytd-rich-grid-renderer #contents, ytd-rich-shelf-renderer #contents').forEach(el => {
         el.style.paddingLeft = FEED_LEFT_PADDING;
         el.style.boxSizing = 'border-box';
@@ -60,7 +53,6 @@ function hideFullSidebar() {
 
 function restoreFullSidebar() {
     const app = document.querySelector<HTMLElement>('ytd-app');
-    // We do NOT re-add removed attributes; YouTube will reapply them if needed on next navigation.
     const guideDrawer = document.querySelector<HTMLElement>('tp-yt-app-drawer#guide');
     if (guideDrawer) {
         guideDrawer.style.display = '';
@@ -83,7 +75,6 @@ function restoreFullSidebar() {
         content.style.paddingLeft = '';
     }
     document.querySelectorAll<HTMLElement>('ytd-rich-grid-renderer #contents, ytd-rich-shelf-renderer #contents').forEach(el => {
-        // Only clear if we set it (best effort)
         if (el.style.paddingLeft === FEED_LEFT_PADDING) el.style.paddingLeft = '';
         if (el.style.boxSizing === 'border-box') el.style.boxSizing = '';
     });

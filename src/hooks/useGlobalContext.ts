@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { GlobalContext } from "../context/globalContext"; // adjust path if needed
+import { GlobalContext } from "../context/globalContext";
 
 export function useGlobalContext() {
     const context = useContext(GlobalContext);

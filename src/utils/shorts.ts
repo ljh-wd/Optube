@@ -1,8 +1,4 @@
-/**
- * Toggle Shorts visibility (attribute + conservative cleanup).
- * We avoid hiding core feed containers (ytd-rich-grid-renderer / section root)
- * to prevent breaking lazy loading.
- */
+
 export function setShortsVisibility(hide: boolean) {
     if (hide) {
         document.documentElement.setAttribute('hide_shorts', 'true');
@@ -10,7 +6,6 @@ export function setShortsVisibility(hide: boolean) {
     } else {
         document.documentElement.removeAttribute('hide_shorts');
         restoreShortsShelves();
-        // Restore mini guide Shorts entry
         document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
             const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
             if (label === 'Shorts') {
@@ -21,13 +16,11 @@ export function setShortsVisibility(hide: boolean) {
 }
 
 export function cleanupShortsShelves() {
-    // Dedicated shelf components – safe to hide directly
     document.querySelectorAll('ytd-reel-shelf-renderer, ytd-shorts-shelf-renderer').forEach(el => {
         (el as HTMLElement).style.display = 'none';
         (el as HTMLElement).setAttribute('data-optube-hidden-shorts', '1');
     });
 
-    // Grid shelf view model (experimental / new layout)
     document.querySelectorAll('grid-shelf-view-model').forEach(el => {
         if (el.querySelector('ytm-shorts-lockup-view-model, ytm-shorts-lockup-view-model-v2')) {
             (el as HTMLElement).style.display = 'none';
@@ -35,7 +28,6 @@ export function cleanupShortsShelves() {
         }
     });
 
-    // Rich shelf renderer (subscriptions/home variant) containing shorts lockups or links
     document.querySelectorAll('ytd-rich-shelf-renderer').forEach(el => {
         const hasShorts = el.querySelector('ytm-shorts-lockup-view-model, ytm-shorts-lockup-view-model-v2, a[href*="/shorts/"]');
         const headerText = (el.querySelector('#title')?.textContent || '').trim().toLowerCase();
@@ -45,7 +37,6 @@ export function cleanupShortsShelves() {
         }
     });
 
-    // Rich item wrappers containing a shorts shelf inside the main grid
     document.querySelectorAll('ytd-rich-item-renderer').forEach(item => {
         if (item.querySelector('ytd-reel-shelf-renderer, ytd-shorts-shelf-renderer')) {
             (item as HTMLElement).style.display = 'none';
@@ -53,7 +44,6 @@ export function cleanupShortsShelves() {
         }
     });
 
-    // Individual lockups (mobile / experimental) not already hidden
     document.querySelectorAll('ytm-shorts-lockup-view-model, ytm-shorts-lockup-view-model-v2').forEach(el => {
         (el as HTMLElement).style.display = 'none';
         (el as HTMLElement).setAttribute('data-optube-hidden-shorts', '1');
@@ -61,7 +51,6 @@ export function cleanupShortsShelves() {
 
     hideShortsFilterChip();
 
-    // Hide mini guide Shorts entry
     document.querySelectorAll('ytd-mini-guide-entry-renderer').forEach(entry => {
         const label = (entry.getAttribute('aria-label') || entry.querySelector('.title')?.textContent || '').trim();
         if (label === 'Shorts') {
@@ -71,7 +60,6 @@ export function cleanupShortsShelves() {
     });
 }
 
-// Hide the "Shorts" filter chip in search (and any chip cloud areas)
 function hideShortsFilterChip() {
     const chips = document.querySelectorAll('yt-chip-cloud-chip-renderer');
     chips.forEach(chip => {

@@ -1,6 +1,3 @@
-// Cinematic (Netflix-like) UI mode for YouTube Home
-// Pure CSS injection + attribute on <html>. We avoid heavy DOM rewriting here.
-
 const ATTR = 'cinematic_mode';
 const STYLE_ID = 'optube-cinema-css';
 let carouselContainer: HTMLElement | null = null;
@@ -8,18 +5,18 @@ let attached = false;
 let loadDebounce: number | null = null;
 let spotlightInterval: number | null = null;
 let spotlightEl: HTMLElement | null = null;
-let lastSpotlightIndex = -1; // track last used index to avoid immediate repeats
+let lastSpotlightIndex = -1;
 let itemsObserver: MutationObserver | null = null;
 let arrowLeft: HTMLButtonElement | null = null;
 let arrowRight: HTMLButtonElement | null = null;
 let arrowOverlay: HTMLDivElement | null = null;
 let arrowCheckInterval: number | null = null;
-let spotlightMuted = true; // default mute previews; user toggle persisted in localStorage
-// Track last applied cinema mode to avoid repeatedly overwriting user settings
+let spotlightMuted = true;
+
 let lastCinemaMode: boolean | null = null;
 let cinemaHoverPreviewBlockerAttached = false;
 const cinemaHoverPreviewHandlers: Array<{ evt: string; fn: (e: Event) => void }> = [];
-// One-time intro splash controller (closure) – plays once per explicit enable toggle (not on reload)
+
 const cinemaIntro = (() => {
     let shownThisActivation = false;
     function render() {
@@ -29,7 +26,6 @@ const cinemaIntro = (() => {
         wrap.id = 'optube-cinema-intro';
         wrap.innerHTML = `<div class="intro-stage"><span class="intro-bar"></span><span class="intro-text">YOUTUBE</span></div>`;
         document.body.appendChild(wrap);
-        // Minimal animation (leverages existing CSS rules already injected)
         setTimeout(() => { wrap.classList.add('fade-out'); }, 2000);
         setTimeout(() => { wrap.remove(); }, 2600);
     }
@@ -43,17 +39,11 @@ const cinemaIntro = (() => {
         reset() { shownThisActivation = false; }
     };
 })();
-// Preserve user hide settings we temporarily modify while cinema mode is active
-// We no longer preserve individual user hide settings when cinema toggles.
-// Per updated requirement: toggling cinema ON resets all filters and applies a fixed set;
-// toggling cinema OFF resets (clears) all filters to default (false).
-
 declare global {
     interface Window { optubeForceSpotlight?: () => void; __optubeCinemaHoverMO?: MutationObserver }
 }
 
 function isHome(): boolean {
-    // Restrict cinematic mode to root home feed only
     return location.pathname === '/' || location.pathname === '/feed' || location.pathname === '/feed/';
 }
 
@@ -61,30 +51,22 @@ function ensureCinemaHomeState() {
     if (!document.documentElement.hasAttribute(ATTR)) return;
     if (isHome()) {
         document.body.classList.add('cinematic-home');
-        // If we re-enter the home feed while cinema mode is still enabled (SPA navigation back from
-        // a watch page, etc.), the ephemeral hide classes may have been removed when we left.
-        // Re-apply them here so the UI stays consistently minimal without requiring a full
-        // mode toggle (setCinemaMode(true) only applies them on the initial ON transition).
         ensureEphemeralCinemaHides();
     } else {
         document.body.classList.remove('cinematic-home');
-        // If we navigated away, fully tear down spotlight so playback stops
         teardownSpotlight();
     }
 }
 
-// Re-apply ephemeral hide classes if missing when on home with cinema attribute present.
 function ensureEphemeralCinemaHides() {
     if (!document.documentElement.hasAttribute(ATTR)) return;
     if (!isHome()) return;
     if (!document.body.classList.contains('cinematic-home')) return;
-    // Use one representative class to decide if the set is missing; if it's gone they all are.
     if (!document.body.classList.contains('cinema-hide-sidebar')) {
         applyEphemeralAttrs();
     }
 }
 
-// Ephemeral cinema-only visual hides (never touching storage / existing root attributes)
 function applyEphemeralAttrs() {
     document.body.classList.add(
         'cinema-hide-sidebar',
@@ -117,13 +99,12 @@ function removeEphemeralAttrs() {
     teardownCinemaHoverPreviewBlocker();
 }
 
-// Block hover preview events while cinema mode active so spotlight is the only motion source.
 function ensureCinemaHoverPreviewBlocker() {
     if (cinemaHoverPreviewBlockerAttached) return;
     const evts = ['mouseover', 'mouseenter', 'mousemove'];
     evts.forEach(evt => {
         const fn = (e: Event) => {
-            if (!document.documentElement.hasAttribute(ATTR)) return; // only while cinema attribute set
+            if (!document.documentElement.hasAttribute(ATTR)) return;
             if (!document.body.classList.contains('cinematic-home')) return;
             if (!document.body.classList.contains('cinema-hide-hover-preview')) return;
             const t = (e.target as HTMLElement | null);
@@ -135,7 +116,6 @@ function ensureCinemaHoverPreviewBlocker() {
         document.addEventListener(evt, fn, true);
         cinemaHoverPreviewHandlers.push({ evt, fn });
     });
-    // Mutation observer to remove any injected preview videos quickly
     const mo = new MutationObserver(muts => {
         if (!document.documentElement.hasAttribute(ATTR) || !document.body.classList.contains('cinema-hide-hover-preview')) return;
         for (const m of muts) {
@@ -152,7 +132,6 @@ function ensureCinemaHoverPreviewBlocker() {
         }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
-    // Store teardown hook on window for debugging (optional)
     window.__optubeCinemaHoverMO = mo;
     cinemaHoverPreviewBlockerAttached = true;
 }
@@ -168,15 +147,13 @@ function teardownCinemaHoverPreviewBlocker() {
 }
 
 export function setCinemaMode(on: boolean) {
-    const stateChanged = lastCinemaMode !== on; // only treat as transition when value actually changes
+    const stateChanged = lastCinemaMode !== on;
     lastCinemaMode = on;
 
     if (on) {
-        // Ensure attribute/class present every call (SPA navigations) but only rewrite storage on transition
         document.documentElement.setAttribute(ATTR, 'true');
         if (isHome()) document.body.classList.add('cinematic-home');
         if (stateChanged) {
-            // Only on first enable transition apply ephemeral attributes (no storage mutation)
             applyEphemeralAttrs();
             let firstActivation = false;
             try {
@@ -187,7 +164,6 @@ export function setCinemaMode(on: boolean) {
             setTimeout(() => cinemaIntro.maybeShow(firstActivation), 80);
         }
     } else {
-        // Always remove visual artifacts/classes, but only reset user hide flags on actual OFF transition
         document.documentElement.removeAttribute(ATTR);
         document.body.classList.remove('cinematic-home');
         document.body.classList.remove('cinema-spotlight-active');
@@ -196,7 +172,6 @@ export function setCinemaMode(on: boolean) {
         arrowOverlay?.remove(); arrowOverlay = null; arrowLeft = null; arrowRight = null;
         cinemaIntro.reset();
         if (stateChanged) {
-            // Remove ephemeral attributes; underlying user selections remain intact
             removeEphemeralAttrs();
             try { localStorage.removeItem('optube_cinema_active'); } catch { /* ignore */ }
         }
@@ -211,13 +186,13 @@ export function setCinemaMode(on: boolean) {
 }
 
 export function applyCinema(settings: { cinematicMode?: boolean; cinemaPreviewMuted?: boolean }) {
-    // Apply parent mode first
+
     setCinemaMode(!!settings.cinematicMode);
-    // Apply mute preference only if mode is active
+
     if (settings.cinematicMode !== undefined) {
         if (typeof settings.cinemaPreviewMuted === 'boolean') {
             spotlightMuted = !!settings.cinemaPreviewMuted;
-            // Update existing frames if spotlight already mounted
+
             applySpotlightMuteToFrames();
         }
     }
@@ -235,8 +210,8 @@ export function injectCinemaCSS() {
         html[${ATTR}] body.cinematic-home.cinema-spotlight-half { --cinema-spotlight-height: clamp(340px, 50vh, 780px); }
   html[${ATTR}] body.cinematic-home { overflow:hidden !important; background:var(--netflix-black)!important; }
 
-  /* Simplified subset of provided CSS focused on safe transformations */
-  /* Expand content to full viewport width for immersive feel */
+  
+  
   html[${ATTR}] body.cinematic-home ytd-app { --ytd-mini-guide-width:0px !important; }
   html[${ATTR}] body.cinematic-home ytd-page-manager.ytd-app,
   html[${ATTR}] body.cinematic-home #page-manager.ytd-app,
@@ -250,17 +225,17 @@ export function injectCinemaCSS() {
     width:100vw !important;
     left:0 !important;
   }
-  /* Remove potential internal max-width constraints */
+  
   html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer[is-two-columns] { max-width:100vw !important; }
   html[${ATTR}] body.cinematic-home ytd-two-column-browse-results-renderer { padding:0 !important; }
-  /* Ensure the top filter chips bar spans full width */
+  
     html[${ATTR}] body.cinematic-home #chips-wrapper.ytd-feed-filter-chip-bar-renderer { margin:0 !important; padding:12px 48px !important; width:100vw !important; box-sizing:border-box !important; position:relative; z-index:2100; }
   html[${ATTR}] body.cinematic-home ytd-masthead { background:transparent!important; border-bottom:none!important; }
   html[${ATTR}] body.cinematic-home #background.ytd-masthead { background:transparent!important; }
   html[${ATTR}] body.cinematic-home ytd-masthead #logo-icon { fill:var(--netflix-red)!important; }
   html[${ATTR}] body.cinematic-home html[dark] { background:var(--netflix-black)!important; }
 
-    /* Spotlight container now fixed to body */
+    
     html[${ATTR}] body.cinematic-home #optube-cinema-spotlight {
     position:fixed; 
     top:0; left:0;
@@ -273,8 +248,8 @@ export function injectCinemaCSS() {
     }
     html[${ATTR}] body.cinematic-home #optube-cinema-spotlight::after { content:''; position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,.78) 0%, rgba(0,0,0,.3) 60%, rgba(0,0,0,0) 100%); pointer-events:none; }
     html[${ATTR}] body.cinematic-home #optube-cinema-spotlight .optube-spotlight-video { position:absolute; inset:0; width:100%; height:100%; overflow:hidden; }
-    /* Spotlight iframe: cover full container (cropped if necessary) */
-    /* Full-width 16:9 player cropped vertically to remove side pillar bars */
+    
+    
     html[${ATTR}] body.cinematic-home #optube-cinema-spotlight .optube-spotlight-video iframe {
         position:absolute; left:0; top:50%;
         width:100vw; height:calc(100vw * 9 / 16);
@@ -290,7 +265,7 @@ export function injectCinemaCSS() {
     html[${ATTR}] body.cinematic-home #optube-cinema-spotlight .optube-spotlight-watch { background:#e50914; background-color:var(--netflix-red,#e50914); color:#fff; font-weight:600; padding:12px 22px; border-radius:4px; font-size:1.2rem; letter-spacing:.5px; text-decoration:none; box-shadow:0 2px 10px rgba(0,0,0,.5); display:inline-flex; align-items:center; gap:8px; position:relative; overflow:hidden; transition:padding .18s ease, box-shadow .18s ease, transform .18s ease; }
     html[${ATTR}] body.cinematic-home #optube-cinema-spotlight .optube-spotlight-watch:hover { padding:12px 24px; box-shadow:0 4px 18px rgba(0,0,0,.55); }
 
-    /* (Removed reliance on YouTube hover preview; using embedded iframe instead) */
+    
   
     /* Horizontal carousel of rich items (force flex row on grid container) */
         html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer {
@@ -338,7 +313,7 @@ export function injectCinemaCSS() {
         html[${ATTR}] body.cinematic-home.cinema-spotlight-active #optube-cinema-spotlight .optube-spotlight-meta { transform:translateY(-8px); transition:transform .4s ease; }
         /* Ensure items render above gradient but still above spotlight */
         html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer > ytd-rich-item-renderer { position:relative !important; z-index:3 !important; }
-  /* Defensive override in case inline style attribute persists after SPA nav */
+  
   html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer[style] {
     width:100vw !important;
     max-width:100vw !important;
@@ -346,7 +321,7 @@ export function injectCinemaCSS() {
     margin-right:0 !important;
     top: calc(var(--cinema-spotlight-height) + 12px) !important;
   }
-  /* Ensure rich grid itself doesn't constrain internal content */
+  
   html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer {
     --ytd-rich-grid-content-max-width: 100vw !important;
     justify-content:flex-start !important;
@@ -360,7 +335,7 @@ export function injectCinemaCSS() {
     contain:content; /* isolate layout/paint to reduce reflow */
   }
     html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer > ytd-rich-item-renderer.cinema-loading { opacity:0 !important; transform:translateY(28px); }
-  /* Hide default grid sizing variables influence */
+  
   html[${ATTR}] body.cinematic-home ytd-rich-grid-renderer { --ytd-rich-grid-items-per-row: 1 !important; }
   html[${ATTR}] body.cinematic-home ytd-rich-item-renderer { height:var(--cinema-carousel-height)!important; aspect-ratio:1!important; margin:0!important; }
   html[${ATTR}] body.cinematic-home ytd-rich-item-renderer ytd-thumbnail { border:2px solid transparent; transition:top .2s, scale .2s, opacity .2s; scale:.95!important; position:relative!important; top:0!important; }
@@ -368,11 +343,11 @@ export function injectCinemaCSS() {
   html[${ATTR}] body.cinematic-home ytd-rich-grid-media #details { padding:1rem!important; background:var(--netflix-dark-gray)!important; border-radius:4px!important; margin-top:-4px!important; transition:all .2s!important; opacity:0!important; top:-50px!important; position:relative; }
   html[${ATTR}] body.cinematic-home ytd-rich-grid-media:hover #details { opacity:1!important; top:-80px!important; }
 
-  /* Prevent inline hover preview overlay from blocking horizontal wheel events */
+  
   html[${ATTR}] body.cinematic-home #video-preview-container.ytd-video-preview { pointer-events:none !important; }
   html[${ATTR}] body.cinematic-home ytd-video-preview { pointer-events:none !important; }
 
-  /* Hide intrusive / non-essential elements for focus mode */
+  
   html[${ATTR}] body.cinematic-home ytd-rich-shelf-renderer[is-shorts],
   html[${ATTR}] body.cinematic-home ytd-rich-shelf-renderer:has(ytd-statement-banner-renderer),
   html[${ATTR}] body.cinematic-home #rich-shelf-header { display:none!important; }
@@ -387,7 +362,7 @@ export function injectCinemaCSS() {
     html[${ATTR}] body.cinematic-home.cinema-hide-shorts ytd-reel-shelf-renderer { display:none !important; }
     html[${ATTR}] body.cinematic-home.cinema-hide-create-btn ytd-topbar-menu-button-renderer:has(a[href*='studio.youtube.com']),
         html[${ATTR}] body.cinematic-home.cinema-hide-create-btn ytd-button-renderer:has(path[d*='M10 8v6l5-3-5-3z']) { display:none !important; }
-        /* notification bell */
+        
         html[${ATTR}] body.cinematic-home.cinema-hide-notifications ytd-notification-topbar-button-renderer { display:none !important; }
     html[${ATTR}] body.cinematic-home.cinema-hide-searchbar ytd-masthead #center,
         html[${ATTR}] body.cinematic-home.cinema-hide-searchbar ytd-masthead #search-icon-legacy,
@@ -404,39 +379,39 @@ export function injectCinemaCSS() {
     html[${ATTR}] body.cinematic-home.cinema-hide-hover-preview ytd-rich-item-renderer [class*='inline-preview'],
     html[${ATTR}] body.cinematic-home.cinema-hide-hover-preview ytd-rich-item-renderer [class*='InlinePreview'] { display:none !important; }
     html[${ATTR}] body.cinematic-home.cinema-hide-masthead ytd-masthead { display:none !important; }
-        /* Also aggressively neutralize preview container */
+        
         html[${ATTR}] body.cinematic-home.cinema-hide-hover-preview #video-preview-container.ytd-video-preview { display:none !important; visibility:hidden !important; }
-    /* Spinner visual fade (do NOT hide skeleton loaders or continuation element to keep lazy load working) */
+    
     html[${ATTR}] body.cinematic-home.cinema-hide-spinners ytd-continuation-item-renderer { display:block !important; opacity:1 !important; }
     html[${ATTR}] body.cinematic-home.cinema-hide-spinners ytd-continuation-item-renderer tp-yt-paper-spinner,
     html[${ATTR}] body.cinematic-home.cinema-hide-spinners ytd-continuation-item-renderer #spinner,
     html[${ATTR}] body.cinematic-home.cinema-hide-spinners yt-page-navigation-progress,
     html[${ATTR}] body.cinematic-home.cinema-hide-spinners .yt-core-spinner,
     html[${ATTR}] body.cinematic-home.cinema-hide-spinners .ytp-spinner { opacity:0 !important; visibility:hidden !important; pointer-events:none !important; animation:none !important; }
-    /* Preserve skeleton loaders (allowing thumbnails to compute size); optionally reduce contrast */
+    
     html[${ATTR}] body.cinematic-home.cinema-hide-spinners .yt-core-skeleton-loader { opacity:.35 !important; filter:grayscale(1) brightness(.55); transition:opacity .3s ease; height: var(--cinema-carousel-height) !important; }
-    /* Reserve vertical space for continuation loader so carousel baseline doesn't jump */
+    
     html[${ATTR}] body.cinematic-home ytd-continuation-item-renderer { min-height: var(--cinema-carousel-height) !important; box-sizing:border-box; }
 
-  /* Scrollbar minimal styling */
+  
   html[${ATTR}] body.cinematic-home #contents::-webkit-scrollbar { height:8px; background:transparent; }
   html[${ATTR}] body.cinematic-home #contents::-webkit-scrollbar-thumb { background:rgba(122,122,122,.15); border-radius:4px; }
   html[${ATTR}] body.cinematic-home #contents::-webkit-scrollbar-thumb:hover { background:rgba(122,122,122,.3); }
 
-  /* Fade gradient edges */
+  
   html[${ATTR}] body.cinematic-home #contents:has(ytd-rich-item-renderer)::before,
   html[${ATTR}] body.cinematic-home #contents:has(ytd-rich-item-renderer)::after { content:''; position:absolute; top:0; width:150px; height:100%; z-index:1; pointer-events:none; }
   html[${ATTR}] body.cinematic-home #contents:has(ytd-rich-item-renderer)::before { left:0; background:linear-gradient(to right,#0f0f0f,transparent); }
   html[${ATTR}] body.cinematic-home #contents:has(ytd-rich-item-renderer)::after { right:0; background:linear-gradient(to left,#0f0f0f,transparent); }
 
-  /* Carousel arrow controls (for non-trackpad users) */
+  
             html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay { position:absolute; inset:0; z-index:15; }
                 html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay .cinema-scroll-arrow { position:absolute; top:42%; transform:translateY(-50%); width:54px; height:54px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(0,0,0,0.52); backdrop-filter:blur(10px) saturate(180%); -webkit-backdrop-filter:blur(10px) saturate(180%); border:1px solid rgba(255,255,255,.25); color:#fff; cursor:pointer; opacity:.92; transition:opacity .25s ease, background .25s ease, transform .25s ease; box-shadow:0 6px 24px -6px rgba(0,0,0,.7); }
     html[${ATTR}] body.cinematic-home .cinema-scroll-arrow { cursor:pointer !important; }
         html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay .cinema-scroll-arrow:hover { background:rgba(0,0,0,0.66); opacity:1; }
             html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay .cinema-scroll-arrow:active { transform:translateY(-50%) scale(.94); }
             html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay .cinema-scroll-arrow:hover { cursor:pointer; }
-                /* Force pointer cursor even if site overrides */
+                
                 html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay .cinema-scroll-arrow,
                 html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay .cinema-scroll-arrow:hover,
                 html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay .cinema-scroll-arrow:focus { cursor:pointer !important; }
@@ -446,10 +421,10 @@ export function injectCinemaCSS() {
         html[${ATTR}] body.cinematic-home #contents .cinema-arrow-overlay .cinema-scroll-arrow[disabled] { opacity:.3 !important; cursor:default; }
     @media (pointer:coarse) { html[${ATTR}] body.cinematic-home #contents .cinema-scroll-arrow { opacity:.85; } }
 
-  /* Reduce potential layout conflicts: ensure watch page unaffected */
+  
   html[${ATTR}] body:not(.cinematic-home) { /* no-op placeholder */ }
 
-    /* Intro splash (Netflix-style inspired) */
+    
     html[${ATTR}] #optube-cinema-intro { position:fixed; inset:0; background:#000; z-index:999999; display:flex; align-items:center; justify-content:center; font-family:'Inter', system-ui, sans-serif; overflow:hidden; pointer-events:none; }
     html[${ATTR}] #optube-cinema-intro .intro-stage { position:relative; width:640px; height:220px; display:flex; align-items:center; justify-content:center; }
     /* Slim horizontal bar behind text (less vertical weight) */
@@ -468,7 +443,6 @@ export function injectCinemaCSS() {
 }
 
 export function observeCinema() {
-    // Re-apply body class on navigation mutations (SPA transitions)
     const observer = new MutationObserver(debounce(() => {
         if (document.documentElement.hasAttribute(ATTR)) {
             ensureCinemaHomeState();
@@ -481,7 +455,6 @@ export function observeCinema() {
         }
     }, 50));
     if (document.body) observer.observe(document.body, { childList: true, subtree: true });
-    // Hook into YouTube events for better timing
     document.addEventListener('yt-navigate-finish', debounce(() => {
         ensureCinemaHomeState();
         if (isHome() && document.body.classList.contains('cinematic-home')) {
@@ -495,12 +468,10 @@ export function observeCinema() {
     document.addEventListener('yt-page-data-updated', debounce(() => {
         if (isHome()) initSpotlight();
     }, 50));
-    // Initial attempt
     if (isHome()) {
         attachCarouselEnhancements();
         initSpotlight();
     }
-    // Splash now handled inside setCinemaMode via closure; no-op here
     return observer;
 }
 
@@ -508,18 +479,17 @@ function attachCarouselEnhancements() {
     if (!document.documentElement.hasAttribute(ATTR) || !isHome()) return;
     let candidate = document.querySelector<HTMLElement>('ytd-browse[page-subtype="home"] ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer');
     if (!candidate) {
-        // Fallback older structure
         candidate = document.querySelector<HTMLElement>('ytd-browse[page-subtype="home"] #contents:has(ytd-rich-item-renderer)');
     }
     if (!candidate) return;
     if (carouselContainer !== candidate) {
         carouselContainer = candidate;
-        attached = false; // reattach listeners if container changed
+        attached = false;
     }
     if (attached || !carouselContainer) return;
-    // Flatten existing rows to prevent multiple rows
+
     flattenCarouselRows();
-    // Wheel -> horizontal translate
+
     carouselContainer.addEventListener('wheel', (e) => {
         if (!document.documentElement.hasAttribute(ATTR)) return;
         if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
@@ -530,12 +500,9 @@ function attachCarouselEnhancements() {
             maybeLoadMore();
         }
     }, { passive: false });
-    // Scroll listener for load triggers (for manual horizontal scroll, trackpad drag, keyboard etc.)
     carouselContainer.addEventListener('scroll', () => maybeLoadMore(), { passive: true });
-    // Global wheel fallback if overlay intercepts (defensive)
     window.addEventListener('wheel', globalWheelRedirect, { passive: false });
     attached = true;
-    // Ensure spotlight starts once we have items
     initSpotlight();
     observeCarouselNewItems();
     addCarouselArrows();
@@ -553,11 +520,9 @@ function flattenCarouselRows() {
 
 function initSpotlight() {
     if (!document.documentElement.hasAttribute(ATTR) || !isHome()) return;
-    // Always ensure container exists even if carousel not yet resolved
     if (!spotlightEl) {
         spotlightEl = document.createElement('div');
         spotlightEl.id = 'optube-cinema-spotlight';
-        // Video wrapper + iframe
         const vidWrap = document.createElement('div');
         vidWrap.className = 'optube-spotlight-video';
         const iframe = document.createElement('iframe');
@@ -573,36 +538,28 @@ function initSpotlight() {
                 </div>`;
         spotlightEl.appendChild(vidWrap);
         spotlightEl.appendChild(meta);
-        // Attach to body as fixed
         document.body.prepend(spotlightEl);
-        // spotlightMuted now driven externally by settings (cinemaPreviewMuted)
     }
-    if (spotlightInterval) return; // already running
+    if (spotlightInterval) return;
 
-    // Wait until at least one rich item exists before starting cycle
     const hasItem = document.querySelector('ytd-rich-item-renderer');
     if (!hasItem) {
-        setTimeout(initSpotlight, 600); // retry shortly
+        setTimeout(initSpotlight, 600);
         return;
     }
 
     document.body.classList.add('cinema-spotlight-active');
-    // Default to half height if no size class already
     if (!document.body.classList.contains('cinema-spotlight-quarter') && !document.body.classList.contains('cinema-spotlight-half')) {
         document.body.classList.add('cinema-spotlight-half');
     }
     runSpotlightCycle();
-    spotlightInterval = window.setInterval(runSpotlightCycle, 16000); // 10s preview + 1s buffer
+    spotlightInterval = window.setInterval(runSpotlightCycle, 16000);
     observeItemsForSpotlight();
-    // Expose manual debug trigger
     window.optubeForceSpotlight = runSpotlightCycle;
 }
-
-// Explicit teardown when leaving home (while cinema mode remains enabled)
 function teardownSpotlight() {
-    if (!spotlightEl) return; // nothing to do
+    if (!spotlightEl) return;
     if (spotlightInterval) { window.clearInterval(spotlightInterval); spotlightInterval = null; }
-    // Stop any existing iframe playback by blanking sources
     try {
         spotlightEl.querySelectorAll('iframe').forEach(f => { f.src = 'about:blank'; });
     } catch { /* ignore */ }
@@ -611,13 +568,7 @@ function teardownSpotlight() {
     itemsObserver?.disconnect(); itemsObserver = null;
     document.body.classList.remove('cinema-spotlight-active', 'cinema-spotlight-half', 'cinema-spotlight-quarter');
 }
-
-// (Legacy maybeShowCinemaIntro removed – now handled inline in setCinemaMode with closure)
-
-// Lightweight ad / promoted content detection so spotlight skips adverts.
-// This is heuristic-based; YouTube frequently changes DOM. Adjust selectors as needed.
 function isAdOrPromoted(el: HTMLElement): boolean {
-    // Direct ad / promoted renderers inside or wrapping the item
     const AD_SELECTORS = [
         'ytd-ad-slot-renderer',
         'ytd-display-ad-renderer',
@@ -629,25 +580,25 @@ function isAdOrPromoted(el: HTMLElement): boolean {
         'ytd-inline-survey-renderer'
     ].join(',');
     if (el.matches(AD_SELECTORS) || el.querySelector(AD_SELECTORS)) return true;
-    // Many ads live inside rich-item-renderer children
+
     if (el.querySelector('[id="ad-badge"], #ad-badge')) return true;
-    // Badge containers showing 'Ad' / 'Sponsored'
+
     const badgeText = Array.from(el.querySelectorAll('ytd-badge-supported-renderer, .badge-shape-wiz, .badge, .yt-badge'))
         .map(b => b.textContent?.trim().toLowerCase() || '')
         .join(' ');
     if (/(^|\s)(ad|sponsored|promoted)(\s|$)/.test(badgeText)) return true;
-    // Anchor aria-label starting with Ad (common on some layouts)
+
     const a = el.querySelector('a#thumbnail, a.yt-simple-endpoint');
     const aria = (a?.getAttribute('aria-label') || '').toLowerCase();
     if (/^ad[\s:.-]/.test(aria)) return true;
-    // Some promoted videos include a simple text node 'Ad •' near the start
+
     const textSample = (el.textContent || '').slice(0, 160).toLowerCase();
     if (textSample.includes('ad •') || textSample.includes('ad ·')) return true;
     return false;
 }
 
 function pickRandomVideo(): HTMLElement | null {
-    // Prefer the carousel container if available; otherwise query document-wide
+
     const scope: ParentNode = carouselContainer || document;
     const selector = [
         'ytd-rich-item-renderer',
@@ -656,7 +607,7 @@ function pickRandomVideo(): HTMLElement | null {
         'ytd-compact-video-renderer'
     ].join(',');
     const raw = Array.from(scope.querySelectorAll<HTMLElement>(selector));
-    // Filter out shelves / ads / statements and ensure at least a thumbnail or title exists
+
     const items = raw.filter(el =>
         !el.closest('ytd-rich-shelf-renderer') &&
         (el.querySelector('ytd-thumbnail,img,#video-title')) &&
@@ -673,7 +624,7 @@ function runSpotlightCycle() {
     if (!document.documentElement.hasAttribute(ATTR) || !isHome()) return;
     const target = pickRandomVideo();
     if (!target || !spotlightEl) {
-        // Retry soon if nothing yet (feed still populating)
+
         setTimeout(runSpotlightCycle, 1000);
         return;
     }
@@ -682,14 +633,14 @@ function runSpotlightCycle() {
     );
     const anchor = target.querySelector<HTMLAnchorElement>('a#thumbnail, a.yt-simple-endpoint[href*="watch"], a#video-title, h3 a[href*="watch"], a[href*="/watch"]');
     const thumbImg = target.querySelector<HTMLImageElement>('ytd-thumbnail img, img#img');
-    // Some thumbnails lazy-load; if src not present, try data-thumb / srcset fallback
+
     const backdrop = thumbImg?.src || thumbImg?.getAttribute('data-thumb') || '';
     const titleText = extractText(titleEl, anchor);
     const titleDest = spotlightEl.querySelector<HTMLElement>('.optube-spotlight-title');
     const watchBtn = spotlightEl.querySelector<HTMLAnchorElement>('.optube-spotlight-watch');
     const cleanedTitle = titleText ? cleanTitle(titleText) : '';
     if (titleDest && cleanedTitle) {
-        titleDest.textContent = cleanedTitle; // plain text only; navigation via Watch button
+        titleDest.textContent = cleanedTitle;
     }
     if (watchBtn && anchor && anchor.href) {
         watchBtn.href = anchor.href;
@@ -705,13 +656,13 @@ function runSpotlightCycle() {
 function observeItemsForSpotlight() {
     if (itemsObserver) return;
     const grid = document.querySelector('ytd-rich-grid-renderer #contents, ytd-browse[page-subtype="home"] #contents');
-    if (!grid) return; // will be retried on next init
+    if (!grid) return;
     itemsObserver = new MutationObserver(debounce((mutsUnknown: unknown) => {
         const muts = mutsUnknown as MutationRecord[];
         if (!document.documentElement.hasAttribute(ATTR)) return;
         for (const m of muts) {
             if (m.addedNodes.length) {
-                // If we were stuck on Loading and now items appear, force immediate cycle
+
                 const titleEl = spotlightEl?.querySelector('.optube-spotlight-title');
                 if (titleEl && /Loading…/.test(titleEl.textContent || '')) {
                     runSpotlightCycle();
@@ -723,7 +674,7 @@ function observeItemsForSpotlight() {
     itemsObserver.observe(grid, { childList: true, subtree: true });
 }
 
-// Observe new carousel items to apply smooth fade-in instead of flash / jump
+
 function observeCarouselNewItems() {
     const grid = carouselContainer;
     if (!grid) return;
@@ -736,26 +687,25 @@ function observeCarouselNewItems() {
             m.addedNodes.forEach((n: Node) => {
                 if (!(n instanceof HTMLElement)) return;
                 if (n.tagName.toLowerCase() === 'ytd-rich-grid-row') {
-                    // Flatten new row
+
                     const items = n.querySelectorAll('ytd-rich-item-renderer');
                     items.forEach(item => carouselContainer!.appendChild(item));
                     n.remove();
                 } else if (n.tagName.toLowerCase() === 'ytd-rich-item-renderer') {
                     n.classList.add('cinema-loading');
-                    // Defer removal to next frame to allow transition
+
                     requestAnimationFrame(() => {
-                        // If thumbnail image exists, wait for it
                         const img = n.querySelector('img');
                         if (img && !(img as HTMLImageElement).complete) {
                             img.addEventListener('load', () => n.classList.remove('cinema-loading'), { once: true });
-                            // Fallback timeout in case load never fires
+
                             setTimeout(() => n.classList.remove('cinema-loading'), 1200);
                         } else {
                             n.classList.remove('cinema-loading');
                         }
-                        // After new item integration, update arrow enabled state
+
                         updateCarouselArrows();
-                        // Recreate arrows if they were removed by DOM recycling
+
                         if (!arrowOverlay || !carouselContainer?.contains(arrowOverlay) || !arrowLeft || !arrowRight) {
                             addCarouselArrows();
                         }
@@ -763,7 +713,7 @@ function observeCarouselNewItems() {
                 }
             });
         });
-        // Post-mutation integrity check (covers non video nodes e.g. continuation spinner replacement)
+
         ensureCarouselArrows(true);
     }, 50));
     obs.observe(grid, { childList: true, subtree: true });
@@ -776,12 +726,12 @@ function ensureCarouselArrows(forceUpdate = false) {
     if (!arrowOverlay || !carouselContainer.contains(arrowOverlay) || !arrowLeft || !arrowRight) {
         addCarouselArrows();
     } else if (forceUpdate) {
-        // Double rAF to let layout settle after large DOM injections
+
         requestAnimationFrame(() => requestAnimationFrame(() => updateCarouselArrows()));
     }
 }
 
-// Helpers
+
 function extractText(titleEl: Element | null, anchor: HTMLAnchorElement | null): string {
     if (!titleEl && anchor) return (anchor.getAttribute('title') || anchor.textContent || '').trim();
     if (!titleEl) return '';
@@ -805,24 +755,24 @@ function extractVideoId(href: string): string | null {
     } catch { return null; }
 }
 
-// Remove typical trailing duration patterns (e.g., " - 12:34", " | 8:07", or appended timestamps)
+
 function cleanTitle(raw: string): string {
-    // Strip common appended duration / time phrases YouTube sometimes places in titles (or channel formatting) leaving only core title text.
+
     let t = raw
-        // Bracketed timecodes at end e.g. "(12:34)" / "[1:02:03]"
+
         .replace(/\s*[[(](\d{1,2}:\d{2}(?::\d{2})?)[)]]\s*$/i, '')
-        // Trailing plain timecodes
+
         .replace(/(?:[-–•|]|\bat\b)?\s*\d{1,2}:\d{2}(?::\d{2})?\s*$/i, '')
-        // Composite "1 hour, 20 minutes" style
+
         .replace(/\b\d+\s+hours?,\s*\d+\s+minutes?\b[,.:;-]*$/i, '')
-        // Single unit with optional trailing comma / punctuation
+
         .replace(/\b\d+\s+(seconds?|minutes?|hours?|days?|weeks?|months?|years?)(\s+ago)?[,.:;-]*$/i, '')
-        // "streamed 2 hours ago" / "premiered 3 days ago"
+
         .replace(/\b(streamed|premiered)\s+\d+\s+(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\s+ago[,.:;-]*$/i, '')
-        // Remove hanging separators (| - : • ,) + spaces at end
+
         .replace(/([\s]*[-–•|:,])+\s*$/i, '')
         .trim();
-    // If we accidentally removed everything, fall back to original
+
     if (!t) t = raw.trim();
     return t;
 }
@@ -836,19 +786,19 @@ function switchSpotlightVideo(videoId: string) {
     const muteParam = spotlightMuted ? 1 : 0;
     const autoplaySrc = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=${muteParam}&controls=0&playsinline=1&rel=0&modestbranding=1&loop=1&playlist=${videoId}&enablejsapi=1`;
     if (next === active) {
-        // Single frame fallback: fade out then in
+
         active.classList.remove('active');
         setTimeout(() => { active.src = autoplaySrc; }, 200);
         active.onload = () => { active.classList.add('active'); };
         return;
     }
-    // Prepare next frame
+
     next.classList.remove('active');
     next.style.opacity = '0';
     next.onload = () => {
-        // Crossfade
+
         next.classList.add('active');
-        // After fade, blank out old frame to stop playback
+
         setTimeout(() => { if (active !== next) { active.classList.remove('active'); active.src = 'about:blank'; } }, 700);
     };
     if (next.src !== autoplaySrc) next.src = autoplaySrc; else next.onload?.(new Event('load'));
@@ -867,7 +817,7 @@ function applySpotlightMuteToFrames() {
 function globalWheelRedirect(e: WheelEvent) {
     if (!document.documentElement.hasAttribute(ATTR)) return;
     if (!carouselContainer) return;
-    // Only intervene if event target is within the rich grid region
+
     const grid = carouselContainer.closest('ytd-rich-grid-renderer');
     if (grid && (e.target instanceof HTMLElement) && grid.contains(e.target)) {
         if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
@@ -887,42 +837,35 @@ function maybeLoadMore() {
 }
 
 function triggerContinuationLoad() {
-    // Strategy: find continuation spinner or renderer and scroll it into view vertically to trigger network fetch.
     const cont = document.querySelector('ytd-continuation-item-renderer, yt-next-continuation, ytd-continuation-renderer');
     if (cont) {
-        // Temporarily allow vertical scrolling if disabled
         const prevOverflow = document.body.style.overflow;
         if (prevOverflow === 'hidden') document.body.style.overflow = 'auto';
         try {
             (cont as HTMLElement).scrollIntoView({ block: 'end' });
         } catch { /* ignore */ }
-        // Restore overflow for cinematic experience
+
         if (prevOverflow === 'hidden') document.body.style.overflow = 'hidden';
     } else {
-        // Fallback: simulate bottom scroll to invoke internal lazy loader
         const prevY = window.scrollY;
         window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' as ScrollBehavior });
         window.scrollTo({ top: prevY });
     }
-    // After requesting more content, proactively ensure arrows remain (or are recreated soon)
+
     ensureCarouselArrows(true);
 }
 
-// Add left/right arrows for carousel horizontal scrolling
+
 function addCarouselArrows() {
     if (!carouselContainer) return;
-    // Create overlay if absent or was removed
+
     if (!arrowOverlay || !carouselContainer.contains(arrowOverlay)) {
         arrowOverlay?.remove();
         arrowOverlay = document.createElement('div');
         arrowOverlay.className = 'cinema-arrow-overlay';
         carouselContainer.appendChild(arrowOverlay);
-        // BUGFIX: Original full-screen overlay intercepted clicks preventing video item interaction.
-        // Use display:contents so the wrapper does not create a blocking layer while
-        // preserving the existing CSS selector structure for arrows.
-        // (We avoid pointer-events:none because that would also disable arrows.)
         arrowOverlay.style.display = 'contents';
-        arrowLeft = null; arrowRight = null; // force recreate
+        arrowLeft = null; arrowRight = null;
     }
     if (!arrowLeft || !arrowRight) {
         const mkBtn = (dir: 'left' | 'right') => {
@@ -934,7 +877,7 @@ function addCarouselArrows() {
                 ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>'
                 : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
             btn.style.cursor = 'pointer';
-            // Ensure arrows are above grid items now that wrapper no longer supplies z-index stacking context
+
             btn.style.zIndex = '15';
             btn.addEventListener('click', () => {
                 const delta = Math.round(carouselContainer!.clientWidth * 0.8) * (dir === 'left' ? -1 : 1);
@@ -942,7 +885,7 @@ function addCarouselArrows() {
                 maybeLoadMore();
                 setTimeout(updateCarouselArrows, 420);
             });
-            // Long-press incremental scroll
+
             let holdTimer: number | null = null;
             let repeater: number | null = null;
             btn.addEventListener('mousedown', (e) => {
@@ -965,17 +908,17 @@ function addCarouselArrows() {
         };
         arrowLeft = mkBtn('left');
         arrowRight = mkBtn('right');
-        // Append arrows (wrapper is display:contents so children behave as if direct descendants of container)
+
         if (arrowLeft) arrowOverlay!.appendChild(arrowLeft);
         if (arrowRight) arrowOverlay!.appendChild(arrowRight);
         carouselContainer.addEventListener('scroll', updateCarouselArrows, { passive: true });
         window.addEventListener('resize', updateCarouselArrows);
     }
-    // Start interval to ensure persistence
+
     if (!arrowCheckInterval) {
         arrowCheckInterval = window.setInterval(() => {
             ensureCarouselArrows(true);
-        }, 600); // faster recovery cadence
+        }, 600);
     }
     setTimeout(updateCarouselArrows, 120);
 }
@@ -992,9 +935,8 @@ function updateCarouselArrows() {
         if (sl <= 4) arrowLeft.setAttribute('disabled', 'true'); else arrowLeft.removeAttribute('disabled');
         if (sl >= max) arrowRight.setAttribute('disabled', 'true'); else arrowRight.removeAttribute('disabled');
     }
-    // Dynamic positioning to simulate fixed overlay within scrolling area
     try {
-        const pad = 18; // visual gutter
+        const pad = 18;
         const w = arrowLeft.offsetWidth || 54;
         const sl = carouselContainer.scrollLeft;
         arrowLeft.style.left = (sl + pad) + 'px';
@@ -1004,7 +946,6 @@ function updateCarouselArrows() {
     } catch { /* ignore */ }
 }
 
-// Debounce helper
 function debounce<T extends (...p: unknown[]) => void>(fn: T, ms: number) {
     let timer: ReturnType<typeof setTimeout> | null = null;
     return (...args: Parameters<T>) => {
