@@ -27,7 +27,6 @@ export default function Layout() {
                     />
                 </NestedToggle>
 
-                <CardWithInput label="Hide Playables" checked={settings.hideYoutubePlayables} onChange={handleToggle('hideYoutubePlayables')} />
                 <Sidebar />
                 <Preview />
                 <TopBar />

@@ -14,6 +14,7 @@ export default function Feeds() {
                 <CardWithInput label="Shorts" checked={settings.hideShorts} onChange={handleToggle('hideShorts')} />
                 <CardWithInput label="Subscriptions" checked={settings.hideSubscriptions} onChange={handleToggle('hideSubscriptions')} />
                 <CardWithInput label="Posts" checked={settings.hidePosts} onChange={handleToggle('hidePosts')} />
+                <CardWithInput label="Hide Playables" checked={settings.hideYoutubePlayables} onChange={handleToggle('hideYoutubePlayables')} />
             </SettingsGrid>
         </SettingsGroup>
     )
