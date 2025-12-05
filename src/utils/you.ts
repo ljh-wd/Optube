@@ -131,15 +131,15 @@ export function injectYouFeedCSS() {
     style.id = id;
     style.textContent = `
     /* Hide ALL You feed sections when master flag on */
-    html[${ROOT_FLAG}][hide_you_section] ytd-rich-section-renderer { display: none !important; }
+    html[${ROOT_FLAG}][hide_you_section] ytd-rich-section-renderer { display: none ; }
 
     /* Individual sections (only effective if master not hiding everything) */
-    html[${ROOT_FLAG}]:not([hide_you_section])[hide_you_history] ytd-rich-section-renderer[data-optube-section="History"] { display: none !important; }
-    html[${ROOT_FLAG}]:not([hide_you_section])[hide_you_playlists] ytd-rich-section-renderer[data-optube-section="Playlists"] { display: none !important; }
-    html[${ROOT_FLAG}]:not([hide_you_section])[hide_you_your_videos] ytd-rich-section-renderer[data-optube-section="Your videos"] { display: none !important; }
-    html[${ROOT_FLAG}]:not([hide_you_section])[hide_you_your_courses] ytd-rich-section-renderer[data-optube-section="Your courses"] { display: none !important; }
-    html[${ROOT_FLAG}]:not([hide_you_section])[hide_you_watch_later] ytd-rich-section-renderer[data-optube-section="Watch later"] { display: none !important; }
-    html[${ROOT_FLAG}]:not([hide_you_section])[hide_you_liked_videos] ytd-rich-section-renderer[data-optube-section="Liked videos"] { display: none !important; }
+    html[${ROOT_FLAG}]:not([hide_you_section])[hide_you_history] ytd-rich-section-renderer[data-optube-section="History"] { display: none ; }
+    html[${ROOT_FLAG}]:not([hide_you_section])[hide_you_playlists] ytd-rich-section-renderer[data-optube-section="Playlists"] { display: none ; }
+    html[${ROOT_FLAG}]:not([hide_you_section])[hide_you_your_videos] ytd-rich-section-renderer[data-optube-section="Your videos"] { display: none ; }
+    html[${ROOT_FLAG}]:not([hide_you_section])[hide_you_your_courses] ytd-rich-section-renderer[data-optube-section="Your courses"] { display: none ; }
+    html[${ROOT_FLAG}]:not([hide_you_section])[hide_you_watch_later] ytd-rich-section-renderer[data-optube-section="Watch later"] { display: none ; }
+    html[${ROOT_FLAG}]:not([hide_you_section])[hide_you_liked_videos] ytd-rich-section-renderer[data-optube-section="Liked videos"] { display: none ; }
   `;
     document.head.appendChild(style);
 }

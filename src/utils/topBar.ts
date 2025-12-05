@@ -70,7 +70,7 @@ export function injectCreateButtonCSS() {
     if (document.getElementById(id)) { createButtonCSSInjected = true; return; }
     const style = document.createElement('style');
     style.id = id;
-    style.textContent = `html[hide_create_button] ytd-topbar-menu-button-renderer:has([aria-label="Create" i]),\nhtml[hide_create_button] ytd-button-renderer:has([aria-label="Create" i]),\nhtml[hide_create_button] button[aria-label="Create" i] {\n  display: none !important;\n}`;
+    style.textContent = `html[hide_create_button] ytd-topbar-menu-button-renderer:has([aria-label="Create" i]),\nhtml[hide_create_button] ytd-button-renderer:has([aria-label="Create" i]),\nhtml[hide_create_button] button[aria-label="Create" i] {\n  display: none ;\n}`;
     document.head.appendChild(style);
     createButtonCSSInjected = true;
 }

@@ -89,17 +89,17 @@ export function injectPostsCSS() {
     style.textContent = `
     /* Hide community post shelves and items when attribute present */
     html[${ATTR}] ytd-rich-shelf-renderer:has(ytd-post-renderer) {
-      display: none !important;
+      display: none ;
     }
     html[${ATTR}] ytd-post-renderer {
-      display: none !important;
+      display: none ;
     }
     html[${ATTR}] ytd-rich-item-renderer:has(> #content > ytd-post-renderer) {
-      display: none !important;
+      display: none ;
     }
     /* Fallback: hide rich section renderer variants that contain only post shelves */
     html[${ATTR}] ytd-rich-section-renderer:has(ytd-post-renderer):not(:has(ytd-rich-grid-row-renderer, ytd-rich-item-renderer ytd-thumbnail)) {
-      display: none !important;
+      display: none ;
     }
   `;
     document.head.appendChild(style);

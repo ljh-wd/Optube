@@ -109,39 +109,39 @@ export function injectHomeCSS() {
     const css = `
         /* Hide Home navigation in sidebar */
         html[hide_home] ytd-guide-entry-renderer:has([title="Home"]) {
-            display: none !important;
+            display: none ;
         }
         
         /* Hide home feed when hide_home attribute is present - ONLY on home page */
         html[hide_home] ytd-browse[page-subtype="home"] {
-            display: none !important;
+            display: none ;
         }
         
         /* Only hide these elements when specifically on the home page */
         html[hide_home] ytd-browse[page-subtype="home"] ytd-rich-grid-renderer {
-            display: none !important;
+            display: none ;
         }
         
         html[hide_home] ytd-browse[page-subtype="home"] ytd-rich-item-renderer {
-            display: none !important;
+            display: none ;
         }
         
         html[hide_home] ytd-browse[page-subtype="home"] ytd-rich-section-renderer {
-            display: none !important;
+            display: none ;
         }
         
         /* Hide home feed containers more specifically */
         html[hide_home] ytd-browse[page-subtype="home"] #contents {
-            display: none !important;
+            display: none ;
         }
         
         html[hide_home] ytd-browse[page-subtype="home"] #primary {
-            display: none !important;
+            display: none ;
         }
         
         /* Alternative approach - hide content only when URL is root */
         html[hide_home] ytd-browse[page-subtype="home"] ytd-two-column-browse-results-renderer {
-            display: none !important;
+            display: none ;
         }
     `;
 

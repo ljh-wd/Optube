@@ -119,7 +119,7 @@ export function injectShortsCSS() {
 
         /* Hide Shorts in sidebar navigation */
         :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-guide-entry-renderer:has([title="Shorts"]) {
-            display: none !important;
+            display: none ;
         }
 
         /* Dedicated shorts shelf components */
@@ -134,7 +134,7 @@ export function injectShortsCSS() {
         :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-rich-shelf-renderer:has(a[href*="/shorts/"]),
         :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytm-shorts-lockup-view-model,
         :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytm-shorts-lockup-view-model-v2 {
-            display: none !important;
+            display: none ;
         }
 
         /* Hide "Shorts" filter chips in search chip clouds (JS also does cleanup) */
@@ -148,36 +148,36 @@ export function injectShortsCSS() {
         :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-video-renderer:has(a[href*="/shorts/"]),
         :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-grid-video-renderer:has(a[href*="/shorts/"]),
         :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-compact-video-renderer:has(a[href*="/shorts/"]) {
-            display: none !important;
+            display: none ;
         }
 
         /* Hide Shorts in home feed */
         :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-rich-section-renderer:has([aria-label*="Short" i]),
         :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-rich-section-renderer:has([title*="Short" i]) {
-            display: none !important;
+            display: none ;
         }
 
         /* Hide Shorts in search results */
         :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-video-renderer:has(.badge-shape-wiz[aria-label*="Short" i]),
         :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-search-refinement-card-renderer:has([aria-label*="Short" i]) {
-            display: none !important;
+            display: none ;
         }
 
         /* Hide Shorts tab in channel pages */
         :is(html[hide_shorts="true"], body.cinema-hide-shorts) tp-yt-paper-tab:has([tab-title="Shorts"]),
         :is(html[hide_shorts="true"], body.cinema-hide-shorts) yt-tab-shape:has([tab-title="Shorts"]) {
-            display: none !important;
+            display: none ;
         }
 
         /* Hide any element with shorts in the URL */
         :is(html[hide_shorts="true"], body.cinema-hide-shorts) [href*="/shorts/"] {
-            display: none !important;
+            display: none ;
         }
 
         /* Hide Shorts with specific badges */
         :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-rich-item-renderer:has(.badge-shape-wiz[aria-label*="Short" i]),
         :is(html[hide_shorts="true"], body.cinema-hide-shorts) ytd-video-renderer:has(.badge-shape-wiz[aria-label*="Short" i]) {
-            display: none !important;
+            display: none ;
         }
 
         /* Intentionally NOT hiding: ytd-rich-grid-renderer, ytd-item-section-renderer */

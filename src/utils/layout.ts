@@ -115,7 +115,7 @@ export function injectLayoutCSS() {
     html[hide_live_chat] #contents #chatframe,
     html[hide_live_chat] #contents #chat-container,
     html[hide_live_chat] #contents #live-chat-iframe {
-        display: none !important;
+        display: none ;
     }
 
     /* Duration badges (broad selectors) when attribute active */
@@ -125,7 +125,7 @@ export function injectLayoutCSS() {
     html[hide_duration_badges] .thumbnail-overlay-badge-shape:has(.badge-shape-wiz__text),
     html[hide_duration_badges] badge-shape.badge-shape-wiz--thumbnail-badge,
     html[hide_duration_badges] .ytThumbnailBottomOverlayViewModelBadgeContainer:has(.badge-shape-wiz__text) {
-        display: none !important;
+        display: none ;
     }
 
   
@@ -133,96 +133,96 @@ export function injectLayoutCSS() {
   html[hide_preview_details] .yt-lockup-metadata-view-model__text-container,
   html[hide_preview_details] .yt-lockup-metadata-view-model__menu-button,
   html[hide_preview_details] ytd-rich-grid-media #details,
-  html[hide_preview_details] ytd-video-renderer #metadata { display: none !important; }
+  html[hide_preview_details] ytd-video-renderer #metadata { display: none ; }
   
   html[hide_preview_details] .yt-lockup-view-model__content-image,
   html[hide_preview_details] ytd-rich-grid-media #thumbnail,
-  html[hide_preview_details] ytd-video-renderer #thumbnail { width: 100% !important; margin-right: 0 !important; }
+  html[hide_preview_details] ytd-video-renderer #thumbnail { width: 100% ; margin-right: 0 ; }
 
   html[hide_preview_details] .yt-lockup-view-model,
   html[hide_preview_details] ytd-rich-grid-media,
-  html[hide_preview_details] ytd-video-renderer { max-width: 100% !important; }
+  html[hide_preview_details] ytd-video-renderer { max-width: 100% ; }
 
   
   html[hide_preview_avatars] .yt-lockup-metadata-view-model__avatar,
   html[hide_preview_avatars] ytd-rich-grid-media #avatar-container,
-  html[hide_preview_avatars] ytd-video-renderer #avatar-link { display: none !important; }
+  html[hide_preview_avatars] ytd-video-renderer #avatar-link { display: none ; }
 
   
-  html[hide_badges_chips] #chips-wrapper, html[hide_badges_chips] ytd-feed-filter-chip-bar-renderer { display: none !important; }
-  html[hide_badges_chips] #frosted-glass { height: 65px !important; }
+  html[hide_badges_chips] #chips-wrapper, html[hide_badges_chips] ytd-feed-filter-chip-bar-renderer { display: none ; }
+  html[hide_badges_chips] #frosted-glass { height: 65px ; }
   
     
     html[hide_preview_details] ytd-watch-flexy #secondary ytd-video-renderer #dismissible,
     html[hide_preview_details] ytd-watch-flexy #secondary ytd-compact-video-renderer #dismissible,
     html[hide_preview_details] ytd-watch-flexy #secondary ytd-compact-radio-renderer #dismissible,
     html[hide_preview_details] ytd-watch-flexy #secondary ytd-compact-playlist-renderer #dismissible {
-        display: block !important;
+        display: block ;
     }
     html[hide_preview_details] ytd-watch-flexy #secondary ytd-video-renderer #thumbnail,
     html[hide_preview_details] ytd-watch-flexy #secondary ytd-compact-video-renderer #thumbnail,
     html[hide_preview_details] ytd-watch-flexy #secondary ytd-compact-radio-renderer #thumbnail,
     html[hide_preview_details] ytd-watch-flexy #secondary ytd-compact-playlist-renderer #thumbnail {
-        width: 100% !important;
-        margin-right: 0 !important;
+        width: 100% ;
+        margin-right: 0 ;
     }
     html[hide_preview_details] ytd-watch-flexy #secondary ytd-video-renderer #details,
     html[hide_preview_details] ytd-watch-flexy #secondary ytd-compact-video-renderer #details,
     html[hide_preview_details] ytd-watch-flexy #secondary ytd-compact-radio-renderer #details,
     html[hide_preview_details] ytd-watch-flexy #secondary ytd-compact-playlist-renderer #details {
-        display: none !important; /* reinforce */
+        display: none ; /* reinforce */
     }
     html[hide_preview_details] ytd-watch-flexy #secondary ytd-video-renderer,
     html[hide_preview_details] ytd-watch-flexy #secondary ytd-compact-video-renderer,
     html[hide_preview_details] ytd-watch-flexy #secondary ytd-compact-radio-renderer,
     html[hide_preview_details] ytd-watch-flexy #secondary ytd-compact-playlist-renderer {
-        max-width: 100% !important;
+        max-width: 100% ;
     }
 
         
         html[hide_preview_details] ytd-watch-flexy #secondary yt-lockup-view-model .yt-lockup-view-model-wiz {
-            display: block !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            flex: 0 0 auto !important;
+            display: block ;
+            width: 100% ;
+            max-width: 100% ;
+            flex: 0 0 auto ;
         }
         html[hide_preview_details] ytd-watch-flexy #secondary yt-lockup-view-model .yt-lockup-view-model-wiz__content-image {
-            width: 100% !important;
-            margin-right: 0 !important;
-            display: block !important;
+            width: 100% ;
+            margin-right: 0 ;
+            display: block ;
         }
         html[hide_preview_details] ytd-watch-flexy #secondary yt-lockup-view-model .yt-lockup-metadata-view-model-wiz,
         html[hide_preview_details] ytd-watch-flexy #secondary yt-lockup-view-model .yt-lockup-view-model-wiz__metadata,
         html[hide_preview_details] ytd-watch-flexy #secondary yt-lockup-view-model .yt-lockup-metadata-view-model-wiz__avatar,
         html[hide_preview_details] ytd-watch-flexy #secondary yt-lockup-view-model .yt-lockup-metadata-view-model-wiz__text-container,
         html[hide_preview_details] ytd-watch-flexy #secondary yt-lockup-view-model .yt-lockup-metadata-view-model-wiz__menu-button {
-            display: none !important;
+            display: none ;
         }
 
         
         html[hide_watched_progress] yt-thumbnail-overlay-progress-bar-view-model,
         html[hide_watched_progress] yt-thumbnail-overlay-progress-bar-view-model * {
-            opacity: 0 !important;
-            visibility: hidden !important;
+            opacity: 0 ;
+            visibility: hidden ;
         }
-        html[hide_watched_progress] yt-thumbnail-overlay-progress-bar-view-model { pointer-events: none !important; }
+        html[hide_watched_progress] yt-thumbnail-overlay-progress-bar-view-model { pointer-events: none ; }
         
         html[hide_watched_progress] .ytThumbnailOverlayProgressBarHost,
         html[hide_watched_progress] .ytThumbnailOverlayProgressBarHost *,
         html[hide_watched_progress] .ytThumbnailOverlayProgressBarHostWatchedProgressBar,
         html[hide_watched_progress] .ytThumbnailOverlayProgressBarHostWatchedProgressBar * {
-            opacity: 0 !important;
-            visibility: hidden !important;
-            pointer-events: none !important;
+            opacity: 0 ;
+            visibility: hidden ;
+            pointer-events: none ;
         }
         
         html[hide_watched_progress] ytd-rich-item-renderer [class*='ProgressBar'],
         html[hide_watched_progress] ytd-rich-grid-media [class*='ProgressBar'],
         html[hide_watched_progress] yt-lockup-view-model [class*='ProgressBar'],
         html[hide_watched_progress] ytd-video-renderer [class*='ProgressBar'] {
-            opacity: 0 !important;
-            visibility: hidden !important;
-            pointer-events: none !important;
+            opacity: 0 ;
+            visibility: hidden ;
+            pointer-events: none ;
         }
         
         html[hide_duration_badges] ytd-rich-item-renderer:hover .ytThumbnailBottomOverlayViewModelBadgeContainer,
@@ -232,27 +232,27 @@ export function injectLayoutCSS() {
         html[hide_duration_badges] ytd-rich-item-renderer:hover yt-thumbnail-overlay-time-status-renderer,
         html[hide_duration_badges] ytd-rich-item-renderer:hover yt-thumbnail-badge-view-model,
         html[hide_duration_badges] ytd-rich-item-renderer:hover .ytThumbnailBottomOverlayViewModelBadgeContainer:has(.badge-shape-wiz__text) {
-            display: none !important;
+            display: none ;
         }
         
-        html[hide_duration_badges] yt-thumbnail-bottom-overlay-view-model:has(.ytThumbnailOverlayProgressBarHost) .ytThumbnailBottomOverlayViewModelBadgeContainer { display: none !important; }
+        html[hide_duration_badges] yt-thumbnail-bottom-overlay-view-model:has(.ytThumbnailOverlayProgressBarHost) .ytThumbnailBottomOverlayViewModelBadgeContainer { display: none ; }
 
         
         html[hide_hover_preview] ytd-rich-item-renderer:hover video,
         html[hide_hover_preview] ytd-rich-grid-media:hover video,
         html[hide_hover_preview] yt-lockup-view-model:hover video {
-            display: none !important;
+            display: none ;
         }
         
         html[hide_hover_preview] ytd-rich-item-renderer:hover .ytd-rich-item-renderer,
-        html[hide_hover_preview] ytd-rich-item-renderer:hover .yt-thumbnail-view-model__image img { filter: none !important; }
+        html[hide_hover_preview] ytd-rich-item-renderer:hover .yt-thumbnail-view-model__image img { filter: none ; }
         
         html[hide_hover_preview] ytd-rich-item-renderer [class*='inline-preview'],
-        html[hide_hover_preview] ytd-rich-item-renderer [class*='InlinePreview'] { display: none !important; }
+        html[hide_hover_preview] ytd-rich-item-renderer [class*='InlinePreview'] { display: none ; }
 
     
     html[hide_youtube_playables] ytd-rich-section-renderer[data-optube-playables] {
-        display: none !important;
+        display: none ;
     }
 
     
@@ -269,7 +269,7 @@ export function injectLayoutCSS() {
     html[hide_live_videos] ytd-rich-item-renderer:has(yt-thumbnail-overlay-live-badge-renderer),
     html[hide_live_videos] ytd-video-renderer:has(yt-thumbnail-overlay-live-badge-renderer),
     html[hide_live_videos] ytd-compact-video-renderer:has(yt-thumbnail-overlay-live-badge-renderer) {
-        display: none !important;
+        display: none ;
     }
   `;
     document.head.appendChild(style);

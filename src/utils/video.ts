@@ -89,61 +89,61 @@ export function injectVideoPlayerCSS() {
     style.id = id;
     style.textContent = `
 html[optube_hide_recommended] #movie_player .html5-video-container {
-width: 100% !important;
-height: 100% !important;
-box-sizing: border-box !important;
-position: relative !important;
+width: 100% ;
+height: 100% ;
+box-sizing: border-box ;
+position: relative ;
 }
 
 html[optube_hide_recommended] #movie_player .ytp-chrome-bottom {
-width: 100% !important;
+width: 100% ;
 }
 
 html[optube_hide_recommended] #movie_player .html5-video-container video {
-width: 100% !important;
-height: 100% !important;
-min-width: 100% !important;
-min-height: 100% !important;
-object-fit: cover !important;
-position: absolute !important;
-top: 0 !important;
-left: 0 !important;
+width: 100% ;
+height: 100% ;
+min-width: 100% ;
+min-height: 100% ;
+object-fit: cover ;
+position: absolute ;
+top: 0 ;
+left: 0 ;
 }
 
 html[optube_hide_recommended] #movie_player .ytp-chapters-container {
-width: 100% !important;
-display: flex !important;
-justify-content: space-between !important;
-box-sizing: border-box !important;
-gap: 0.2rem !important;
+width: 100% ;
+display: flex ;
+justify-content: space-between ;
+box-sizing: border-box ;
+gap: 0.2rem ;
 }
 
 html[optube_hide_recommended] #movie_player .ytp-heat-map-container {
-width: 100% !important;
-display: flex !important;
-justify-content: space-between !important;
-box-sizing: border-box !important;
-gap: 0.2rem !important;
+width: 100% ;
+display: flex ;
+justify-content: space-between ;
+box-sizing: border-box ;
+gap: 0.2rem ;
 }
 
 html[optube_hide_recommended] #movie_player .ytp-heat-map-container > div {
-width: auto !important;
-flex-grow: 1 !important;
-left: unset !important;
-position: relative !important;
-margin-right: 0 !important;
+width: auto ;
+flex-grow: 1 ;
+left: unset ;
+position: relative ;
+margin-right: 0 ;
 }
 
 html[optube_hide_recommended] #movie_player .ytp-chapters-container .ytp-chapter-hover-container {
-width: auto !important;
-min-width: 0 !important;
-margin-right: 0 !important;
-flex-grow: 1 !important;
-box-sizing: border-box !important;
+width: auto ;
+min-width: 0 ;
+margin-right: 0 ;
+flex-grow: 1 ;
+box-sizing: border-box ;
 }
 
 html[optube_hide_recommended] #movie_player .ytp-chapters-container .ytp-chapter-hover-container:last-child {
-margin-right: 0 !important; /* Remove margin on the last child */
+margin-right: 0 ; /* Remove margin on the last child */
 }
 `;
     document.head.appendChild(style);
@@ -169,10 +169,10 @@ export function injectCommentAvatarCSS() {
 html[hide_comment_avatars] #author-thumbnail,
 html[hide_comment_avatars] ytd-comment-view-model #author-thumbnail,
 html[hide_comment_avatars] ytd-comment-simplebox-renderer #author-thumbnail {
-    display: none !important;
+    display: none ;
 }
 html[hide_comment_avatars] #expander.style-scope.ytd-comment-replies-renderer .expander-header.style-scope.ytd-comment-replies-renderer {
-    align-items: flex-start !important;
+    align-items: flex-start ;
 }
 `;
     document.head.appendChild(style);
@@ -185,9 +185,9 @@ export function injectCommentTimeCSS() {
     style.id = id;
     style.textContent = `
 /* Hide published time in comment headers (new VM-based comments) */
-html[hide_comment_upload_time] ytd-comment-view-model #published-time-text { display: none !important; }
+html[hide_comment_upload_time] ytd-comment-view-model #published-time-text { display: none ; }
 /* Legacy comments renderer fallback */
-html[hide_comment_upload_time] ytd-comment-renderer #published-time-text { display: none !important; }
+html[hide_comment_upload_time] ytd-comment-renderer #published-time-text { display: none ; }
 `;
     document.head.appendChild(style);
 }
@@ -199,17 +199,17 @@ export function injectCommentRepliesCSS() {
     style.id = id;
     style.textContent = `
 /* Hide reply button in engagement bar */
-html[hide_comment_replies] ytd-comment-engagement-bar #reply-button-end { display: none !important; }
+html[hide_comment_replies] ytd-comment-engagement-bar #reply-button-end { display: none ; }
 /* Hide replies containers (thread renderer and replies renderer) */
 html[hide_comment_replies] ytd-comment-thread-renderer #replies,
-html[hide_comment_replies] ytd-comment-replies-renderer { display: none !important; }
+html[hide_comment_replies] ytd-comment-replies-renderer { display: none ; }
 /* Hide sub-thread "1 reply" and similar CTAs */
 html[hide_comment_replies] ytd-comment-replies-renderer #more-replies,
 html[hide_comment_replies] ytd-comment-replies-renderer #less-replies,
 html[hide_comment_replies] ytd-comment-replies-renderer #more-replies-sub-thread,
 html[hide_comment_replies] ytd-comment-replies-renderer #less-replies-sub-thread,
 html[hide_comment_replies] ytd-comment-replies-renderer .more-button,
-html[hide_comment_replies] ytd-comment-replies-renderer .less-button { display: none !important; }
+html[hide_comment_replies] ytd-comment-replies-renderer .less-button { display: none ; }
 `;
     document.head.appendChild(style);
 }
@@ -460,36 +460,36 @@ export function injectActionsCSS() {
     style.textContent = `
 /* Scope to watch page actions row */
 /* Parent: hide entire actions row */
-html[hide_actions] ytd-watch-metadata #actions { display: none !important; }
+html[hide_actions] ytd-watch-metadata #actions { display: none ; }
 
 /* Like/Dislike: segmented buttons */
-html[hide_action_like_dislike] ytd-watch-metadata #actions ytd-menu-renderer segmented-like-dislike-button-view-model { display: none !important; }
+html[hide_action_like_dislike] ytd-watch-metadata #actions ytd-menu-renderer segmented-like-dislike-button-view-model { display: none ; }
 
 /* Share button */
-html[hide_action_share] ytd-watch-metadata #actions ytd-menu-renderer yt-button-view-model:has(button[aria-label*="Share" i]) { display: none !important; }
+html[hide_action_share] ytd-watch-metadata #actions ytd-menu-renderer yt-button-view-model:has(button[aria-label*="Share" i]) { display: none ; }
 /* Fallback: hide icon-only share button via aria-label on the button element */
-html[hide_action_share] ytd-watch-metadata #actions ytd-menu-renderer button[aria-label*="Share" i] { display: none !important; }
+html[hide_action_share] ytd-watch-metadata #actions ytd-menu-renderer button[aria-label*="Share" i] { display: none ; }
 
 /* Save button */
-html[hide_action_save] ytd-watch-metadata #actions ytd-menu-renderer yt-button-view-model:has(button[aria-label*="Save" i]) { display: none !important; }
-html[hide_action_save] ytd-watch-metadata #actions ytd-menu-renderer button[aria-label*="Save" i] { display: none !important; }
+html[hide_action_save] ytd-watch-metadata #actions ytd-menu-renderer yt-button-view-model:has(button[aria-label*="Save" i]) { display: none ; }
+html[hide_action_save] ytd-watch-metadata #actions ytd-menu-renderer button[aria-label*="Save" i] { display: none ; }
 
 /* Ellipsis (more actions) button */
 html[hide_action_ellipsis] ytd-watch-metadata #actions ytd-menu-renderer yt-icon-button#button,
-html[hide_action_ellipsis] ytd-watch-metadata #actions ytd-menu-renderer yt-button-shape#button-shape { display: none !important; }
+html[hide_action_ellipsis] ytd-watch-metadata #actions ytd-menu-renderer yt-button-shape#button-shape { display: none ; }
 
 /* Join button next to owner */
 html[hide_action_join] ytd-video-owner-renderer #sponsor-button,
 html[hide_action_join] ytd-video-owner-renderer #sponsor-button ytd-button-renderer,
-html[hide_action_join] ytd-video-owner-renderer button[aria-label*="Join" i] { display: none !important; }
+html[hide_action_join] ytd-video-owner-renderer button[aria-label*="Join" i] { display: none ; }
 
 /* Subscribe button block */
 html[hide_action_subscribe] ytd-watch-metadata #subscribe-button,
 html[hide_action_subscribe] ytd-subscribe-button-renderer,
-html[hide_action_subscribe] ytd-subscribe-button-renderer #subscribe-button-shape { display: none !important; }
+html[hide_action_subscribe] ytd-subscribe-button-renderer #subscribe-button-shape { display: none ; }
 /* Clip button (Create clip) */
-html[hide_action_clip] ytd-watch-metadata #actions ytd-menu-renderer yt-button-view-model:has(button[aria-label*="Clip" i]) { display: none !important; }
-html[hide_action_clip] ytd-watch-metadata #actions ytd-menu-renderer button[aria-label*="Clip" i] { display: none !important; }
+html[hide_action_clip] ytd-watch-metadata #actions ytd-menu-renderer yt-button-view-model:has(button[aria-label*="Clip" i]) { display: none ; }
+html[hide_action_clip] ytd-watch-metadata #actions ytd-menu-renderer button[aria-label*="Clip" i] { display: none ; }
 `;
     document.head.appendChild(style);
 }
@@ -516,7 +516,7 @@ html[hide_video_filter_chips] ytd-watch-next-secondary-results-renderer #chips,
 /* Fallback: if chips render under watch metadata on some variants */
 html[hide_video_filter_chips] ytd-watch-metadata yt-chip-cloud-renderer,
 html[hide_video_filter_chips] ytd-watch-metadata iron-selector#chips,
-html[hide_video_filter_chips] ytd-watch-metadata #chips { display: none !important; }
+html[hide_video_filter_chips] ytd-watch-metadata #chips { display: none ; }
 `;
     document.head.appendChild(style);
 }

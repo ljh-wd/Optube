@@ -33,7 +33,7 @@ export function injectNavigationCSS() {
         ytd-guide-collapsible-section-entry-renderer[data-optube-hidden="true"],
         ytd-guide-entry-renderer[data-optube-hidden="true"],
         ytd-mini-guide-entry-renderer[data-optube-hidden="true"] {
-            display: none !important;
+            display: none ;
         }
     `;
     document.head.appendChild(style);
