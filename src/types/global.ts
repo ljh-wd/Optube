@@ -1,5 +1,8 @@
+export type ProfileKey = 'cinema' | 'focus' | 'minimal' | 'compact' | 'zen';
+
 export interface Settings {
     theme?: 'dark' | 'light';
+    extensionEnabled: boolean;
     hideShorts: boolean;
     hideFold: boolean;
     hideComments: boolean;
@@ -63,4 +66,5 @@ export interface Settings {
     hideExploreFashion: boolean;
     hideExplorePodcasts: boolean;
     hideExplorePlayables: boolean;
+    activeProfile: ProfileKey | null;
 }

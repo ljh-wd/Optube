@@ -18,6 +18,8 @@ export default function Footer() {
                         });
                         reset.cinematicMode = false;
                         reset.cinemaPreviewMuted = false;
+                        reset.extensionEnabled = true;
+                        reset.activeProfile = null;
                         chrome.storage.sync.set(reset as Settings);
                         chrome.storage.sync.remove('_sidebarNestedBackup');
                         setSettings(prev => ({ ...prev, ...reset } as Settings));

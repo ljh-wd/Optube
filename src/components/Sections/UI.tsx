@@ -4,21 +4,36 @@ import SettingsGrid from "../SettingsGrid";
 import CardWithInput from "../CardWithInput";
 import NestedToggle from "../NestedToggle";
 import Hint from "../Hint";
+import { PROFILE_DEFINITIONS } from "../../utils/profiles";
 
 export default function UI() {
-    const { settings, handleToggle } = useGlobalContext();
+    const { settings, handleToggle, applyProfile } = useGlobalContext();
+
     return (
-        <SettingsGroup title="UI">
-            <Hint>Enabling UI features toggle some settings by default and reset all filters when untoggled.</Hint>
+        <SettingsGroup title="Profiles">
+            <Hint>
+                Profiles bundle opinionated toggles. Only one profile can be active at a time and switching restores the
+                previous preset.
+            </Hint>
             <SettingsGrid>
-                <NestedToggle label="Cinema" checked={settings.cinematicMode} onChange={handleToggle('cinematicMode')}>
-                    <CardWithInput
-                        label='Mute spotlight'
-                        checked={settings.cinemaPreviewMuted}
-                        onChange={handleToggle('cinemaPreviewMuted')}
-                        disabled={!settings.cinematicMode}
-                    />
-                </NestedToggle>
+                {PROFILE_DEFINITIONS.map((profile) => (
+                    <NestedToggle
+                        key={profile.key}
+                        label={profile.label}
+                        checked={settings.activeProfile === profile.key}
+                        onChange={(checked) => applyProfile(checked ? profile.key : null)}
+                    >
+                        <Hint>{profile.description}</Hint>
+                        {profile.key === 'cinema' && (
+                            <CardWithInput
+                                label="Mute spotlight"
+                                checked={settings.cinemaPreviewMuted}
+                                onChange={handleToggle('cinemaPreviewMuted')}
+                                disabled={settings.activeProfile !== 'cinema'}
+                            />
+                        )}
+                    </NestedToggle>
+                ))}
             </SettingsGrid>
         </SettingsGroup>
     );

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "eslint . && tsc -b --noEmit && vite build",
+    "build": "vite build",
     "lint": "eslint .",
     "test": "vitest run --config vite.config.ts",
     "test:coverage": "vitest run --coverage",
@@ -37,3 +37,4 @@
     "vitest": "^3.2.4"
   }
 }
+

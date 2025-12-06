@@ -54,91 +54,94 @@ import { applyYouFeedAttributes, observeYouFeed, injectYouFeedCSS } from './util
 import { applyCinema, injectCinemaCSS, observeCinema } from './utils/cinema';
 
 function cleanYouTube(settings: Settings): void {
-    setShortsVisibility(!!settings.hideShorts);
-    setHomeVisibility(!!settings.hideHome);
-    setSubscriptionsVisibility(!!settings.hideSubscriptions);
-    setSubscriptionsSidebarVisibility(!!settings.hideSubscriptionsSidebar);
-    setChannelSubscriberCount(!!settings.hideChannelSubscriberCount);
-    setMastheadVisibility(!!settings.hideMasthead);
-    setMastheadAvatarVisibility(!!settings.hideAvatar);
-    setMastheadAvatarVisibility(!!settings.hideAvatar);
-    setSearchbarVisibility(!!settings.hideSearchbar);
-    setNotificationsVisibility(!!settings.hideNotifications);
-    setCreateButtonVisibility(!!settings.hideCreateButton);
-    setCommentsVisibility(!!settings.hideComments);
-    setCommentAvatarsVisibility(!!settings.hideCommentAvatars);
-    setCommentUploadTimeVisibility(!!settings.hideCommentUploadTime);
-    setCommentRepliesVisibility(!!settings.hideCommentReplies);
-    setAiSummaryVisibility(!!settings.hideAiSummary);
-    setFoldVisibility(!!settings.hideFold);
-    setCategoryAndTopicVisibility(!!settings.hideCategoryAndTopic);
-    setRecommendedVisibility(!!settings.hideRecommended);
-    setPostsVisibility(!!settings.hidePosts);
-    setSidebarVisibility(!!settings.hideSidebar);
-    setDescriptionVisibility(!!settings.hideDescription);
-    setTitleVisibility(!!settings.hideTitle);
-    setCreatorVisibility(!!settings.hideCreator);
+    const isExtensionEnabled = settings.extensionEnabled !== false;
+    const flag = (value?: boolean) => Boolean(isExtensionEnabled && value);
+
+    setShortsVisibility(flag(settings.hideShorts));
+    setHomeVisibility(flag(settings.hideHome));
+    setSubscriptionsVisibility(flag(settings.hideSubscriptions));
+    setSubscriptionsSidebarVisibility(flag(settings.hideSubscriptionsSidebar));
+    setChannelSubscriberCount(flag(settings.hideChannelSubscriberCount));
+    setMastheadVisibility(flag(settings.hideMasthead));
+    setMastheadAvatarVisibility(flag(settings.hideAvatar));
+    setMastheadAvatarVisibility(flag(settings.hideAvatar));
+    setSearchbarVisibility(flag(settings.hideSearchbar));
+    setNotificationsVisibility(flag(settings.hideNotifications));
+    setCreateButtonVisibility(flag(settings.hideCreateButton));
+    setCommentsVisibility(flag(settings.hideComments));
+    setCommentAvatarsVisibility(flag(settings.hideCommentAvatars));
+    setCommentUploadTimeVisibility(flag(settings.hideCommentUploadTime));
+    setCommentRepliesVisibility(flag(settings.hideCommentReplies));
+    setAiSummaryVisibility(flag(settings.hideAiSummary));
+    setFoldVisibility(flag(settings.hideFold));
+    setCategoryAndTopicVisibility(flag(settings.hideCategoryAndTopic));
+    setRecommendedVisibility(flag(settings.hideRecommended));
+    setPostsVisibility(flag(settings.hidePosts));
+    setSidebarVisibility(flag(settings.hideSidebar));
+    setDescriptionVisibility(flag(settings.hideDescription));
+    setTitleVisibility(flag(settings.hideTitle));
+    setCreatorVisibility(flag(settings.hideCreator));
     applyActions({
-        hideActions: settings.hideActions,
-        hideActionLikeDislike: settings.hideActionLikeDislike,
-        hideActionShare: settings.hideActionShare,
-        hideActionSave: settings.hideActionSave,
-        hideActionEllipsis: settings.hideActionEllipsis,
-        hideActionJoin: settings.hideActionJoin,
-        hideActionSubscribe: settings.hideActionSubscribe,
-        hideActionClip: settings.hideActionClip,
+        hideActions: flag(settings.hideActions),
+        hideActionLikeDislike: flag(settings.hideActionLikeDislike),
+        hideActionShare: flag(settings.hideActionShare),
+        hideActionSave: flag(settings.hideActionSave),
+        hideActionEllipsis: flag(settings.hideActionEllipsis),
+        hideActionJoin: flag(settings.hideActionJoin),
+        hideActionSubscribe: flag(settings.hideActionSubscribe),
+        hideActionClip: flag(settings.hideActionClip),
     });
-    setVideoFilterChipsVisibility(!!settings.hideVideoFilterChips);
+    setVideoFilterChipsVisibility(flag(settings.hideVideoFilterChips));
     applyLayout({
-        hideDurationBadges: settings.hideDurationBadges,
-        hidePreviewDetails: settings.hidePreviewDetails,
-        hidePreviewAvatars: settings.hidePreviewAvatars,
-        hideBadgesChips: settings.hideBadgesChips,
-        hideWatchedProgress: settings.hideWatchedProgress,
-        hideHoverPreview: settings.hideHoverPreview,
-        hideLiveVideos: settings.hideLiveVideos,
-        hideLiveChat: settings.hideLiveChat,
-        hideYoutubePlayables: settings.hideYoutubePlayables,
+        hideDurationBadges: flag(settings.hideDurationBadges),
+        hidePreviewDetails: flag(settings.hidePreviewDetails),
+        hidePreviewAvatars: flag(settings.hidePreviewAvatars),
+        hideBadgesChips: flag(settings.hideBadgesChips),
+        hideWatchedProgress: flag(settings.hideWatchedProgress),
+        hideHoverPreview: flag(settings.hideHoverPreview),
+        hideLiveVideos: flag(settings.hideLiveVideos),
+        hideLiveChat: flag(settings.hideLiveChat),
+        hideYoutubePlayables: flag(settings.hideYoutubePlayables),
     });
-    applyCinema({ cinematicMode: settings.cinematicMode, cinemaPreviewMuted: settings.cinemaPreviewMuted });
+    applyCinema({ cinematicMode: flag(settings.cinematicMode), cinemaPreviewMuted: flag(settings.cinemaPreviewMuted) });
     applyNavigation({
-        hideExplore: settings.hideExplore,
-        hideExploreMusic: settings.hideExploreMusic,
-        hideExploreMovies: settings.hideExploreMovies,
-        hideExploreLive: settings.hideExploreLive,
-        hideExploreGaming: settings.hideExploreGaming,
-        hideExploreNews: settings.hideExploreNews,
-        hideExploreSport: settings.hideExploreSport,
-        hideExploreLearning: settings.hideExploreLearning,
-        hideExploreFashion: settings.hideExploreFashion,
-        hideExplorePodcasts: settings.hideExplorePodcasts,
-        hideExplorePlayables: settings.hideExplorePlayables,
-        hideMoreFromYouTube: settings.hideMoreFromYouTube,
-        hideYouSection: settings.hideYouSection,
-        hideYouFeed: settings.hideYouFeed,
-        hideHistory: settings.hideHistory,
-        hidePlaylists: settings.hidePlaylists,
-        hideYourVideos: settings.hideYourVideos,
-        hideYourCourses: settings.hideYourCourses,
-        hideWatchLater: settings.hideWatchLater,
-        hideLikedVideos: settings.hideLikedVideos,
+        hideExplore: flag(settings.hideExplore),
+        hideExploreMusic: flag(settings.hideExploreMusic),
+        hideExploreMovies: flag(settings.hideExploreMovies),
+        hideExploreLive: flag(settings.hideExploreLive),
+        hideExploreGaming: flag(settings.hideExploreGaming),
+        hideExploreNews: flag(settings.hideExploreNews),
+        hideExploreSport: flag(settings.hideExploreSport),
+        hideExploreLearning: flag(settings.hideExploreLearning),
+        hideExploreFashion: flag(settings.hideExploreFashion),
+        hideExplorePodcasts: flag(settings.hideExplorePodcasts),
+        hideExplorePlayables: flag(settings.hideExplorePlayables),
+        hideMoreFromYouTube: flag(settings.hideMoreFromYouTube),
+        hideYouSection: flag(settings.hideYouSection),
+        hideYouFeed: flag(settings.hideYouFeed),
+        hideHistory: flag(settings.hideHistory),
+        hidePlaylists: flag(settings.hidePlaylists),
+        hideYourVideos: flag(settings.hideYourVideos),
+        hideYourCourses: flag(settings.hideYourCourses),
+        hideWatchLater: flag(settings.hideWatchLater),
+        hideLikedVideos: flag(settings.hideLikedVideos),
     });
 
 
     applyYouFeedAttributes({
-        hideYouSection: settings.hideYouFeed,
-        hideHistory: settings.hideHistory,
-        hidePlaylists: settings.hidePlaylists,
-        hideYourVideos: settings.hideYourVideos,
-        hideYourCourses: settings.hideYourCourses,
-        hideWatchLater: settings.hideWatchLater,
-        hideLikedVideos: settings.hideLikedVideos,
+        hideYouSection: flag(settings.hideYouFeed),
+        hideHistory: flag(settings.hideHistory),
+        hidePlaylists: flag(settings.hidePlaylists),
+        hideYourVideos: flag(settings.hideYourVideos),
+        hideYourCourses: flag(settings.hideYourCourses),
+        hideWatchLater: flag(settings.hideWatchLater),
+        hideLikedVideos: flag(settings.hideLikedVideos),
     });
 }
 
 function run(): void {
     chrome.storage.sync.get([
-        'hideShorts', 'hideHome', 'hideYouFeed', 'cinematicMode', 'cinemaPreviewMuted', 'hideSubscriptions', 'hideSubscriptionsSidebar', 'hideMasthead', 'hideSearchbar', 'hideNotifications', 'hideCreateButton', 'hideFold', 'hideComments', 'hideCommentAvatars', 'hideCategoryAndTopic', 'hideRecommended', 'hidePosts', 'hideSidebar', 'hideDescription', 'hideTitle', 'hideCreator',
+        'extensionEnabled', 'hideShorts', 'hideHome', 'hideYouFeed', 'cinematicMode', 'cinemaPreviewMuted', 'hideSubscriptions', 'hideSubscriptionsSidebar', 'hideMasthead', 'hideSearchbar', 'hideNotifications', 'hideCreateButton', 'hideFold', 'hideComments', 'hideCommentAvatars', 'hideCategoryAndTopic', 'hideRecommended', 'hidePosts', 'hideSidebar', 'hideDescription', 'hideTitle', 'hideCreator',
         'hideDurationBadges', 'hidePreviewDetails', 'hidePreviewAvatars', 'hideBadgesChips',
         'hideWatchedProgress', 'hideHoverPreview',
         'hideLiveVideos', 'hideLiveChat',
@@ -190,7 +193,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
     if (
         area === 'sync' &&
         (
-            changes.hideShorts || changes.hideHome || changes.hideSubscriptions || changes.hideChannelSubscriberCount || changes.hideSubscriptionsSidebar || changes.hideMasthead || changes.hideSearchbar || changes.hideNotifications || changes.hideCreateButton || changes.hideFold || changes.hideComments || changes.hideCommentAvatars || changes.hideCommentUploadTime || changes.hideCommentReplies || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hidePosts || changes.hideSidebar || changes.hideDescription || changes.hideTitle || changes.hideCreator ||
+            changes.extensionEnabled || changes.hideShorts || changes.hideHome || changes.hideSubscriptions || changes.hideChannelSubscriberCount || changes.hideSubscriptionsSidebar || changes.hideMasthead || changes.hideSearchbar || changes.hideNotifications || changes.hideCreateButton || changes.hideFold || changes.hideComments || changes.hideCommentAvatars || changes.hideCommentUploadTime || changes.hideCommentReplies || changes.hideCategoryAndTopic || changes.hideRecommended || changes.hidePosts || changes.hideSidebar || changes.hideDescription || changes.hideTitle || changes.hideCreator ||
             changes.hideDurationBadges || changes.hidePreviewDetails || changes.hidePreviewAvatars || changes.hideBadgesChips || changes.hideWatchedProgress ||
             changes.hideHoverPreview || changes.hideAiSummary ||
             changes.hideLiveVideos || changes.hideLiveChat ||

@@ -1,10 +1,12 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, type Dispatch, type PropsWithChildren, type SetStateAction } from 'react';
-import type { Settings } from '../types/global';
+import type { ProfileKey, Settings } from '../types/global';
+import { PROFILE_OVERRIDES } from '../utils/profiles';
 
 // TODO: Split these types up for better maintainability and readability
 const defaultSettings: Settings = {
     theme: 'dark',
+    extensionEnabled: true,
     hideShorts: false,
     hideSubscriptions: false,
     hideAiSummary: false,
@@ -32,6 +34,7 @@ const defaultSettings: Settings = {
     hideVideoFilterChips: false,
     cinematicMode: false,
     cinemaPreviewMuted: true,
+    activeProfile: null,
 
     hideDurationBadges: false,
     hidePreviewDetails: false,
@@ -116,6 +119,7 @@ export function useGlobalContext() {
         throw new Error('useGlobalContext must be used within a GlobalProvider');
     }
     const { setSettings, ...restContext } = context;
+    const { defaultSettings } = restContext;
 
 
     const saveSettings = (newSettings: Settings) => {
@@ -343,5 +347,42 @@ export function useGlobalContext() {
         });
     };
 
-    return { ...restContext, setSettings, handleToggle, saveSettings };
+    const applyProfile = (profileKey: ProfileKey | null) => {
+        setSettings(prev => {
+            if (prev.activeProfile === profileKey) {
+                return prev;
+            }
+            const updated: Settings = { ...prev };
+            const assignSetting = <K extends keyof Settings>(settingKey: K, value: Settings[K]) => {
+                updated[settingKey] = value;
+            };
+
+            if (prev.activeProfile) {
+                const previousOverrides = PROFILE_OVERRIDES[prev.activeProfile];
+                if (previousOverrides) {
+                    (Object.keys(previousOverrides) as (keyof Settings)[]).forEach((settingKey) => {
+                        assignSetting(settingKey, defaultSettings[settingKey]);
+                    });
+                }
+            }
+
+            if (profileKey) {
+                const nextOverrides = PROFILE_OVERRIDES[profileKey];
+                if (nextOverrides) {
+                    (Object.keys(nextOverrides) as (keyof Settings)[]).forEach((settingKey) => {
+                        const overrideValue = nextOverrides[settingKey];
+                        if (typeof overrideValue !== 'undefined') {
+                            assignSetting(settingKey, overrideValue);
+                        }
+                    });
+                }
+            }
+
+            updated.activeProfile = profileKey;
+            saveSettings(updated);
+            return updated;
+        });
+    };
+
+    return { ...restContext, setSettings, handleToggle, saveSettings, applyProfile };
 }
